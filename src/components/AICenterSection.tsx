@@ -227,35 +227,35 @@ export default function AICenterSection() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Revenue Prediction Chart */}
-        <div className="bg-[#0b0b0b]/80 backdrop-blur-xl border border-gray-900 rounded-2xl p-4 sm:p-6">
-          <h3 className="text-base sm:text-lg font-black text-[#E6C587] mb-4 sm:mb-6 flex items-center gap-2">
+        <div className="bg-[#0b0b0b]/80 backdrop-blur-xl border border-gray-900 rounded-2xl p-3 sm:p-4 md:p-6 min-h-[280px] md:min-h-[300px]">
+          <h3 className="text-base sm:text-lg font-black text-[#E6C587] mb-3 sm:mb-4 md:mb-6 flex items-center gap-2">
             <TrendingUp size={18} />
             <span>توقع الإيرادات</span>
           </h3>
-          <div className="w-full" style={{ height: '250px' }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={revenuePredictionData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+          <div className="w-full" style={{ height: '220px', minHeight: '180px' }}>
+            <ResponsiveContainer width="100%" height="100%" minHeight={180}>
+              <AreaChart data={revenuePredictionData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
-                <XAxis dataKey="month" stroke="#6B7280" fontSize={10} tick={{ fontSize: 10 }} />
-                <YAxis stroke="#6B7280" fontSize={10} tick={{ fontSize: 10 }} />
+                <XAxis dataKey="month" stroke="#6B7280" fontSize={8} tick={{ fontSize: 8 }} interval={0} angle={-45} textAnchor="end" height={60} />
+                <YAxis stroke="#6B7280" fontSize={8} tick={{ fontSize: 8 }} width={40} />
                 <Tooltip content={<CustomTooltip />} />
-                <Legend wrapperStyle={{ fontSize: '10px' }} />
-                <Area 
-                  type="monotone" 
-                  dataKey="actual" 
-                  stroke="#D4AF37" 
-                  fill="#D4AF37" 
+                <Legend wrapperStyle={{ fontSize: '8px' }} />
+                <Area
+                  type="monotone"
+                  dataKey="actual"
+                  stroke="#D4AF37"
+                  fill="#D4AF37"
                   fillOpacity={0.3}
                   strokeWidth={2}
                   name="الفعلي"
                 />
-                <Area 
-                  type="monotone" 
-                  dataKey="predicted" 
-                  stroke="#8B5CF6" 
-                  fill="#8B5CF6" 
+                <Area
+                  type="monotone"
+                  dataKey="predicted"
+                  stroke="#8B5CF6"
+                  fill="#8B5CF6"
                   fillOpacity={0.3}
                   strokeWidth={2}
                   strokeDasharray="5 5"
@@ -267,17 +267,17 @@ export default function AICenterSection() {
         </div>
 
         {/* Occupancy Forecast Chart */}
-        <div className="bg-[#0b0b0b]/80 backdrop-blur-xl border border-gray-900 rounded-2xl p-4 sm:p-6">
-          <h3 className="text-base sm:text-lg font-black text-[#E6C587] mb-4 sm:mb-6 flex items-center gap-2">
+        <div className="bg-[#0b0b0b]/80 backdrop-blur-xl border border-gray-900 rounded-2xl p-3 sm:p-4 md:p-6 min-h-[280px] md:min-h-[300px]">
+          <h3 className="text-base sm:text-lg font-black text-[#E6C587] mb-3 sm:mb-4 md:mb-6 flex items-center gap-2">
             <Target size={18} />
             <span>توقع الإشغال الأسبوعي</span>
           </h3>
-          <div className="w-full" style={{ height: '250px' }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={occupancyForecastData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+          <div className="w-full" style={{ height: '220px', minHeight: '180px' }}>
+            <ResponsiveContainer width="100%" height="100%" minHeight={180}>
+              <BarChart data={occupancyForecastData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
-                <XAxis dataKey="week" stroke="#6B7280" fontSize={10} tick={{ fontSize: 10 }} />
-                <YAxis stroke="#6B7280" fontSize={10} tick={{ fontSize: 10 }} />
+                <XAxis dataKey="week" stroke="#6B7280" fontSize={8} tick={{ fontSize: 8 }} interval={0} angle={-45} textAnchor="end" height={60} />
+                <YAxis stroke="#6B7280" fontSize={8} tick={{ fontSize: 8 }} width={40} />
                 <Tooltip content={<CustomTooltip />} />
                 <Bar dataKey="forecast" fill="#10B981" radius={[4, 4, 0, 0]} name="نسبة الإشغال المتوقعة" />
               </BarChart>
@@ -287,8 +287,8 @@ export default function AICenterSection() {
       </div>
 
       {/* AI Assistant Chat */}
-      <div className="bg-[#0b0b0b]/80 backdrop-blur-xl border border-gray-900 rounded-2xl p-4 sm:p-6">
-        <h3 className="text-base sm:text-lg font-black text-[#E6C587] mb-4 sm:mb-6 flex items-center gap-2">
+      <div className="bg-[#0b0b0b]/80 backdrop-blur-xl border border-gray-900 rounded-2xl p-3 sm:p-4 md:p-6">
+        <h3 className="text-base sm:text-lg font-black text-[#E6C587] mb-3 sm:mb-4 md:mb-6 flex items-center gap-2">
           <MessageSquare size={18} />
           <span>المساعد الذكي</span>
         </h3>

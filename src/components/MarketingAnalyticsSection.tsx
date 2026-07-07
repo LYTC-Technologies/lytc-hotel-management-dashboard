@@ -187,30 +187,30 @@ export default function MarketingAnalyticsSection() {
       </div>
 
       {/* Website Analytics Chart */}
-      <div className="bg-[#0b0b0b]/80 backdrop-blur-xl border border-gray-900 rounded-2xl p-4 sm:p-6">
-        <h3 className="text-base sm:text-lg font-black text-[#E6C587] mb-4 sm:mb-6">أداء الموقع الإلكتروني</h3>
-        <div className="w-full" style={{ height: '300px' }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={websiteData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+      <div className="bg-[#0b0b0b]/80 backdrop-blur-xl border border-gray-900 rounded-2xl p-3 sm:p-4 md:p-6">
+        <h3 className="text-base sm:text-lg font-black text-[#E6C587] mb-3 sm:mb-4 md:mb-6">أداء الموقع الإلكتروني</h3>
+        <div className="w-full" style={{ height: '250px', minHeight: '200px' }}>
+          <ResponsiveContainer width="100%" height="100%" minHeight={200}>
+            <AreaChart data={websiteData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
-              <XAxis dataKey="date" stroke="#6B7280" fontSize={10} tick={{ fontSize: 10 }} />
-              <YAxis stroke="#6B7280" fontSize={10} tick={{ fontSize: 10 }} />
+              <XAxis dataKey="date" stroke="#6B7280" fontSize={8} tick={{ fontSize: 8 }} interval={0} angle={-45} textAnchor="end" height={60} />
+              <YAxis stroke="#6B7280" fontSize={8} tick={{ fontSize: 8 }} width={40} />
               <Tooltip content={<CustomTooltip />} />
-              <Legend wrapperStyle={{ fontSize: '10px' }} />
-              <Area 
-                type="monotone" 
-                dataKey="visitors" 
-                stroke="#D4AF37" 
-                fill="#D4AF37" 
+              <Legend wrapperStyle={{ fontSize: '8px' }} />
+              <Area
+                type="monotone"
+                dataKey="visitors"
+                stroke="#D4AF37"
+                fill="#D4AF37"
                 fillOpacity={0.3}
                 strokeWidth={2}
                 name="الزوار"
               />
-              <Area 
-                type="monotone" 
-                dataKey="pageViews" 
-                stroke="#3B82F6" 
-                fill="#3B82F6" 
+              <Area
+                type="monotone"
+                dataKey="pageViews"
+                stroke="#3B82F6"
+                fill="#3B82F6"
                 fillOpacity={0.3}
                 strokeWidth={2}
                 name="المشاهدات"
@@ -220,24 +220,24 @@ export default function MarketingAnalyticsSection() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Traffic Sources */}
-        <div className="bg-[#0b0b0b]/80 backdrop-blur-xl border border-gray-900 rounded-2xl p-4 sm:p-6">
-          <h3 className="text-base sm:text-lg font-black text-[#E6C587] mb-4 sm:mb-6">مصادر الزيارات</h3>
-          <div className="w-full" style={{ height: '250px' }}>
-            <ResponsiveContainer width="100%" height="100%">
+        <div className="bg-[#0b0b0b]/80 backdrop-blur-xl border border-gray-900 rounded-2xl p-3 sm:p-4 md:p-6 min-h-[280px] md:min-h-[300px]">
+          <h3 className="text-base sm:text-lg font-black text-[#E6C587] mb-3 sm:mb-4 md:mb-6">مصادر الزيارات</h3>
+          <div className="w-full" style={{ height: '220px', minHeight: '180px' }}>
+            <ResponsiveContainer width="100%" height="100%" minHeight={180}>
               <RechartsPieChart>
                 <Pie
                   data={trafficSourcesData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
-                  outerRadius={90}
+                  innerRadius={45}
+                  outerRadius={65}
                   paddingAngle={5}
                   dataKey="visitors"
                   label={(entry) => `${entry.name} (${entry.percentage}%)`}
                   labelLine={false}
-                  labelStyle={{ fontSize: '9px', fill: '#9CA3AF' }}
+                  labelStyle={{ fontSize: '8px', fill: '#9CA3AF' }}
                 >
                   {trafficSourcesData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
@@ -250,14 +250,14 @@ export default function MarketingAnalyticsSection() {
         </div>
 
         {/* Conversion Funnel */}
-        <div className="bg-[#0b0b0b]/80 backdrop-blur-xl border border-gray-900 rounded-2xl p-4 sm:p-6">
-          <h3 className="text-base sm:text-lg font-black text-[#E6C587] mb-4 sm:mb-6">قمع التحويل</h3>
-          <div className="w-full" style={{ height: '250px' }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={conversionFunnelData} layout="vertical" margin={{ top: 5, right: 10, left: 80, bottom: 5 }}>
+        <div className="bg-[#0b0b0b]/80 backdrop-blur-xl border border-gray-900 rounded-2xl p-3 sm:p-4 md:p-6 min-h-[280px] md:min-h-[300px]">
+          <h3 className="text-base sm:text-lg font-black text-[#E6C587] mb-3 sm:mb-4 md:mb-6">قمع التحويل</h3>
+          <div className="w-full" style={{ height: '220px', minHeight: '180px' }}>
+            <ResponsiveContainer width="100%" height="100%" minHeight={180}>
+              <BarChart data={conversionFunnelData} layout="vertical" margin={{ top: 5, right: 5, left: 60, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
-                <XAxis type="number" stroke="#6B7280" fontSize={10} tick={{ fontSize: 10 }} />
-                <YAxis dataKey="stage" type="category" stroke="#6B7280" fontSize={10} tick={{ fontSize: 10 }} width={75} />
+                <XAxis type="number" stroke="#6B7280" fontSize={8} tick={{ fontSize: 8 }} />
+                <YAxis dataKey="stage" type="category" stroke="#6B7280" fontSize={8} tick={{ fontSize: 8 }} width={55} />
                 <Tooltip content={<CustomTooltip />} />
                 <Bar dataKey="value" fill="#10B981" radius={[0, 4, 4, 0]} name="الزوار" />
               </BarChart>

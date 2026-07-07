@@ -657,7 +657,7 @@ export default function App() {
         </header>
 
         {/* Dynamic Inner Panel View Stage */}
-        <main className="flex-1 overflow-y-auto p-6 md:p-8 relative">
+        <main className="flex-1 overflow-y-auto p-6 md:p-8 relative scroll-smooth">
           {renderActiveView()}
         </main>
       </div>
@@ -678,7 +678,7 @@ export default function App() {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25 }}
-              className="fixed inset-y-0 right-0 w-72 bg-[#060606] border-l border-gray-900 z-[70] p-6 flex flex-col justify-between lg:hidden"
+              className="fixed inset-y-0 right-0 w-72 bg-[#060606] border-l border-gray-900 z-[70] p-6 flex flex-col justify-between lg:hidden overflow-y-auto"
             >
               <div className="space-y-6">
                 <div className="flex justify-between items-center pb-4 border-b border-gray-900">

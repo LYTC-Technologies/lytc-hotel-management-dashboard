@@ -158,14 +158,14 @@ export default function DashboardHome({
       </div>
 
       {/* KPI Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {/* KPI 1: Reservations */}
-        <div className="p-6 bg-[#0c0c0c] border border-gray-900 rounded-xl hover:border-[#D4AF37]/35 transition-all duration-300 relative group overflow-hidden">
+        <div className="p-4 sm:p-6 bg-[#0c0c0c] border border-gray-900 rounded-xl hover:border-[#D4AF37]/35 transition-all duration-300 relative group overflow-hidden">
           <div className="absolute top-0 left-0 w-1.5 h-full bg-[#D4AF37]" />
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-xs text-gray-500 font-bold">إجمالي الحجوزات النشطة</p>
-              <h3 className="text-3xl font-black text-white mt-2 font-mono">{totalBookings}</h3>
+              <p className="text-[10px] sm:text-xs text-gray-500 font-bold">إجمالي الحجوزات النشطة</p>
+              <h3 className="text-2xl sm:text-3xl font-black text-white mt-1 sm:mt-2 font-mono">{totalBookings}</h3>
             </div>
             <div className="p-3 bg-amber-950/20 text-[#D4AF37] rounded-xl border border-[#D4AF37]/10">
               <Calendar size={22} />
@@ -179,20 +179,20 @@ export default function DashboardHome({
         </div>
 
         {/* KPI 2: Occupied Rooms */}
-        <div className="p-6 bg-[#0c0c0c] border border-gray-900 rounded-xl hover:border-blue-500/35 transition-all duration-300 relative group overflow-hidden">
+        <div className="p-4 sm:p-6 bg-[#0c0c0c] border border-gray-900 rounded-xl hover:border-blue-500/35 transition-all duration-300 relative group overflow-hidden">
           <div className="absolute top-0 left-0 w-1.5 h-full bg-blue-500" />
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-xs text-gray-500 font-bold">الغرف المشغولة الآن</p>
-              <h3 className="text-3xl font-black text-white mt-2 font-mono">
-                {occupiedRoomsCount} <span className="text-xs text-gray-500 font-sans">/ {rooms.length}</span>
+              <p className="text-[10px] sm:text-xs text-gray-500 font-bold">الغرف المشغولة الآن</p>
+              <h3 className="text-2xl sm:text-3xl font-black text-white mt-1 sm:mt-2 font-mono">
+                {occupiedRoomsCount} <span className="text-[10px] sm:text-xs text-gray-500 font-sans">/ {rooms.length}</span>
               </h3>
             </div>
-            <div className="p-3 bg-blue-950/20 text-blue-400 rounded-xl border border-blue-500/10">
-              <BedDouble size={22} />
+            <div className="p-2 sm:p-3 bg-blue-950/20 text-blue-400 rounded-xl border border-blue-500/10">
+              <BedDouble size={18} sm:size={22} />
             </div>
           </div>
-          <div className="flex items-center gap-1.5 mt-4 text-xs text-gray-400">
+          <div className="flex items-center gap-1.5 mt-3 sm:mt-4 text-[10px] sm:text-xs text-gray-400">
             <span className="font-bold text-[#D4AF37]">
               {Math.round((occupiedRoomsCount / rooms.length) * 100)}%
             </span>
@@ -201,20 +201,20 @@ export default function DashboardHome({
         </div>
 
         {/* KPI 3: Occupied Rooms */}
-        <div className="p-6 bg-[#0c0c0c] border border-gray-900 rounded-xl hover:border-emerald-500/35 transition-all duration-300 relative group overflow-hidden">
+        <div className="p-4 sm:p-6 bg-[#0c0c0c] border border-gray-900 rounded-xl hover:border-emerald-500/35 transition-all duration-300 relative group overflow-hidden">
           <div className="absolute top-0 left-0 w-1.5 h-full bg-emerald-500" />
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-xs text-gray-500 font-bold">الغرف المتاحة للحجز</p>
-              <h3 className="text-3xl font-black text-emerald-400 mt-2 font-mono">
+              <p className="text-[10px] sm:text-xs text-gray-500 font-bold">الغرف المتاحة للحجز</p>
+              <h3 className="text-2xl sm:text-3xl font-black text-emerald-400 mt-1 sm:mt-2 font-mono">
                 {availableRoomsCount}
               </h3>
             </div>
-            <div className="p-3 bg-emerald-950/20 text-emerald-400 rounded-xl border border-emerald-500/10">
-              <UserCheck size={22} />
+            <div className="p-2 sm:p-3 bg-emerald-950/20 text-emerald-400 rounded-xl border border-emerald-500/10">
+              <UserCheck size={18} sm:size={22} />
             </div>
           </div>
-          <div className="flex items-center gap-1.5 mt-4 text-xs text-gray-400">
+          <div className="flex items-center gap-1.5 mt-3 sm:mt-4 text-[10px] sm:text-xs text-gray-400">
             <span className="font-bold text-emerald-400">
               {rooms.filter(r => r.status === 'cleaning').length} غرف
             </span>
@@ -223,21 +223,21 @@ export default function DashboardHome({
         </div>
 
         {/* KPI 4: Financial Revenues */}
-        <div className="p-6 bg-[#0c0c0c] border border-gray-900 rounded-xl hover:border-[#D4AF37]/35 transition-all duration-300 relative group overflow-hidden">
+        <div className="p-4 sm:p-6 bg-[#0c0c0c] border border-gray-900 rounded-xl hover:border-[#D4AF37]/35 transition-all duration-300 relative group overflow-hidden">
           <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-[#D4AF37] to-[#AA7B30]" />
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-xs text-gray-500 font-bold">إجمالي الإيرادات المباشرة</p>
-              <h3 className="text-3xl font-black text-white mt-2 font-mono">
-                {totalRevenue.toLocaleString('ar-SA')} <span className="text-xs text-[#D4AF37] font-sans">ريال</span>
+              <p className="text-[10px] sm:text-xs text-gray-500 font-bold">إجمالي الإيرادات المباشرة</p>
+              <h3 className="text-2xl sm:text-3xl font-black text-white mt-1 sm:mt-2 font-mono">
+                {totalRevenue.toLocaleString('ar-SA')} <span className="text-[10px] sm:text-xs text-[#D4AF37] font-sans">ريال</span>
               </h3>
             </div>
-            <div className="p-3 bg-amber-950/20 text-[#D4AF37] rounded-xl border border-[#D4AF37]/10">
-              <CreditCard size={22} />
+            <div className="p-2 sm:p-3 bg-amber-950/20 text-[#D4AF37] rounded-xl border border-[#D4AF37]/10">
+              <CreditCard size={18} sm:size={22} />
             </div>
           </div>
-          <div className="flex items-center gap-1.5 mt-4 text-xs text-emerald-400">
-            <ArrowUpRight size={14} />
+          <div className="flex items-center gap-1.5 mt-3 sm:mt-4 text-[10px] sm:text-xs text-emerald-400">
+            <ArrowUpRight size={12} sm:size={14} />
             <span className="font-bold">+18.4%</span>
             <span className="text-gray-600">معدل الإيراد اليومي</span>
           </div>

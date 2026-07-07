@@ -345,38 +345,38 @@ export default function AnalyticsSection() {
       </div>
 
       {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Monthly Revenue Line Chart */}
-        <div className="bg-[#0b0b0b]/80 backdrop-blur-xl border border-gray-900 rounded-2xl p-4 sm:p-6 min-h-[400px]">
-          <div className="flex justify-between items-center mb-4 sm:mb-6">
+        <div className="bg-[#0b0b0b]/80 backdrop-blur-xl border border-gray-900 rounded-2xl p-3 sm:p-4 md:p-6 min-h-[350px] md:min-h-[400px] w-full">
+          <div className="flex justify-between items-center mb-3 sm:mb-4 md:mb-6">
             <h3 className="text-xs sm:text-sm font-bold text-[#E6C587] flex items-center gap-2">
               <TrendingUp size={14} className="text-[#D4AF37]" />
               <span className="hidden sm:inline">الإيرادات الشهرية</span>
               <span className="sm:hidden">الإيرادات</span>
             </h3>
-            <span className="text-[10px] text-gray-500">محدثة في الوقت الفعلي</span>
+            <span className="text-[8px] sm:text-[10px] text-gray-500">محدثة في الوقت الفعلي</span>
           </div>
-          <div className="w-full" style={{ height: '300px' }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={monthlyRevenueData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+          <div className="w-full" style={{ height: '250px', minHeight: '200px' }}>
+            <ResponsiveContainer width="100%" height="100%" minHeight={200}>
+              <LineChart data={monthlyRevenueData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
-                <XAxis dataKey="month" stroke="#6B7280" fontSize={10} tick={{ fontSize: 10 }} />
-                <YAxis stroke="#6B7280" fontSize={10} tick={{ fontSize: 10 }} />
+                <XAxis dataKey="month" stroke="#6B7280" fontSize={8} tick={{ fontSize: 8 }} interval={0} angle={-45} textAnchor="end" height={60} />
+                <YAxis stroke="#6B7280" fontSize={8} tick={{ fontSize: 8 }} width={40} />
                 <Tooltip content={<CustomTooltip />} />
-                <Legend wrapperStyle={{ fontSize: '10px' }} />
-                <Line 
-                  type="monotone" 
-                  dataKey="revenue" 
-                  stroke="#D4AF37" 
+                <Legend wrapperStyle={{ fontSize: '8px' }} />
+                <Line
+                  type="monotone"
+                  dataKey="revenue"
+                  stroke="#D4AF37"
                   strokeWidth={2}
-                  dot={{ fill: '#D4AF37', strokeWidth: 2, r: 3 }}
-                  activeDot={{ r: 5, stroke: '#D4AF37', strokeWidth: 2 }}
+                  dot={{ fill: '#D4AF37', strokeWidth: 2, r: 2 }}
+                  activeDot={{ r: 4, stroke: '#D4AF37', strokeWidth: 2 }}
                   name="الإيرادات"
                 />
-                <Line 
-                  type="monotone" 
-                  dataKey="target" 
-                  stroke="#6B7280" 
+                <Line
+                  type="monotone"
+                  dataKey="target"
+                  stroke="#6B7280"
                   strokeWidth={2}
                   strokeDasharray="5 5"
                   dot={false}
@@ -388,27 +388,27 @@ export default function AnalyticsSection() {
         </div>
 
         {/* Occupancy Rate Area Chart */}
-        <div className="bg-[#0b0b0b]/80 backdrop-blur-xl border border-gray-900 rounded-2xl p-4 sm:p-6 min-h-[400px]">
-          <div className="flex justify-between items-center mb-4 sm:mb-6">
+        <div className="bg-[#0b0b0b]/80 backdrop-blur-xl border border-gray-900 rounded-2xl p-3 sm:p-4 md:p-6 min-h-[350px] md:min-h-[400px] w-full">
+          <div className="flex justify-between items-center mb-3 sm:mb-4 md:mb-6">
             <h3 className="text-xs sm:text-sm font-bold text-[#E6C587] flex items-center gap-2">
               <Home size={14} className="text-emerald-400" />
               <span className="hidden sm:inline">معدل الإشغال</span>
               <span className="sm:hidden">الإشغال</span>
             </h3>
-            <span className="text-[10px] text-gray-500">نسبة مئوية</span>
+            <span className="text-[8px] sm:text-[10px] text-gray-500">نسبة مئوية</span>
           </div>
-          <div className="w-full" style={{ height: '300px' }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={occupancyData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+          <div className="w-full" style={{ height: '250px', minHeight: '200px' }}>
+            <ResponsiveContainer width="100%" height="100%" minHeight={200}>
+              <AreaChart data={occupancyData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
-                <XAxis dataKey="month" stroke="#6B7280" fontSize={10} tick={{ fontSize: 10 }} />
-                <YAxis stroke="#6B7280" fontSize={10} tick={{ fontSize: 10 }} />
+                <XAxis dataKey="month" stroke="#6B7280" fontSize={8} tick={{ fontSize: 8 }} interval={0} angle={-45} textAnchor="end" height={60} />
+                <YAxis stroke="#6B7280" fontSize={8} tick={{ fontSize: 8 }} width={40} />
                 <Tooltip content={<CustomTooltip />} />
-                <Area 
-                  type="monotone" 
-                  dataKey="occupancy" 
-                  stroke="#10B981" 
-                  fill="#10B981" 
+                <Area
+                  type="monotone"
+                  dataKey="occupancy"
+                  stroke="#10B981"
+                  fill="#10B981"
                   fillOpacity={0.3}
                   strokeWidth={2}
                   name="معدل الإشغال"
@@ -419,28 +419,28 @@ export default function AnalyticsSection() {
         </div>
 
         {/* Booking Sources Pie Chart */}
-        <div className="bg-[#0b0b0b]/80 backdrop-blur-xl border border-gray-900 rounded-2xl p-4 sm:p-6 min-h-[400px]">
-          <div className="flex justify-between items-center mb-4 sm:mb-6">
+        <div className="bg-[#0b0b0b]/80 backdrop-blur-xl border border-gray-900 rounded-2xl p-3 sm:p-4 md:p-6 min-h-[350px] md:min-h-[400px] w-full">
+          <div className="flex justify-between items-center mb-3 sm:mb-4 md:mb-6">
             <h3 className="text-xs sm:text-sm font-bold text-[#E6C587] flex items-center gap-2">
               <PieChart size={14} className="text-blue-400" />
               <span className="hidden sm:inline">مصادر الحجوزات</span>
               <span className="sm:hidden">المصادر</span>
             </h3>
           </div>
-          <div className="w-full" style={{ height: '300px' }}>
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="w-full" style={{ height: '250px', minHeight: '200px' }}>
+            <ResponsiveContainer width="100%" height="100%" minHeight={200}>
               <RechartsPieChart>
                 <Pie
                   data={bookingSourcesData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={50}
-                  outerRadius={80}
+                  innerRadius={40}
+                  outerRadius={60}
                   paddingAngle={5}
                   dataKey="value"
                   label={(entry) => entry.name}
                   labelLine={false}
-                  labelStyle={{ fontSize: '10px', fill: '#9CA3AF' }}
+                  labelStyle={{ fontSize: '8px', fill: '#9CA3AF' }}
                 >
                   {bookingSourcesData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
@@ -454,21 +454,21 @@ export default function AnalyticsSection() {
         </div>
 
         {/* Monthly Reservations Bar Chart */}
-        <div className="bg-[#0b0b0b]/80 backdrop-blur-xl border border-gray-900 rounded-2xl p-4 sm:p-6 min-h-[400px]">
-          <div className="flex justify-between items-center mb-4 sm:mb-6">
+        <div className="bg-[#0b0b0b]/80 backdrop-blur-xl border border-gray-900 rounded-2xl p-3 sm:p-4 md:p-6 min-h-[350px] md:min-h-[400px] w-full">
+          <div className="flex justify-between items-center mb-3 sm:mb-4 md:mb-6">
             <h3 className="text-xs sm:text-sm font-bold text-[#E6C587] flex items-center gap-2">
               <Calendar size={14} className="text-pink-400" />
               <span className="hidden sm:inline">الحجوزات الشهرية</span>
               <span className="sm:hidden">الحجوزات</span>
             </h3>
-            <span className="text-[10px] text-gray-500">عدد الحجوزات</span>
+            <span className="text-[8px] sm:text-[10px] text-gray-500">عدد الحجوزات</span>
           </div>
-          <div className="w-full" style={{ height: '300px' }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={reservationsData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+          <div className="w-full" style={{ height: '250px', minHeight: '200px' }}>
+            <ResponsiveContainer width="100%" height="100%" minHeight={200}>
+              <BarChart data={reservationsData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
-                <XAxis dataKey="month" stroke="#6B7280" fontSize={10} tick={{ fontSize: 10 }} />
-                <YAxis stroke="#6B7280" fontSize={10} tick={{ fontSize: 10 }} />
+                <XAxis dataKey="month" stroke="#6B7280" fontSize={8} tick={{ fontSize: 8 }} interval={0} angle={-45} textAnchor="end" height={60} />
+                <YAxis stroke="#6B7280" fontSize={8} tick={{ fontSize: 8 }} width={40} />
                 <Tooltip content={<CustomTooltip />} />
                 <Bar dataKey="bookings" fill="#EC4899" radius={[4, 4, 0, 0]} name="الحجوزات" />
               </BarChart>
@@ -478,23 +478,23 @@ export default function AnalyticsSection() {
       </div>
 
       {/* Detailed Analytics Section */}
-      <div className="bg-[#0b0b0b]/80 backdrop-blur-xl border border-gray-900 rounded-2xl p-4 sm:p-6">
-        <h3 className="text-base sm:text-lg font-black text-[#E6C587] mb-4 sm:mb-6">التحليلات التفصيلية</h3>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+      <div className="bg-[#0b0b0b]/80 backdrop-blur-xl border border-gray-900 rounded-2xl p-3 sm:p-4 md:p-6">
+        <h3 className="text-base sm:text-lg font-black text-[#E6C587] mb-3 sm:mb-4 md:mb-6">التحليلات التفصيلية</h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 sm:gap-6">
           {/* Most Booked Room Types */}
-          <div className="min-h-[300px]">
-            <h4 className="text-xs sm:text-sm font-bold text-gray-400 mb-3 sm:mb-4 flex items-center gap-2">
+          <div className="min-h-[280px] md:min-h-[300px]">
+            <h4 className="text-xs sm:text-sm font-bold text-gray-400 mb-2 sm:mb-3 md:mb-4 flex items-center gap-2">
               <Bed size={12} className="text-[#D4AF37]" />
               <span className="hidden sm:inline">الأكثر حجزاً حسب نوع الغرفة</span>
               <span className="sm:hidden">الغرف الأكثر حجزاً</span>
             </h4>
-            <div className="w-full" style={{ height: '250px' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={roomTypesData} layout="horizontal" margin={{ top: 5, right: 10, left: 80, bottom: 5 }}>
+            <div className="w-full" style={{ height: '220px', minHeight: '180px' }}>
+              <ResponsiveContainer width="100%" height="100%" minHeight={180}>
+                <BarChart data={roomTypesData} layout="horizontal" margin={{ top: 5, right: 5, left: 60, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
-                  <XAxis type="number" stroke="#6B7280" fontSize={10} tick={{ fontSize: 10 }} />
-                  <YAxis dataKey="name" type="category" stroke="#6B7280" fontSize={10} tick={{ fontSize: 10 }} width={75} />
+                  <XAxis type="number" stroke="#6B7280" fontSize={8} tick={{ fontSize: 8 }} />
+                  <YAxis dataKey="name" type="category" stroke="#6B7280" fontSize={8} tick={{ fontSize: 8 }} width={55} />
                   <Tooltip content={<CustomTooltip />} />
                   <Bar dataKey="bookings" fill="#D4AF37" radius={[0, 4, 4, 0]} name="الحجوزات" />
                 </BarChart>
@@ -503,33 +503,33 @@ export default function AnalyticsSection() {
           </div>
 
           {/* Most Requested Services */}
-          <div className="min-h-[300px]">
-            <h4 className="text-xs sm:text-sm font-bold text-gray-400 mb-3 sm:mb-4 flex items-center gap-2">
+          <div className="min-h-[280px] md:min-h-[300px]">
+            <h4 className="text-xs sm:text-sm font-bold text-gray-400 mb-2 sm:mb-3 md:mb-4 flex items-center gap-2">
               <Heart size={12} className="text-red-400" />
               <span className="hidden sm:inline">الخدمات الأكثر طلباً</span>
               <span className="sm:hidden">الخدمات</span>
             </h4>
-            <div className="w-full" style={{ height: '250px' }}>
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="w-full" style={{ height: '220px', minHeight: '180px' }}>
+              <ResponsiveContainer width="100%" height="100%" minHeight={180}>
                 <RechartsPieChart>
                   <Pie
                     data={servicesData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={40}
-                    outerRadius={70}
+                    innerRadius={35}
+                    outerRadius={55}
                     paddingAngle={5}
                     dataKey="value"
                     label={(entry) => entry.name}
                     labelLine={false}
-                    labelStyle={{ fontSize: '9px', fill: '#9CA3AF' }}
+                    labelStyle={{ fontSize: '8px', fill: '#9CA3AF' }}
                   >
                     {servicesData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
                   <Tooltip content={<CustomTooltip />} />
-                  <Legend wrapperStyle={{ fontSize: '10px' }} />
+                  <Legend wrapperStyle={{ fontSize: '8px' }} />
                 </RechartsPieChart>
               </ResponsiveContainer>
             </div>
@@ -566,23 +566,23 @@ export default function AnalyticsSection() {
       </div>
 
       {/* Advanced Executive Analytics Charts */}
-      <div className="bg-[#0b0b0b]/80 backdrop-blur-xl border border-gray-900 rounded-2xl p-4 sm:p-6">
-        <h3 className="text-base sm:text-lg font-black text-[#E6C587] mb-4 sm:mb-6">التحليلات التنفيذية المتقدمة</h3>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="bg-[#0b0b0b]/80 backdrop-blur-xl border border-gray-900 rounded-2xl p-3 sm:p-4 md:p-6">
+        <h3 className="text-base sm:text-lg font-black text-[#E6C587] mb-3 sm:mb-4 md:mb-6">التحليلات التنفيذية المتقدمة</h3>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 sm:gap-6">
           {/* Monthly Revenue Comparison */}
-          <div className="min-h-[300px]">
-            <h4 className="text-xs sm:text-sm font-bold text-gray-400 mb-3 sm:mb-4 flex items-center gap-2">
+          <div className="min-h-[280px] md:min-h-[300px]">
+            <h4 className="text-xs sm:text-sm font-bold text-gray-400 mb-2 sm:mb-3 md:mb-4 flex items-center gap-2">
               <TrendingUp size={12} className="text-[#D4AF37]" />
               <span className="hidden sm:inline">مقارنة الإيرادات الشهرية (السنة الحالية vs السنة الماضية)</span>
               <span className="sm:hidden">مقارنة الإيرادات الشهرية</span>
             </h4>
-            <div className="w-full" style={{ height: '250px' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={monthlyRevenueComparisonData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+            <div className="w-full" style={{ height: '220px', minHeight: '180px' }}>
+              <ResponsiveContainer width="100%" height="100%" minHeight={180}>
+                <LineChart data={monthlyRevenueComparisonData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
-                  <XAxis dataKey="month" stroke="#6B7280" fontSize={10} tick={{ fontSize: 10 }} />
-                  <YAxis stroke="#6B7280" fontSize={10} tick={{ fontSize: 10 }} />
+                  <XAxis dataKey="month" stroke="#6B7280" fontSize={8} tick={{ fontSize: 8 }} interval={0} angle={-45} textAnchor="end" height={60} />
+                  <YAxis stroke="#6B7280" fontSize={8} tick={{ fontSize: 8 }} width={40} />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend wrapperStyle={{ fontSize: '10px' }} />
                   <Line 
@@ -608,18 +608,18 @@ export default function AnalyticsSection() {
           </div>
 
           {/* Annual Revenue Comparison */}
-          <div className="min-h-[300px]">
-            <h4 className="text-xs sm:text-sm font-bold text-gray-400 mb-3 sm:mb-4 flex items-center gap-2">
+          <div className="min-h-[280px] md:min-h-[300px]">
+            <h4 className="text-xs sm:text-sm font-bold text-gray-400 mb-2 sm:mb-3 md:mb-4 flex items-center gap-2">
               <BarChart3 size={12} className="text-emerald-400" />
               <span className="hidden sm:inline">مقارنة الإيرادات السنوية (آخر 5 سنوات)</span>
               <span className="sm:hidden">مقارنة الإيرادات السنوية</span>
             </h4>
-            <div className="w-full" style={{ height: '250px' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={annualRevenueData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+            <div className="w-full" style={{ height: '220px', minHeight: '180px' }}>
+              <ResponsiveContainer width="100%" height="100%" minHeight={180}>
+                <BarChart data={annualRevenueData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
-                  <XAxis dataKey="year" stroke="#6B7280" fontSize={10} tick={{ fontSize: 10 }} />
-                  <YAxis stroke="#6B7280" fontSize={10} tick={{ fontSize: 10 }} />
+                  <XAxis dataKey="year" stroke="#6B7280" fontSize={8} tick={{ fontSize: 8 }} />
+                  <YAxis stroke="#6B7280" fontSize={8} tick={{ fontSize: 8 }} width={40} />
                   <Tooltip content={<CustomTooltip />} />
                   <Bar dataKey="revenue" fill="#10B981" radius={[4, 4, 0, 0]} name="الإيرادات" />
                 </BarChart>
@@ -628,18 +628,18 @@ export default function AnalyticsSection() {
           </div>
 
           {/* Occupancy Forecast */}
-          <div className="min-h-[300px]">
-            <h4 className="text-xs sm:text-sm font-bold text-gray-400 mb-3 sm:mb-4 flex items-center gap-2">
+          <div className="min-h-[280px] md:min-h-[300px]">
+            <h4 className="text-xs sm:text-sm font-bold text-gray-400 mb-2 sm:mb-3 md:mb-4 flex items-center gap-2">
               <Target size={12} className="text-blue-400" />
               <span className="hidden sm:inline">توقع نسبة الإشغال (الأشهر الستة القادمة)</span>
               <span className="sm:hidden">توقع نسبة الإشغال</span>
             </h4>
-            <div className="w-full" style={{ height: '250px' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={occupancyForecastData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+            <div className="w-full" style={{ height: '220px', minHeight: '180px' }}>
+              <ResponsiveContainer width="100%" height="100%" minHeight={180}>
+                <LineChart data={occupancyForecastData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
-                  <XAxis dataKey="month" stroke="#6B7280" fontSize={10} tick={{ fontSize: 10 }} />
-                  <YAxis stroke="#6B7280" fontSize={10} tick={{ fontSize: 10 }} />
+                  <XAxis dataKey="month" stroke="#6B7280" fontSize={8} tick={{ fontSize: 8 }} interval={0} angle={-45} textAnchor="end" height={60} />
+                  <YAxis stroke="#6B7280" fontSize={8} tick={{ fontSize: 8 }} width={40} />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend wrapperStyle={{ fontSize: '10px' }} />
                   <Line 
@@ -665,18 +665,18 @@ export default function AnalyticsSection() {
           </div>
 
           {/* Booking Lead Time */}
-          <div className="min-h-[300px]">
-            <h4 className="text-xs sm:text-sm font-bold text-gray-400 mb-3 sm:mb-4 flex items-center gap-2">
+          <div className="min-h-[280px] md:min-h-[300px]">
+            <h4 className="text-xs sm:text-sm font-bold text-gray-400 mb-2 sm:mb-3 md:mb-4 flex items-center gap-2">
               <Clock size={12} className="text-amber-400" />
               <span className="hidden sm:inline">مدة الحجز قبل الوصول</span>
               <span className="sm:hidden">مدة الحجز</span>
             </h4>
-            <div className="w-full" style={{ height: '250px' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={bookingLeadTimeData} layout="horizontal" margin={{ top: 5, right: 10, left: 80, bottom: 5 }}>
+            <div className="w-full" style={{ height: '220px', minHeight: '180px' }}>
+              <ResponsiveContainer width="100%" height="100%" minHeight={180}>
+                <BarChart data={bookingLeadTimeData} layout="horizontal" margin={{ top: 5, right: 5, left: 60, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
-                  <XAxis type="number" stroke="#6B7280" fontSize={10} tick={{ fontSize: 10 }} />
-                  <YAxis dataKey="leadTime" type="category" stroke="#6B7280" fontSize={10} tick={{ fontSize: 10 }} width={75} />
+                  <XAxis type="number" stroke="#6B7280" fontSize={8} tick={{ fontSize: 8 }} />
+                  <YAxis dataKey="leadTime" type="category" stroke="#6B7280" fontSize={8} tick={{ fontSize: 8 }} width={55} />
                   <Tooltip content={<CustomTooltip />} />
                   <Bar dataKey="bookings" fill="#F59E0B" radius={[0, 4, 4, 0]} name="الحجوزات" />
                 </BarChart>
@@ -685,18 +685,18 @@ export default function AnalyticsSection() {
           </div>
 
           {/* Cancellation Trends */}
-          <div className="min-h-[300px]">
-            <h4 className="text-xs sm:text-sm font-bold text-gray-400 mb-3 sm:mb-4 flex items-center gap-2">
+          <div className="min-h-[280px] md:min-h-[300px]">
+            <h4 className="text-xs sm:text-sm font-bold text-gray-400 mb-2 sm:mb-3 md:mb-4 flex items-center gap-2">
               <ArrowDown size={12} className="text-red-400" />
               <span className="hidden sm:inline">اتجاهات الإلغاء الشهرية</span>
               <span className="sm:hidden">اتجاهات الإلغاء</span>
             </h4>
-            <div className="w-full" style={{ height: '250px' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={cancellationTrendsData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+            <div className="w-full" style={{ height: '220px', minHeight: '180px' }}>
+              <ResponsiveContainer width="100%" height="100%" minHeight={180}>
+                <AreaChart data={cancellationTrendsData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
-                  <XAxis dataKey="month" stroke="#6B7280" fontSize={10} tick={{ fontSize: 10 }} />
-                  <YAxis stroke="#6B7280" fontSize={10} tick={{ fontSize: 10 }} />
+                  <XAxis dataKey="month" stroke="#6B7280" fontSize={8} tick={{ fontSize: 8 }} interval={0} angle={-45} textAnchor="end" height={60} />
+                  <YAxis stroke="#6B7280" fontSize={8} tick={{ fontSize: 8 }} width={40} />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend wrapperStyle={{ fontSize: '10px' }} />
                   <Area 
