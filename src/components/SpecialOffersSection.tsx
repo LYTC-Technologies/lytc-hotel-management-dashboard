@@ -10,6 +10,7 @@ import SpecialOffersModal from './SpecialOffersModal';
 export default function SpecialOffersSection() {
   const [offers, setOffers] = useState<SpecialOfferResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingOffer, setEditingOffer] = useState<SpecialOfferResponse | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -21,11 +22,15 @@ export default function SpecialOffersSection() {
 
   const loadOffers = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const response = await apiService.getSpecialOffers(0, 50);
       setOffers(response.content || []);
     } catch (error) {
       console.error('Failed to load offers:', error);
+      setError('فشل الاتصال بالخادم. الرجاء المحاولة مرة أخرى.');
+      // Set empty array as fallback
+      setOffers([]);
     } finally {
       setIsLoading(false);
     }
@@ -105,6 +110,18 @@ export default function SpecialOffersSection() {
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
           <Loader2 size={24} className="text-[#D4AF37] animate-spin" />
+        </div>
+      ) : error ? (
+        <div className="text-center py-16 bg-[#0b0b0b] border border-gray-900 rounded-2xl">
+          <X size={48} className="text-red-500 mx-auto mb-4" />
+          <h3 className="text-sm font-bold text-gray-400 mb-2">فشل تحميل العروض</h3>
+          <p className="text-xs text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={loadOffers}
+            className="px-4 py-2 bg-gradient-to-r from-[#AA7B30] to-[#D4AF37] text-black font-extrabold text-xs rounded-xl"
+          >
+            إعادة المحاولة
+          </button>
         </div>
       ) : (
         <>
