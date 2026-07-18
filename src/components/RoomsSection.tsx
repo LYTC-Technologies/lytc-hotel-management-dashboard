@@ -1,19 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   BedDouble, Sparkles, AlertTriangle, Hammer, CheckCircle2, User, Filter, Layers, 
   DollarSign, Grid3X3, List, Search, ArrowUpDown, ChevronLeft, Eye, Edit, 
-  Calendar, MapPin, Users, Clock, MoreVertical, X, Save, Building2, Image as ImageIcon, Star
+  Calendar, MapPin, Users, Clock, MoreVertical, X, Save, Building2, Image as ImageIcon, Star, Loader2
 } from 'lucide-react';
 import { Room } from '../types';
+import { apiService, RoomResponse } from '../services/api';
 
 interface RoomsSectionProps {
-  rooms: Room[];
-  onUpdateRoomStatus: (roomId: string, status: Room['status']) => void;
-  onUpdateRoom: (updatedRoom: Room) => void;
+  rooms?: Room[];
+  onUpdateRoomStatus?: (roomId: string, status: Room['status']) => void;
+  onUpdateRoom?: (updatedRoom: Room) => void;
 }
 
-export default function RoomsSection({ rooms, onUpdateRoomStatus, onUpdateRoom }: RoomsSectionProps) {
+export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomStatus, onUpdateRoom }: RoomsSectionProps) {
+  const [rooms, setRooms] = useState<Room[]>(initialRooms);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | Room['status']>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [selectedFloor, setSelectedFloor] = useState<number | 'all'>('all');
@@ -27,6 +31,45 @@ export default function RoomsSection({ rooms, onUpdateRoomStatus, onUpdateRoom }
   const itemsPerPage = 8;
 
   const floors = [2, 3, 4, 5];
+
+  useEffect(() => {
+    loadRooms();
+  }, []);
+
+  const loadRooms = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await apiService.getRooms(
+        filter === 'all' ? undefined : filter as any,
+        selectedFloor === 'all' ? undefined : selectedFloor,
+        0,
+        50
+      );
+      
+      // Transform backend response to Room format
+      const transformedRooms = (response.content || []).map((room: RoomResponse) => ({
+        id: room.id.toString(),
+        number: room.roomNumber,
+        status: room.status as Room['status'],
+        floor: room.floor,
+        pricePerNight: parseFloat(room.price),
+        type: room.description || 'Standard',
+        name: `Room ${room.roomNumber}`,
+        maxAdults: room.maxAdults,
+        maxKids: room.maxKids,
+        image: '',
+      }));
+      
+      setRooms(transformedRooms);
+    } catch (error: any) {
+      console.error('Failed to load rooms:', error);
+      setError('فشل تحميل الغرف. الرجاء المحاولة مرة أخرى.');
+      setRooms([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const filteredRooms = rooms.filter(room => {
     const matchesFilter = filter === 'all' || room.status === filter;
@@ -260,8 +303,32 @@ export default function RoomsSection({ rooms, onUpdateRoomStatus, onUpdateRoom }
 
       {/* Room Cards - Grid View */}
       {viewMode === 'grid' && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {paginatedRooms.map((room) => (
+        <>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 size={24} className="text-[#D4AF37] animate-spin" />
+            </div>
+          ) : error ? (
+            <div className="text-center py-16 bg-[#0b0b0b] border border-gray-900 rounded-2xl">
+              <X size={48} className="text-red-500 mx-auto mb-4" />
+              <h3 className="text-sm font-bold text-gray-400 mb-2">فشل تحميل الغرف</h3>
+              <p className="text-xs text-gray-600 mb-4">{error}</p>
+              <button
+                onClick={loadRooms}
+                className="px-4 py-2 bg-gradient-to-r from-[#AA7B30] to-[#D4AF37] text-black font-extrabold text-xs rounded-xl"
+              >
+                إعادة المحاولة
+              </button>
+            </div>
+          ) : paginatedRooms.length === 0 ? (
+            <div className="text-center py-16 bg-[#0b0b0b] border border-gray-900 rounded-2xl">
+              <BedDouble size={48} className="text-gray-700 mx-auto mb-4" />
+              <h3 className="text-sm font-bold text-gray-400 mb-2">لا توجد غرف</h3>
+              <p className="text-xs text-gray-600 mb-4">لم يتم العثور على غرف تطابق البحث</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {paginatedRooms.map((room) => (
             <motion.div
               key={room.id}
               initial={{ opacity: 0, y: 20 }}
@@ -364,7 +431,9 @@ export default function RoomsSection({ rooms, onUpdateRoomStatus, onUpdateRoom }
               </div>
             </motion.div>
           ))}
-        </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* Room Cards - List View */}

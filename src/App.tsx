@@ -380,7 +380,7 @@ export default function App() {
           />
         );
       case 'الغرف':
-        return <RoomsSection rooms={rooms} onUpdateRoomStatus={handleUpdateRoomStatus} onUpdateRoom={handleUpdateRoom} />;
+        return <RoomsSection />;
       case 'الحجوزات':
         return (
           <ReservationsSection

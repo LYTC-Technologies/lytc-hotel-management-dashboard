@@ -43,6 +43,46 @@ interface CreateOrderRequest {
   items: OrderItemRequest[];
 }
 
+interface RoomResponse {
+  id: number;
+  roomNumber: string;
+  status: string;
+  maxAdults: number;
+  maxKids: number;
+  floor: number;
+  price: string;
+  description: string;
+}
+
+interface CreateRoomRequest {
+  roomNumber: string;
+  maxAdults?: number;
+  maxKids?: number;
+  description?: string;
+  floor?: number;
+  price: number;
+}
+
+interface UpdateRoomRequest {
+  roomNumber: string;
+  maxAdults?: number;
+  maxKids?: number;
+  description?: string;
+  floor?: number;
+  price: number;
+  status: string;
+}
+
+interface PatchRoomRequest {
+  roomNumber?: string;
+  maxAdults?: number;
+  maxKids?: number;
+  description?: string;
+  floor?: number;
+  price?: number;
+  status?: string;
+}
+
 interface OrderItemRequest {
   menuItemId: number;
   quantity: number;
@@ -439,6 +479,76 @@ class APIService {
       }
     );
   }
+
+  // ==================== ROOMS APIs ====================
+
+  /**
+   * Get Rooms
+   * GET /api/dashboard/front-desk/rooms
+   */
+  async getRooms(
+    status?: 'AVAILABLE' | 'OCCUPIED' | 'CLEANING' | 'MAINTENANCE',
+    floor?: number,
+    page: number = 0,
+    size: number = 10
+  ): Promise<any> {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      size: size.toString(),
+    });
+
+    if (status) params.append('status', status);
+    if (floor !== undefined) params.append('floor', floor.toString());
+
+    return this.authenticatedFetch<any>(
+      `${this.baseURL}/api/dashboard/front-desk/rooms?${params.toString()}`,
+      {
+        method: 'GET',
+      }
+    );
+  }
+
+  /**
+   * Create Room
+   * POST /api/dashboard/front-desk/rooms
+   */
+  async createRoom(room: CreateRoomRequest): Promise<RoomResponse> {
+    return this.authenticatedFetch<RoomResponse>(
+      `${this.baseURL}/api/dashboard/front-desk/rooms`,
+      {
+        method: 'POST',
+        body: JSON.stringify(room),
+      }
+    );
+  }
+
+  /**
+   * Update Room
+   * PUT /api/dashboard/front-desk/rooms/{id}
+   */
+  async updateRoom(id: number, room: UpdateRoomRequest): Promise<RoomResponse> {
+    return this.authenticatedFetch<RoomResponse>(
+      `${this.baseURL}/api/dashboard/front-desk/rooms/${id}`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(room),
+      }
+    );
+  }
+
+  /**
+   * Patch Room (partial update)
+   * PATCH /api/dashboard/front-desk/rooms/{id}
+   */
+  async patchRoom(id: number, room: PatchRoomRequest): Promise<RoomResponse> {
+    return this.authenticatedFetch<RoomResponse>(
+      `${this.baseURL}/api/dashboard/front-desk/rooms/${id}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(room),
+      }
+    );
+  }
 }
 
 // Export singleton instance
@@ -454,4 +564,8 @@ export type {
   MenuItemResponse,
   CreateOrderRequest,
   OrderItemRequest,
+  RoomResponse,
+  CreateRoomRequest,
+  UpdateRoomRequest,
+  PatchRoomRequest,
 };
