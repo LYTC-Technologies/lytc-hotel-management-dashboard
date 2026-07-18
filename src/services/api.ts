@@ -157,6 +157,99 @@ interface MenuItemResponse {
   imageUrl?: string;
 }
 
+// Manager related types
+interface UserResponse {
+  id: number;
+  username: string;
+  role: string;
+}
+
+interface CreateUserRequest {
+  username: string;
+  password: string;
+  role: string;
+}
+
+interface UpdateUserRequest {
+  username?: string;
+  password?: string;
+  role?: string;
+}
+
+interface PageUserResponse {
+  content: UserResponse[];
+  totalPages: number;
+  totalElements: number;
+  number: number;
+  size: number;
+  empty: boolean;
+}
+
+interface EmployeeResponse {
+  id: number;
+  fullName: string;
+  phone: string;
+  job: string;
+  department: string;
+  status: string;
+}
+
+interface CreateEmployeeRequest {
+  fullName: string;
+  phone: string;
+  job: string;
+  department: string;
+}
+
+interface UpdateEmployeeStatusRequest {
+  status: string;
+}
+
+interface PageEmployeeResponse {
+  content: EmployeeResponse[];
+  totalPages: number;
+  totalElements: number;
+  number: number;
+  size: number;
+  empty: boolean;
+}
+
+interface VipResponse {
+  id: number;
+  fullName: string;
+  phone: string;
+  nationality: string;
+  notes: string;
+}
+
+interface PageVipResponse {
+  content: VipResponse[];
+  totalPages: number;
+  totalElements: number;
+  number: number;
+  size: number;
+  empty: boolean;
+}
+
+// Stats related types
+interface DashboardStatsResponse {
+  totalOrders: number;
+  pendingOrders: number;
+  completedOrders: number;
+  totalRevenue: number;
+  todayRevenue: number;
+}
+
+interface PendingOrdersResponse {
+  orderId: number;
+  guestName: string;
+  roomNumber: string;
+  items: string;
+  totalAmount: number;
+  orderTime: string;
+  status: string;
+}
+
 // API Service Class
 class APIService {
   private baseURL: string;
@@ -724,6 +817,323 @@ class APIService {
       }
     );
   }
+
+  // ==================== MANAGER APIs ====================
+
+  /**
+   * Get Users
+   * GET /api/dashboard/manager/users
+   */
+  async getUsers(
+    page: number = 0,
+    size: number = 10
+  ): Promise<PageUserResponse> {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      size: size.toString(),
+    });
+
+    return this.authenticatedFetch<PageUserResponse>(
+      `${this.baseURL}/api/dashboard/manager/users?${params.toString()}`,
+      {
+        method: 'GET',
+      }
+    );
+  }
+
+  /**
+   * Update User
+   * PUT /api/dashboard/manager/users/{id}
+   */
+  async updateUser(id: number, user: UpdateUserRequest): Promise<UserResponse> {
+    return this.authenticatedFetch<UserResponse>(
+      `${this.baseURL}/api/dashboard/manager/users/${id}`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(user),
+      }
+    );
+  }
+
+  /**
+   * Get Employees
+   * GET /api/dashboard/manager/employees
+   */
+  async getEmployees(
+    page: number = 0,
+    size: number = 10
+  ): Promise<PageEmployeeResponse> {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      size: size.toString(),
+    });
+
+    return this.authenticatedFetch<PageEmployeeResponse>(
+      `${this.baseURL}/api/dashboard/manager/employees?${params.toString()}`,
+      {
+        method: 'GET',
+      }
+    );
+  }
+
+  /**
+   * Update Employee Status
+   * PUT /api/dashboard/manager/employees/{id}/status
+   */
+  async updateEmployeeStatus(id: number, status: UpdateEmployeeStatusRequest): Promise<EmployeeResponse> {
+    return this.authenticatedFetch<EmployeeResponse>(
+      `${this.baseURL}/api/dashboard/manager/employees/${id}/status`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(status),
+      }
+    );
+  }
+
+  /**
+   * Get VIP Guests
+   * GET /api/dashboard/manager/vips
+   */
+  async getVips(
+    page: number = 0,
+    size: number = 10
+  ): Promise<PageVipResponse> {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      size: size.toString(),
+    });
+
+    return this.authenticatedFetch<PageVipResponse>(
+      `${this.baseURL}/api/dashboard/manager/vips?${params.toString()}`,
+      {
+        method: 'GET',
+      }
+    );
+  }
+
+  /**
+   * Get Rated Stays
+   * GET /api/dashboard/manager/stays/rated
+   */
+  async getRatedStays(): Promise<PageStayDetailsResponse> {
+    return this.authenticatedFetch<PageStayDetailsResponse>(
+      `${this.baseURL}/api/dashboard/manager/stays/rated`,
+      {
+        method: 'GET',
+      }
+    );
+  }
+
+  /**
+   * Get Special Orders
+   * GET /api/dashboard/manager/special-orders
+   */
+  async getManagerSpecialOrders(): Promise<SpecialOrderResponse[]> {
+    return this.authenticatedFetch<SpecialOrderResponse[]>(
+      `${this.baseURL}/api/dashboard/manager/special-orders`,
+      {
+        method: 'GET',
+      }
+    );
+  }
+
+  // ==================== STATS AND PENDING ORDERS APIs ====================
+
+  /**
+   * Get Room Service Stats
+   * GET /api/dashboard/room-service/stats
+   */
+  async getRoomServiceStats(): Promise<DashboardStatsResponse> {
+    return this.authenticatedFetch<DashboardStatsResponse>(
+      `${this.baseURL}/api/dashboard/room-service/stats`,
+      {
+        method: 'GET',
+      }
+    );
+  }
+
+  /**
+   * Get Room Service Pending Orders
+   * GET /api/dashboard/room-service/pending-orders
+   */
+  async getRoomServicePendingOrders(): Promise<PendingOrdersResponse[]> {
+    return this.authenticatedFetch<PendingOrdersResponse[]>(
+      `${this.baseURL}/api/dashboard/room-service/pending-orders`,
+      {
+        method: 'GET',
+      }
+    );
+  }
+
+  /**
+   * Update Room Service Order Status
+   * PATCH /api/dashboard/room-service/orders/{orderId}/status
+   */
+  async updateRoomServiceOrderStatus(orderId: number, status: string): Promise<any> {
+    return this.authenticatedFetch<any>(
+      `${this.baseURL}/api/dashboard/room-service/orders/${orderId}/status`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ status }),
+      }
+    );
+  }
+
+  /**
+   * Get Restaurant Stats
+   * GET /api/dashboard/restaurant/stats
+   */
+  async getRestaurantStats(): Promise<DashboardStatsResponse> {
+    return this.authenticatedFetch<DashboardStatsResponse>(
+      `${this.baseURL}/api/dashboard/restaurant/stats`,
+      {
+        method: 'GET',
+      }
+    );
+  }
+
+  /**
+   * Get Restaurant Pending Orders
+   * GET /api/dashboard/restaurant/pending-orders
+   */
+  async getRestaurantPendingOrders(): Promise<PendingOrdersResponse[]> {
+    return this.authenticatedFetch<PendingOrdersResponse[]>(
+      `${this.baseURL}/api/dashboard/restaurant/pending-orders`,
+      {
+        method: 'GET',
+      }
+    );
+  }
+
+  /**
+   * Update Restaurant Order Status
+   * PATCH /api/dashboard/restaurant/orders/{orderId}/status
+   */
+  async updateRestaurantOrderStatus(orderId: number, status: string): Promise<any> {
+    return this.authenticatedFetch<any>(
+      `${this.baseURL}/api/dashboard/restaurant/orders/${orderId}/status`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ status }),
+      }
+    );
+  }
+
+  /**
+   * Get Cafe Stats
+   * GET /api/dashboard/cafe/stats
+   */
+  async getCafeStats(): Promise<DashboardStatsResponse> {
+    return this.authenticatedFetch<DashboardStatsResponse>(
+      `${this.baseURL}/api/dashboard/cafe/stats`,
+      {
+        method: 'GET',
+      }
+    );
+  }
+
+  /**
+   * Get Cafe Pending Orders
+   * GET /api/dashboard/cafe/pending-orders
+   */
+  async getCafePendingOrders(): Promise<PendingOrdersResponse[]> {
+    return this.authenticatedFetch<PendingOrdersResponse[]>(
+      `${this.baseURL}/api/dashboard/cafe/pending-orders`,
+      {
+        method: 'GET',
+      }
+    );
+  }
+
+  /**
+   * Update Cafe Order Status
+   * PATCH /api/dashboard/cafe/orders/{orderId}/status
+   */
+  async updateCafeOrderStatus(orderId: number, status: string): Promise<any> {
+    return this.authenticatedFetch<any>(
+      `${this.baseURL}/api/dashboard/cafe/orders/${orderId}/status`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ status }),
+      }
+    );
+  }
+
+  /**
+   * Get Check-in Today Stays
+   * GET /api/dashboard/front-desk/stays/checkin-today
+   */
+  async getCheckinTodayStays(): Promise<PageStayDetailsResponse> {
+    return this.authenticatedFetch<PageStayDetailsResponse>(
+      `${this.baseURL}/api/dashboard/front-desk/stays/checkin-today`,
+      {
+        method: 'GET',
+      }
+    );
+  }
+
+  /**
+   * Get Room Service Menu
+   * GET /api/dashboard/room-service/menu
+   */
+  async getRoomServiceMenu(
+    page: number = 0,
+    size: number = 10
+  ): Promise<any> {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      size: size.toString(),
+    });
+
+    return this.authenticatedFetch<any>(
+      `${this.baseURL}/api/dashboard/room-service/menu?${params.toString()}`,
+      {
+        method: 'GET',
+      }
+    );
+  }
+
+  /**
+   * Get Restaurant Menu
+   * GET /api/dashboard/restaurant/menu
+   */
+  async getRestaurantMenu(
+    page: number = 0,
+    size: number = 10
+  ): Promise<any> {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      size: size.toString(),
+    });
+
+    return this.authenticatedFetch<any>(
+      `${this.baseURL}/api/dashboard/restaurant/menu?${params.toString()}`,
+      {
+        method: 'GET',
+      }
+    );
+  }
+
+  /**
+   * Get Cafe Menu
+   * GET /api/dashboard/cafe/menu
+   */
+  async getCafeMenu(
+    page: number = 0,
+    size: number = 10
+  ): Promise<any> {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      size: size.toString(),
+    });
+
+    return this.authenticatedFetch<any>(
+      `${this.baseURL}/api/dashboard/cafe/menu?${params.toString()}`,
+      {
+        method: 'GET',
+      }
+    );
+  }
 }
 
 // Export singleton instance
@@ -748,4 +1158,16 @@ export type {
   CreateSpecialOrderRequest,
   SpecialOrderResponse,
   PageStayDetailsResponse,
+  UserResponse,
+  CreateUserRequest,
+  UpdateUserRequest,
+  PageUserResponse,
+  EmployeeResponse,
+  CreateEmployeeRequest,
+  UpdateEmployeeStatusRequest,
+  PageEmployeeResponse,
+  VipResponse,
+  PageVipResponse,
+  DashboardStatsResponse,
+  PendingOrdersResponse,
 };

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Building, Bell, Search, User, LogOut, Sparkles, Clock, Menu, X, Check, CheckCircle2,
-  Calendar, BedDouble, Users, MessageSquare, Wrench, Coffee, CreditCard, BarChart3, Globe, Settings, Award, TrendingUp, Brain, Star, FileText
+  Calendar, BedDouble, Users, MessageSquare, Wrench, Coffee, CreditCard, BarChart3, Globe, Settings, Award, TrendingUp, Brain, Star, FileText, Shield, Crown, ShoppingBag, ShoppingBag as ShoppingBagIcon
 } from 'lucide-react';
 
 import Login from './components/Login';
@@ -18,6 +18,16 @@ import RestaurantSection from './components/RestaurantSection';
 import PaymentsSection from './components/PaymentsSection';
 import AnalyticsSection from './components/AnalyticsSection';
 import MarketingSection from './components/MarketingSection';
+import UsersManagementSection from './components/UsersManagementSection';
+import EmployeesManagementSection from './components/EmployeesManagementSection';
+import VipGuestsSection from './components/VipGuestsSection';
+import RatingsSection from './components/RatingsSection';
+import SpecialOrdersManagementSection from './components/SpecialOrdersManagementSection';
+import TodayArrivalsSection from './components/TodayArrivalsSection';
+import RoomServiceStatsSection from './components/RoomServiceStatsSection';
+import RestaurantStatsSection from './components/RestaurantStatsSection';
+import CafeStatsSection from './components/CafeStatsSection';
+import PendingOrdersSection from './components/PendingOrdersSection';
 import MarketingAnalyticsSection from './components/MarketingAnalyticsSection';
 import AICenterSection from './components/AICenterSection';
 import StaffSection from './components/StaffSection';
@@ -55,7 +65,7 @@ export default function App() {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   // Active view tab state with # routing
-  const [activeTab, setActiveTab] = useState<'لوحة التحكم' | 'الحجوزات' | 'الغرف' | 'النزلاء' | 'طلبات النزلاء' | 'خدمة الغرف' | 'المطعم' | 'الصيانة' | 'المدفوعات' | 'التحليلات' | 'التسويق' | 'الموظفين' | 'إدارة الموقع' | 'إدارة السمعة' | 'Google Business' | 'التقارير' | 'الإعدادات' | 'العروض والمزايا'>(() => {
+  const [activeTab, setActiveTab] = useState<'لوحة التحكم' | 'الحجوزات' | 'الغرف' | 'النزلاء' | 'طلبات النزلاء' | 'خدمة الغرف' | 'المطعم' | 'الصيانة' | 'المدفوعات' | 'التحليلات' | 'التسويق' | 'الموظفين' | 'إدارة الموقع' | 'إدارة السمعة' | 'Google Business' | 'التقارير' | 'الإعدادات' | 'العروض والمزايا' | 'إدارة المستخدمين' | 'إدارة الموظفين' | 'النزلاء VIP' | 'التقييمات' | 'الطلبات الخاصة' | 'الحجوزات القادمة' | 'إحصائيات خدمة الغرف' | 'إحصائيات المطعم' | 'إحصائيات المقهى' | 'الطلبات المعلقة'>(() => {
     const hash = window.location.hash.replace('#', '');
     if (hash) {
       try {
@@ -425,6 +435,26 @@ export default function App() {
         return <SettingsSection />;
       case 'العروض والمزايا':
         return <SpecialOffersSection />;
+      case 'إدارة المستخدمين':
+        return <UsersManagementSection />;
+      case 'إدارة الموظفين':
+        return <EmployeesManagementSection />;
+      case 'النزلاء VIP':
+        return <VipGuestsSection />;
+      case 'التقييمات':
+        return <RatingsSection />;
+      case 'الطلبات الخاصة':
+        return <SpecialOrdersManagementSection />;
+      case 'الحجوزات القادمة':
+        return <TodayArrivalsSection />;
+      case 'إحصائيات خدمة الغرف':
+        return <RoomServiceStatsSection />;
+      case 'إحصائيات المطعم':
+        return <RestaurantStatsSection />;
+      case 'إحصائيات المقهى':
+        return <CafeStatsSection />;
+      case 'الطلبات المعلقة':
+        return <PendingOrdersSection />;
     }
   };
 
@@ -509,7 +539,17 @@ export default function App() {
             { label: 'إدارة السمعة', icon: <Star size={16} /> },
             { label: 'Google Business', icon: <TrendingUp size={16} /> },
             { label: 'التقارير', icon: <FileText size={16} /> },
-            { label: 'الإعدادات', icon: <Settings size={16} /> }
+            { label: 'الإعدادات', icon: <Settings size={16} /> },
+            { label: 'إدارة المستخدمين', icon: <User size={16} /> },
+            { label: 'إدارة الموظفين', icon: <Award size={16} /> },
+            { label: 'النزلاء VIP', icon: <Star size={16} /> },
+            { label: 'التقييمات', icon: <Star size={16} /> },
+            { label: 'الطلبات الخاصة', icon: <ShoppingBag size={16} /> },
+            { label: 'الحجوزات القادمة', icon: <Clock size={16} /> },
+            { label: 'إحصائيات خدمة الغرف', icon: <BarChart3 size={16} /> },
+            { label: 'إحصائيات المطعم', icon: <BarChart3 size={16} /> },
+            { label: 'إحصائيات المقهى', icon: <BarChart3 size={16} /> },
+            { label: 'الطلبات المعلقة', icon: <Clock size={16} /> }
           ].map((item) => (
             <button
               key={item.label}
