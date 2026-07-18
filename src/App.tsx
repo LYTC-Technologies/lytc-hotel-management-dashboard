@@ -26,6 +26,7 @@ import ReputationSection from './components/ReputationSection';
 import GoogleBusinessSection from './components/GoogleBusinessSection';
 import ReportsSection from './components/ReportsSection';
 import SettingsSection from './components/SettingsSection';
+import SpecialOffersSection from './components/SpecialOffersSection';
 
 import { 
   INITIAL_ROOMS, 
@@ -53,8 +54,41 @@ export default function App() {
   const [isAppLoading, setIsAppLoading] = useState(true);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-  // Active view tab state
-  const [activeTab, setActiveTab] = useState<'لوحة التحكم' | 'الحجوزات' | 'الغرف' | 'النزلاء' | 'طلبات النزلاء' | 'خدمة الغرف' | 'المطعم' | 'الصيانة' | 'المدفوعات' | 'التحليلات' | 'التسويق' | 'الموظفين' | 'إدارة الموقع' | 'إدارة السمعة' | 'Google Business' | 'التقارير' | 'الإعدادات'>('لوحة التحكم');
+  // Active view tab state with # routing
+  const [activeTab, setActiveTab] = useState<'لوحة التحكم' | 'الحجوزات' | 'الغرف' | 'النزلاء' | 'طلبات النزلاء' | 'خدمة الغرف' | 'المطعم' | 'الصيانة' | 'المدفوعات' | 'التحليلات' | 'التسويق' | 'الموظفين' | 'إدارة الموقع' | 'إدارة السمعة' | 'Google Business' | 'التقارير' | 'الإعدادات' | 'العروض والمزايا'>(() => {
+    const hash = window.location.hash.replace('#', '');
+    if (hash) {
+      try {
+        return decodeURIComponent(hash) as any;
+      } catch {
+        return 'لوحة التحكم';
+      }
+    }
+    return 'لوحة التحكم';
+  });
+
+  // Update URL hash when tab changes
+  const handleTabChange = (tab: any) => {
+    setActiveTab(tab);
+    window.location.hash = encodeURIComponent(tab);
+  };
+
+  // Listen for hash changes
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (hash) {
+        try {
+          setActiveTab(decodeURIComponent(hash) as any);
+        } catch {
+          setActiveTab('لوحة التحكم');
+        }
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   // Core Entity States
   const [rooms, setRooms] = useState<Room[]>(() => {
@@ -340,7 +374,7 @@ export default function App() {
             housekeeping={housekeeping}
             maintenance={maintenance}
             invoices={invoices}
-            onNavigate={(tab) => setActiveTab(tab as any)}
+            onNavigate={(tab) => handleTabChange(tab as any)}
             onOpenQuickBook={() => setQuickBookOpen(true)}
             onOpenQuickRequest={() => setQuickRequestOpen(true)}
           />
@@ -397,6 +431,8 @@ export default function App() {
         return <ReportsSection />;
       case 'الإعدادات':
         return <SettingsSection />;
+      case 'العروض والمزايا':
+        return <SpecialOffersSection />;
     }
   };
 
@@ -476,6 +512,7 @@ export default function App() {
             { label: 'تحليلات التسويق', icon: <TrendingUp size={16} /> },
             { label: 'مركز الذكاء الاصطناعي', icon: <Brain size={16} /> },
             { label: 'الموظفين', icon: <Award size={16} /> },
+            { label: 'العروض والمزايا', icon: <Sparkles size={16} /> },
             { label: 'إدارة الموقع', icon: <Globe size={16} /> },
             { label: 'إدارة السمعة', icon: <Star size={16} /> },
             { label: 'Google Business', icon: <TrendingUp size={16} /> },
@@ -484,7 +521,7 @@ export default function App() {
           ].map((item) => (
             <button
               key={item.label}
-              onClick={() => setActiveTab(item.label as any)}
+              onClick={() => handleTabChange(item.label as any)}
               className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-xs font-bold transition-all duration-200 group ${
                 activeTab === item.label
                   ? 'bg-[#D4AF37] text-black shadow-[0_5px_15px_rgba(212,175,55,0.2)]'
@@ -566,7 +603,7 @@ export default function App() {
                       <button
                         key={idx}
                         onClick={() => {
-                          setActiveTab(res.actionTab);
+                          handleTabChange(res.actionTab);
                           setShowSearchResults(false);
                           setGlobalSearchQuery('');
                         }}
@@ -710,6 +747,7 @@ export default function App() {
                     { label: 'تحليلات التسويق', icon: <TrendingUp size={14} /> },
                     { label: 'مركز الذكاء الاصطناعي', icon: <Brain size={14} /> },
                     { label: 'الموظفين', icon: <Award size={14} /> },
+                    { label: 'العروض والمزايا', icon: <Sparkles size={14} /> },
                     { label: 'إدارة الموقع', icon: <Globe size={14} /> },
                     { label: 'إدارة السمعة', icon: <Star size={14} /> },
                     { label: 'Google Business', icon: <TrendingUp size={14} /> },
@@ -719,7 +757,7 @@ export default function App() {
                     <button
                       key={item.label}
                       onClick={() => {
-                        setActiveTab(item.label as any);
+                        handleTabChange(item.label as any);
                         setMobileSidebarOpen(false);
                       }}
                       className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${

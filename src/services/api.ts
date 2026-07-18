@@ -18,27 +18,14 @@ interface LoginResponse {
 }
 
 interface CreateSpecialOfferRequest {
-  name: string;
+  title: string;
   description: string;
-  discountPercentage: number;
-  startDate: string;
-  endDate: string;
-  applicableRoomTypes?: string[];
-  minNights?: number;
-  maxGuests?: number;
 }
 
 interface SpecialOfferResponse {
   id: number;
-  name: string;
+  title: string;
   description: string;
-  discountPercentage: number;
-  startDate: string;
-  endDate: string;
-  applicableRoomTypes?: string[];
-  minNights?: number;
-  maxGuests?: number;
-  active: boolean;
 }
 
 interface CreateMenuItemRequest {
@@ -198,7 +185,7 @@ class APIService {
    * Update Special Offer API
    * PUT /api/dashboard/front-desk/special-offers/{id}
    */
-  async updateSpecialOffer(id: number, offer: Partial<CreateSpecialOfferRequest>): Promise<SpecialOfferResponse> {
+  async updateSpecialOffer(id: number, offer: { title?: string; description?: string }): Promise<SpecialOfferResponse> {
     const response = await fetch(`${this.baseURL}/api/dashboard/front-desk/special-offers/${id}`, {
       method: 'PUT',
       headers: this.getHeaders(true),
@@ -212,7 +199,7 @@ class APIService {
    * Patch Special Offer API (partial update)
    * PATCH /api/dashboard/front-desk/special-offers/{id}
    */
-  async patchSpecialOffer(id: number, offer: Partial<CreateSpecialOfferRequest>): Promise<SpecialOfferResponse> {
+  async patchSpecialOffer(id: number, offer: { title?: string; description?: string }): Promise<SpecialOfferResponse> {
     const response = await fetch(`${this.baseURL}/api/dashboard/front-desk/special-offers/${id}`, {
       method: 'PATCH',
       headers: this.getHeaders(true),
@@ -220,6 +207,19 @@ class APIService {
     });
 
     return this.handleResponse<SpecialOfferResponse>(response);
+  }
+
+  /**
+   * Get Special Offers for Guest
+   * GET /api/guest/special-offers
+   */
+  async getSpecialOffers(page: number = 0, size: number = 10): Promise<any> {
+    const response = await fetch(`${this.baseURL}/api/guest/special-offers?page=${page}&size=${size}`, {
+      method: 'GET',
+      headers: this.getHeaders(true),
+    });
+
+    return this.handleResponse<any>(response);
   }
 
   // ==================== MENU ITEMS APIs ====================

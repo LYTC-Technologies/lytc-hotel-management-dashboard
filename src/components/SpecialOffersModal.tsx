@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Percent, Calendar, Users, Bed, Tag, Save, Loader2 } from 'lucide-react';
+import { X, Tag, Save, Loader2 } from 'lucide-react';
 import { apiService, CreateSpecialOfferRequest } from '../services/api';
 
 interface SpecialOffersModalProps {
@@ -11,56 +11,26 @@ interface SpecialOffersModalProps {
 
 export default function SpecialOffersModal({ isOpen, onClose, onSuccess }: SpecialOffersModalProps) {
   const [formData, setFormData] = useState<CreateSpecialOfferRequest>({
-    name: '',
+    title: '',
     description: '',
-    discountPercentage: 0,
-    startDate: '',
-    endDate: '',
-    applicableRoomTypes: [],
-    minNights: 1,
-    maxGuests: 4,
   });
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const roomTypes = [
-    'classic',
-    'premium',
-    'deluxe',
-    'royal_suite',
-    'penthouse'
-  ];
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'discountPercentage' || name === 'minNights' || name === 'maxGuests' 
-        ? Number(value) 
-        : value
-    }));
-  };
-
-  const handleRoomTypeToggle = (roomType: string) => {
-    setFormData(prev => ({
-      ...prev,
-      applicableRoomTypes: prev.applicableRoomTypes?.includes(roomType)
-        ? prev.applicableRoomTypes.filter(type => type !== roomType)
-        : [...(prev.applicableRoomTypes || []), roomType]
+      [name]: value
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.description || !formData.startDate || !formData.endDate) {
+    if (!formData.title || !formData.description) {
       setErrorMessage('الرجاء ملء جميع الحقول المطلوبة');
-      return;
-    }
-
-    if (formData.discountPercentage < 0 || formData.discountPercentage > 100) {
-      setErrorMessage('نسبة الخصم يجب أن تكون بين 0 و 100');
       return;
     }
 
@@ -75,14 +45,8 @@ export default function SpecialOffersModal({ isOpen, onClose, onSuccess }: Speci
       
       // Reset form
       setFormData({
-        name: '',
+        title: '',
         description: '',
-        discountPercentage: 0,
-        startDate: '',
-        endDate: '',
-        applicableRoomTypes: [],
-        minNights: 1,
-        maxGuests: 4,
       });
     } catch (error) {
       setIsLoading(false);
@@ -136,15 +100,15 @@ export default function SpecialOffersModal({ isOpen, onClose, onSuccess }: Speci
                 </div>
               )}
 
-              {/* Offer Name */}
+              {/* Offer Title */}
               <div>
                 <label className="block text-xs font-bold text-gray-400 mb-2">
-                  اسم العرض <span className="text-red-400">*</span>
+                  عنوان العرض <span className="text-red-400">*</span>
                 </label>
                 <input
                   type="text"
-                  name="name"
-                  value={formData.name}
+                  name="title"
+                  value={formData.title}
                   onChange={handleInputChange}
                   className="w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-white focus:outline-none transition"
                   placeholder="مثال: عرض الصيف الفاخر"
@@ -162,117 +126,10 @@ export default function SpecialOffersModal({ isOpen, onClose, onSuccess }: Speci
                   value={formData.description}
                   onChange={handleInputChange}
                   className="w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-white focus:outline-none transition resize-none"
-                  rows={3}
+                  rows={4}
                   placeholder="وصف تفصيلي للعرض..."
                   required
                 />
-              </div>
-
-              {/* Discount Percentage */}
-              <div>
-                <label className="block text-xs font-bold text-gray-400 mb-2 flex items-center gap-2">
-                  <Percent size={14} />
-                  نسبة الخصم <span className="text-red-400">*</span>
-                </label>
-                <input
-                  type="number"
-                  name="discountPercentage"
-                  value={formData.discountPercentage}
-                  onChange={handleInputChange}
-                  min="0"
-                  max="100"
-                  className="w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-white focus:outline-none transition"
-                  placeholder="0"
-                  required
-                />
-              </div>
-
-              {/* Date Range */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-gray-400 mb-2 flex items-center gap-2">
-                    <Calendar size={14} />
-                    تاريخ البدء <span className="text-red-400">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    name="startDate"
-                    value={formData.startDate}
-                    onChange={handleInputChange}
-                    className="w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-white focus:outline-none transition"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-400 mb-2 flex items-center gap-2">
-                    <Calendar size={14} />
-                    تاريخ الانتهاء <span className="text-red-400">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    name="endDate"
-                    value={formData.endDate}
-                    onChange={handleInputChange}
-                    className="w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-white focus:outline-none transition"
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Room Types */}
-              <div>
-                <label className="block text-xs font-bold text-gray-400 mb-2 flex items-center gap-2">
-                  <Bed size={14} />
-                  أنواع الغرف المطبقة
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {roomTypes.map((type) => (
-                    <button
-                      key={type}
-                      type="button"
-                      onClick={() => handleRoomTypeToggle(type)}
-                      className={`px-3 py-2 rounded-lg text-xs font-bold transition ${
-                        formData.applicableRoomTypes?.includes(type)
-                          ? 'bg-[#D4AF37] text-black'
-                          : 'bg-[#121212] text-gray-400 border border-gray-800 hover:text-white'
-                      }`}
-                    >
-                      {type.replace('_', ' ')}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Guest & Night Limits */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-gray-400 mb-2 flex items-center gap-2">
-                    <Users size={14} />
-                    الحد الأدنى للليالي
-                  </label>
-                  <input
-                    type="number"
-                    name="minNights"
-                    value={formData.minNights}
-                    onChange={handleInputChange}
-                    min="1"
-                    className="w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-white focus:outline-none transition"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-400 mb-2 flex items-center gap-2">
-                    <Users size={14} />
-                    الحد الأقصى للضيوف
-                  </label>
-                  <input
-                    type="number"
-                    name="maxGuests"
-                    value={formData.maxGuests}
-                    onChange={handleInputChange}
-                    min="1"
-                    className="w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-white focus:outline-none transition"
-                  />
-                </div>
               </div>
 
               {/* Submit Button */}
