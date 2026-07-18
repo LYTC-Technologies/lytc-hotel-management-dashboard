@@ -32,14 +32,7 @@ export default function UsersManagementSection() {
       setUsers(response.content || []);
     } catch (error: any) {
       console.error('Failed to load users:', error);
-      // Dummy data fallback
-      setUsers([
-        { userId: 1, username: 'admin', role: 'ADMIN', email: 'admin@hotel.com' },
-        { userId: 2, username: 'manager1', role: 'MANAGER', email: 'manager@hotel.com' },
-        { userId: 3, username: 'staff1', role: 'STAFF', email: 'staff@hotel.com' },
-        { userId: 4, username: 'staff2', role: 'STAFF', email: 'staff2@hotel.com' },
-        { userId: 5, username: 'guest1', role: 'GUEST', email: 'guest@hotel.com' }
-      ]);
+      setUsers([]);
     } finally {
       setIsLoading(false);
     }
@@ -61,7 +54,7 @@ export default function UsersManagementSection() {
         role,
       };
 
-      await apiService.updateUser(0, newUser); // Using updateUser as placeholder for create
+      await apiService.createUser(newUser);
 
       // Reset form
       setUsername('');
@@ -81,10 +74,12 @@ export default function UsersManagementSection() {
 
   const handleUpdateUser = async (userId: number, userData: UpdateUserRequest) => {
     try {
+      console.log('Updating user:', userId, userData);
       await apiService.updateUser(userId, userData);
       loadUsers();
     } catch (error) {
       console.error('Failed to update user:', error);
+      alert('فشل تحديث المستخدم. الرجاء المحاولة مرة أخرى.');
     }
   };
 

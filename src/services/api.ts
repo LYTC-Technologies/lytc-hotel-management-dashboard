@@ -846,6 +846,20 @@ class APIService {
   }
 
   /**
+   * Create User
+   * POST /api/dashboard/manager/users
+   */
+  async createUser(user: CreateUserRequest): Promise<UserResponse> {
+    return this.authenticatedFetch<UserResponse>(
+      `${this.baseURL}/api/dashboard/manager/users`,
+      {
+        method: 'POST',
+        body: JSON.stringify(user),
+      }
+    );
+  }
+
+  /**
    * Update User
    * PUT /api/dashboard/manager/users/{id}
    */
@@ -876,6 +890,20 @@ class APIService {
       `${this.baseURL}/api/dashboard/manager/employees?${params.toString()}`,
       {
         method: 'GET',
+      }
+    );
+  }
+
+  /**
+   * Create Employee
+   * POST /api/dashboard/manager/employees
+   */
+  async createEmployee(employee: CreateEmployeeRequest): Promise<EmployeeResponse> {
+    return this.authenticatedFetch<EmployeeResponse>(
+      `${this.baseURL}/api/dashboard/manager/employees`,
+      {
+        method: 'POST',
+        body: JSON.stringify(employee),
       }
     );
   }
