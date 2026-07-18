@@ -8,8 +8,8 @@ interface LoginProps {
 }
 
 export default function Login({ onLoginSuccess }: LoginProps) {
-  const [email, setEmail] = useState('admin@lytc-palace.com');
-  const [password, setPassword] = useState('••••••••••••');
+  const [username, setUsername] = useState('admin');
+  const [password, setPassword] = useState('password');
   const [rememberMe, setRememberMe] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [step, setStep] = useState<'credentials' | '2fa'>('credentials');
@@ -19,8 +19,8 @@ export default function Login({ onLoginSuccess }: LoginProps) {
 
   const handleCredentialsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
-      setErrorMessage('الرجاء إدخال البريد الإلكتروني وكلمة المرور');
+    if (!username || !password) {
+      setErrorMessage('الرجاء إدخال اسم المستخدم وكلمة المرور');
       return;
     }
     setIsLoading(true);
@@ -28,7 +28,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     
     try {
       const credentials: LoginRequest = {
-        username: email,
+        username: username,
         password: password
       };
       
@@ -40,7 +40,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
       if (response.token) {
         onLoginSuccess({
           name: response.username,
-          email: email,
+          email: username,
           role: response.role
         });
       }
@@ -90,7 +90,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
       setIsLoading(false);
       onLoginSuccess({
         name: 'عبد الله بن خالد آل عبد الرحمن',
-        email: email,
+        email: username,
         role: 'المدير العام للمجموعة'
       });
     } catch (error) {
@@ -156,18 +156,18 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                 <form onSubmit={handleCredentialsSubmit} className="space-y-6">
                   {/* Email Input */}
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-gray-400 block mr-1">البريد الإلكتروني المهني</label>
+                    <label className="text-xs font-bold text-gray-400 block mr-1">اسم المستخدم</label>
                     <div className="relative">
                       <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-500">
                         <Mail className="h-5 w-5 text-gray-500" />
                       </div>
                       <input
-                        type="email"
+                        type="text"
                         required
                         className="block w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] rounded-xl pr-10 pl-4 py-3 text-sm text-gray-200 placeholder-gray-600 focus:outline-none transition-all duration-300"
-                        placeholder="admin@lytc-palace.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="admin"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
                       />
                     </div>
                   </div>
