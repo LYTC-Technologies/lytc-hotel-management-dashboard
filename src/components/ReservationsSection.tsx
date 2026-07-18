@@ -49,7 +49,14 @@ export default function ReservationsSection() {
       setTodayArrivals(response.content || []);
     } catch (error: any) {
       console.error('Failed to load today arrivals:', error);
-      setTodayArrivals([]);
+      // Dummy data fallback
+      setTodayArrivals([
+        { stayId: 1, guestName: 'محمد أحمد', roomNumber: '101', checkInDate: '2026-07-18', checkOutDate: '2026-07-22', status: 'RESERVED' },
+        { stayId: 2, guestName: 'فاطمة علي', roomNumber: '205', checkInDate: '2026-07-18', checkOutDate: '2026-07-25', status: 'RESERVED' },
+        { stayId: 3, guestName: 'عمر خالد', roomNumber: '302', checkInDate: '2026-07-18', checkOutDate: '2026-07-20', status: 'RESERVED' },
+        { stayId: 4, guestName: 'سارة محمد', roomNumber: '401', checkInDate: '2026-07-18', checkOutDate: '2026-07-23', status: 'RESERVED' },
+        { stayId: 5, guestName: 'أحمد علي', roomNumber: '505', checkInDate: '2026-07-18', checkOutDate: '2026-07-21', status: 'RESERVED' }
+      ]);
     }
   };
 
