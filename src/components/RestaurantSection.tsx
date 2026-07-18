@@ -149,7 +149,7 @@ export default function RestaurantSection({ orders, onUpdateOrderStatus }: Resta
                 {order.items.map((item, idx) => (
                   <div key={idx} className="text-xs text-gray-300 font-semibold flex items-center gap-1.5">
                     <span className="text-[#D4AF37]">🍽️</span>
-                    <span>{item}</span>
+                    <span>{item.name} x{item.quantity}</span>
                   </div>
                 ))}
               </div>
