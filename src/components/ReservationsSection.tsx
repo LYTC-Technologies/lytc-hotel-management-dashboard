@@ -63,8 +63,8 @@ export default function ReservationsSection() {
   // New Reservation Form States
   const [guestName, setGuestName] = useState('');
   const [selectedRoomNumber, setSelectedRoomNumber] = useState('');
-  const [checkIn, setCheckIn] = useState('2026-07-05');
-  const [checkOut, setCheckOut] = useState('2026-07-12');
+  const [checkIn, setCheckIn] = useState('2026-07-19');
+  const [checkOut, setCheckOut] = useState('2026-07-26');
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
   const [isCreatingStay, setIsCreatingStay] = useState(false);
@@ -109,8 +109,8 @@ export default function ReservationsSection() {
       // Reset form
       setGuestName('');
       setSelectedRoomNumber('');
-      setCheckIn('2026-07-05');
-      setCheckOut('2026-07-12');
+      setCheckIn('2026-07-19');
+      setCheckOut('2026-07-26');
       setAdults(2);
       setChildren(0);
       setIsModalOpen(false);
