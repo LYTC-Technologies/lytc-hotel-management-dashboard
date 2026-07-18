@@ -265,7 +265,7 @@ export default function ReservationsSection() {
                       {stay.status === 'CHECKED_IN' ? 'مقيم' : stay.status === 'CHECKED_OUT' ? 'مغادر' : stay.status === 'RESERVED' ? 'محجوز' : stay.status}
                     </span>
                   </td>
-                  <td className="py-3 text-sm text-[#E6C587] font-bold">{stay.totalCharge.toLocaleString('ar-SA')} ريال</td>
+                  <td className="py-3 text-sm text-[#E6C587] font-bold">{stay.totalCharge ? stay.totalCharge.toLocaleString('ar-SA') : '0'} ريال</td>
                   <td className="py-3">
                     <div className="flex items-center gap-2">
                       <button
