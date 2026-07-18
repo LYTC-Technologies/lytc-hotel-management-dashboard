@@ -406,7 +406,7 @@ export default function App() {
       case 'خدمة الغرف':
         return <HousekeepingSection tasks={housekeeping} onUpdateTaskStatus={handleUpdateTaskStatus} />;
       case 'المطعم':
-        return <RestaurantSection orders={orders} onUpdateOrderStatus={handleUpdateOrderStatus} />;
+        return <RestaurantSection />;
       case 'الصيانة':
         return <MaintenanceSection tickets={maintenance} onUpdateTicketStatus={handleUpdateTicketStatus} />;
       case 'المدفوعات':

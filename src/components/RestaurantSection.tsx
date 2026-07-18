@@ -1,24 +1,54 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { 
   Coffee, ChevronLeft, Check, Play, DollarSign, Clock, CheckCircle2, 
   Utensils, Grid3X3, List, Filter, Search, Plus, X, Save, Download, 
   Printer, TrendingUp, BarChart3, Star, Award, Timer, AlertCircle,
-  Package, ChefHat, Table, Calendar, Users
+  Package, ChefHat, Table, Calendar, Users, Loader2
 } from 'lucide-react';
 import { RestaurantOrder } from '../types';
 import CreateOrderModal from './CreateOrderModal';
+import { apiService } from '../services/api';
 
 interface RestaurantSectionProps {
-  orders: RestaurantOrder[];
-  onUpdateOrderStatus: (orderId: string, status: RestaurantOrder['status']) => void;
+  orders?: RestaurantOrder[];
+  onUpdateOrderStatus?: (orderId: string, status: RestaurantOrder['status']) => void;
 }
 
-export default function RestaurantSection({ orders, onUpdateOrderStatus }: RestaurantSectionProps) {
+export default function RestaurantSection({ orders: initialOrders = [], onUpdateOrderStatus }: RestaurantSectionProps) {
   const [viewMode, setViewMode] = useState<'orders' | 'tables' | 'menu' | 'inventory' | 'kitchen'>('orders');
   const [filter, setFilter] = useState<'all' | RestaurantOrder['status']>('all');
   const [selectedOrder, setSelectedOrder] = useState<RestaurantOrder | null>(null);
   const [isCreateOrderModalOpen, setIsCreateOrderModalOpen] = useState(false);
+  const [orders, setOrders] = useState<RestaurantOrder[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadOrders();
+  }, []);
+
+  const loadOrders = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      // Try to load orders from backend
+      const response = await apiService.getGuestOrders('101', 0, 50);
+      // Transform backend response to RestaurantOrder format if needed
+      const transformedOrders = response.content || [];
+      setOrders(transformedOrders);
+    } catch (error) {
+      console.error('Failed to load orders:', error);
+      setError('فشل الاتصال بالخادم. الرجاء المحاولة مرة أخرى.');
+      setOrders([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCreateOrderSuccess = () => {
+    loadOrders();
+  };
 
   const totalRestaurantSales = orders.reduce((sum, order) => sum + order.total, 0);
   const filteredOrders = filter === 'all' ? orders : orders.filter(o => o.status === filter);
@@ -123,18 +153,48 @@ export default function RestaurantSection({ orders, onUpdateOrderStatus }: Resta
 
       {/* Orders View */}
       {viewMode === 'orders' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredOrders.map((order) => (
-            <div key={order.id} className="bg-[#0b0b0b] border border-gray-900 rounded-xl p-5 hover:border-[#D4AF37]/35 transition duration-300 flex flex-col justify-between h-72">
-              <div>
-                <div className="flex justify-between items-start">
+        <>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 size={24} className="text-[#D4AF37] animate-spin" />
+            </div>
+          ) : error ? (
+            <div className="text-center py-16 bg-[#0b0b0b] border border-gray-900 rounded-2xl">
+              <X size={48} className="text-red-500 mx-auto mb-4" />
+              <h3 className="text-sm font-bold text-gray-400 mb-2">فشل تحميل الطلبات</h3>
+              <p className="text-xs text-gray-600 mb-4">{error}</p>
+              <button
+                onClick={loadOrders}
+                className="px-4 py-2 bg-gradient-to-r from-[#AA7B30] to-[#D4AF37] text-black font-extrabold text-xs rounded-xl"
+              >
+                إعادة المحاولة
+              </button>
+            </div>
+          ) : filteredOrders.length === 0 ? (
+            <div className="text-center py-16 bg-[#0b0b0b] border border-gray-900 rounded-2xl">
+              <Utensils size={48} className="text-gray-700 mx-auto mb-4" />
+              <h3 className="text-sm font-bold text-gray-400 mb-2">لا توجد طلبات حالياً</h3>
+              <p className="text-xs text-gray-600 mb-4">ابدأ بإنشاء طلب جديد</p>
+              <button
+                onClick={() => setIsCreateOrderModalOpen(true)}
+                className="px-4 py-2 bg-gradient-to-r from-[#AA7B30] to-[#D4AF37] text-black font-extrabold text-xs rounded-xl"
+              >
+                إنشاء طلب
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredOrders.map((order) => (
+                <div key={order.id} className="bg-[#0b0b0b] border border-gray-900 rounded-xl p-5 hover:border-[#D4AF37]/35 transition duration-300 flex flex-col justify-between h-72">
                   <div>
-                  <span className="px-2 py-0.5 bg-[#121212] border border-gray-800 text-gray-400 text-[10px] font-mono rounded">
-                    {order.id}
-                  </span>
-                  <h3 className="text-sm font-bold text-white mt-1.5">{order.tableNumber}</h3>
-                  <span className="text-[10px] text-gray-500 font-mono block mt-0.5">الوقت: {order.time}</span>
-                </div>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <span className="px-2 py-0.5 bg-[#121212] border border-gray-800 text-gray-400 text-[10px] font-mono rounded">
+                          {order.id}
+                        </span>
+                        <h3 className="text-sm font-bold text-white mt-1.5">{order.tableNumber}</h3>
+                        <span className="text-[10px] text-gray-500 font-mono block mt-0.5">الوقت: {order.time}</span>
+                      </div>
 
                 <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold border ${
                   order.status === 'delivered' ? 'bg-emerald-950/40 text-emerald-400 border-emerald-500/20' :
@@ -171,7 +231,7 @@ export default function RestaurantSection({ orders, onUpdateOrderStatus }: Resta
               <div className="flex gap-2">
                 {order.status === 'ordered' && (
                   <button
-                    onClick={() => onUpdateOrderStatus(order.id, 'preparing')}
+                    onClick={() => onUpdateOrderStatus && onUpdateOrderStatus(order.id, 'preparing')}
                     className="px-2.5 py-1 bg-amber-950/40 text-amber-500 border border-amber-500/20 hover:bg-amber-900/30 rounded-lg text-[10px] font-bold flex items-center gap-1"
                   >
                     <Play size={11} />
@@ -181,7 +241,7 @@ export default function RestaurantSection({ orders, onUpdateOrderStatus }: Resta
 
                 {order.status === 'preparing' && (
                   <button
-                    onClick={() => onUpdateOrderStatus(order.id, 'delivered')}
+                    onClick={() => onUpdateOrderStatus && onUpdateOrderStatus(order.id, 'delivered')}
                     className="px-2.5 py-1 bg-emerald-950/40 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-900/30 rounded-lg text-[10px] font-bold flex items-center gap-1"
                   >
                     <Check size={11} />
@@ -197,10 +257,11 @@ export default function RestaurantSection({ orders, onUpdateOrderStatus }: Resta
                 )}
               </div>
             </div>
-
           </div>
         ))}
       </div>
+          )}
+        </>
       )}
 
       {/* Tables View */}
@@ -290,7 +351,7 @@ export default function RestaurantSection({ orders, onUpdateOrderStatus }: Resta
         onClose={() => setIsCreateOrderModalOpen(false)}
         onSuccess={() => {
           // Refresh orders after successful creation
-          setIsCreateOrderModalOpen(false);
+          handleCreateOrderSuccess();
         }}
         roomNumber="101" // This should come from props or context
       />
