@@ -51,6 +51,17 @@ interface CreateMenuItemRequest {
   imageUrl?: string;
 }
 
+interface CreateOrderRequest {
+  category: 'FOOD' | 'DRINK' | 'SERVICE';
+  items: OrderItemRequest[];
+}
+
+interface OrderItemRequest {
+  menuItemId: number;
+  quantity: number;
+  notes?: string;
+}
+
 interface MenuItemResponse {
   id: number;
   name: string;
@@ -338,6 +349,61 @@ class APIService {
 
     return this.handleResponse<MenuItemResponse>(response);
   }
+
+  // ==================== ORDER APIs ====================
+
+  /**
+   * Create Order for Guest
+   * POST /api/guest/orders
+   */
+  async createGuestOrder(roomNumber: string, order: CreateOrderRequest): Promise<any> {
+    const response = await fetch(`${this.baseURL}/api/guest/orders?roomNumber=${roomNumber}`, {
+      method: 'POST',
+      headers: this.getHeaders(true),
+      body: JSON.stringify(order),
+    });
+
+    return this.handleResponse<any>(response);
+  }
+
+  /**
+   * Get Guest Orders
+   * GET /api/guest/orders
+   */
+  async getGuestOrders(roomNumber: string, page: number = 0, size: number = 10): Promise<any> {
+    const response = await fetch(`${this.baseURL}/api/guest/orders?roomNumber=${roomNumber}&page=${page}&size=${size}`, {
+      method: 'GET',
+      headers: this.getHeaders(true),
+    });
+
+    return this.handleResponse<any>(response);
+  }
+
+  /**
+   * Cancel Order
+   * POST /api/guest/orders/{orderId}/cancel
+   */
+  async cancelOrder(orderId: number, roomNumber: string): Promise<any> {
+    const response = await fetch(`${this.baseURL}/api/guest/orders/${orderId}/cancel?roomNumber=${roomNumber}`, {
+      method: 'POST',
+      headers: this.getHeaders(true),
+    });
+
+    return this.handleResponse<any>(response);
+  }
+
+  /**
+   * Get Order Details
+   * GET /api/guest/orders/{orderId}
+   */
+  async getOrderDetails(orderId: number, roomNumber: string): Promise<any> {
+    const response = await fetch(`${this.baseURL}/api/guest/orders/${orderId}?roomNumber=${roomNumber}`, {
+      method: 'GET',
+      headers: this.getHeaders(true),
+    });
+
+    return this.handleResponse<any>(response);
+  }
 }
 
 // Export singleton instance
@@ -351,4 +417,6 @@ export type {
   SpecialOfferResponse,
   CreateMenuItemRequest,
   MenuItemResponse,
+  CreateOrderRequest,
+  OrderItemRequest,
 };

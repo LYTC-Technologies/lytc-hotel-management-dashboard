@@ -627,44 +627,7 @@ export const INITIAL_MAINTENANCE: MaintenanceTicket[] = [
   }
 ];
 
-export const INITIAL_RESTAURANT: RestaurantOrder[] = [
-  {
-    id: 'rest-1',
-    tableNumber: 'الطاولة الملكية 1',
-    items: [
-      { name: 'ستيك فيليه بالذهب عيار 24 قيراط', quantity: 1, price: 650 },
-      { name: 'سلطة الكينوا العضوية', quantity: 1, price: 180 },
-      { name: 'مشروب ليمون ونعناع فوار', quantity: 2, price: 210 }
-    ],
-    status: 'preparing',
-    total: 1250,
-    time: '11:10'
-  },
-  {
-    id: 'rest-2',
-    tableNumber: 'طاولة البحر 4',
-    items: [
-      { name: 'طبق ثمار البحر المشكلة الفاخر', quantity: 1, price: 550 },
-      { name: 'شوربة كابوريا بالكريمة', quantity: 1, price: 180 },
-      { name: 'شاي مثلج بالزعفران', quantity: 2, price: 120 }
-    ],
-    status: 'ordered',
-    total: 850,
-    time: '11:22'
-  },
-  {
-    id: 'rest-3',
-    tableNumber: 'الجناح 501',
-    items: [
-      { name: 'حساء العدس بالكمون الشامي', quantity: 1, price: 85 },
-      { name: 'مشاوي مشكلة ليتك المميزة', quantity: 1, price: 280 },
-      { name: 'مياه إيفيان مبردة', quantity: 3, price: 85 }
-    ],
-    status: 'delivered',
-    total: 450,
-    time: '10:05'
-  }
-];
+export const INITIAL_RESTAURANT: RestaurantOrder[] = [];
 
 export const INITIAL_INVOICES: Invoice[] = [
   {

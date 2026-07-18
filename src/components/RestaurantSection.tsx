@@ -7,6 +7,7 @@ import {
   Package, ChefHat, Table, Calendar, Users
 } from 'lucide-react';
 import { RestaurantOrder } from '../types';
+import CreateOrderModal from './CreateOrderModal';
 
 interface RestaurantSectionProps {
   orders: RestaurantOrder[];
@@ -17,6 +18,7 @@ export default function RestaurantSection({ orders, onUpdateOrderStatus }: Resta
   const [viewMode, setViewMode] = useState<'orders' | 'tables' | 'menu' | 'inventory' | 'kitchen'>('orders');
   const [filter, setFilter] = useState<'all' | RestaurantOrder['status']>('all');
   const [selectedOrder, setSelectedOrder] = useState<RestaurantOrder | null>(null);
+  const [isCreateOrderModalOpen, setIsCreateOrderModalOpen] = useState(false);
 
   const totalRestaurantSales = orders.reduce((sum, order) => sum + order.total, 0);
   const filteredOrders = filter === 'all' ? orders : orders.filter(o => o.status === filter);
@@ -47,7 +49,9 @@ export default function RestaurantSection({ orders, onUpdateOrderStatus }: Resta
           <h1 className="text-2xl font-black text-[#E6C587]">المطعم الفاخر والمطبخ الملكي</h1>
           <p className="text-gray-500 text-xs mt-1">تتبع طلبات الطعام المباشرة لجميع الطاولات والأجنحة، ومراقبة حالة المطبخ والمبيعات الإجمالية.</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#AA7B30] to-[#D4AF37] hover:from-[#C59740] hover:to-[#D4AF37] text-black font-extrabold text-xs rounded-xl shadow-lg transition duration-200">
+        <button 
+          onClick={() => setIsCreateOrderModalOpen(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#AA7B30] to-[#D4AF37] hover:from-[#C59740] hover:to-[#D4AF37] text-black font-extrabold text-xs rounded-xl shadow-lg transition duration-200">
           <Plus size={15} />
           <span>طلب جديد</span>
         </button>
@@ -279,6 +283,17 @@ export default function RestaurantSection({ orders, onUpdateOrderStatus }: Resta
           </div>
         </div>
       )}
+
+      {/* Create Order Modal */}
+      <CreateOrderModal
+        isOpen={isCreateOrderModalOpen}
+        onClose={() => setIsCreateOrderModalOpen(false)}
+        onSuccess={() => {
+          // Refresh orders after successful creation
+          setIsCreateOrderModalOpen(false);
+        }}
+        roomNumber="101" // This should come from props or context
+      />
     </div>
   );
 }
