@@ -64,6 +64,7 @@ interface MenuItemResponse {
 class APIService {
   private baseURL: string;
   private token: string | null = null;
+  private isRefreshing: boolean = false;
 
   constructor(baseURL: string) {
     this.baseURL = baseURL;
@@ -84,13 +85,47 @@ class APIService {
     return headers;
   }
 
-  // Helper method to handle response
+  // Helper method to handle response with automatic token refresh
   private async handleResponse<T>(response: Response): Promise<T> {
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: 'An error occurred' }));
       throw new Error(error.message || `HTTP error! status: ${response.status}`);
     }
     return response.json();
+  }
+
+  // Helper method to make authenticated requests with automatic token refresh
+  private async authenticatedFetch<T>(
+    url: string,
+    options: RequestInit = {}
+  ): Promise<T> {
+    const makeRequest = async (): Promise<Response> => {
+      return fetch(url, {
+        ...options,
+        headers: this.getHeaders(true),
+      });
+    };
+
+    let response = await makeRequest();
+
+    // If 401 and not already refreshing, try to refresh token
+    if (response.status === 401 && this.token && !this.isRefreshing) {
+      this.isRefreshing = true;
+      try {
+        await this.refreshToken();
+        this.isRefreshing = false;
+        // Retry the request with new token
+        response = await makeRequest();
+      } catch (refreshError) {
+        this.isRefreshing = false;
+        // If refresh fails, clear token and redirect to login
+        this.clearToken();
+        window.location.href = '/';
+        throw new Error('Session expired. Please login again.');
+      }
+    }
+
+    return this.handleResponse<T>(response);
   }
 
   // Set authentication token
@@ -172,13 +207,13 @@ class APIService {
    * POST /api/dashboard/front-desk/special-offers
    */
   async createSpecialOffer(offer: CreateSpecialOfferRequest): Promise<SpecialOfferResponse> {
-    const response = await fetch(`${this.baseURL}/api/dashboard/front-desk/special-offers`, {
-      method: 'POST',
-      headers: this.getHeaders(true),
-      body: JSON.stringify(offer),
-    });
-
-    return this.handleResponse<SpecialOfferResponse>(response);
+    return this.authenticatedFetch<SpecialOfferResponse>(
+      `${this.baseURL}/api/dashboard/front-desk/special-offers`,
+      {
+        method: 'POST',
+        body: JSON.stringify(offer),
+      }
+    );
   }
 
   /**
@@ -186,13 +221,13 @@ class APIService {
    * PUT /api/dashboard/front-desk/special-offers/{id}
    */
   async updateSpecialOffer(id: number, offer: { title?: string; description?: string }): Promise<SpecialOfferResponse> {
-    const response = await fetch(`${this.baseURL}/api/dashboard/front-desk/special-offers/${id}`, {
-      method: 'PUT',
-      headers: this.getHeaders(true),
-      body: JSON.stringify(offer),
-    });
-
-    return this.handleResponse<SpecialOfferResponse>(response);
+    return this.authenticatedFetch<SpecialOfferResponse>(
+      `${this.baseURL}/api/dashboard/front-desk/special-offers/${id}`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(offer),
+      }
+    );
   }
 
   /**
@@ -200,13 +235,13 @@ class APIService {
    * PATCH /api/dashboard/front-desk/special-offers/{id}
    */
   async patchSpecialOffer(id: number, offer: { title?: string; description?: string }): Promise<SpecialOfferResponse> {
-    const response = await fetch(`${this.baseURL}/api/dashboard/front-desk/special-offers/${id}`, {
-      method: 'PATCH',
-      headers: this.getHeaders(true),
-      body: JSON.stringify(offer),
-    });
-
-    return this.handleResponse<SpecialOfferResponse>(response);
+    return this.authenticatedFetch<SpecialOfferResponse>(
+      `${this.baseURL}/api/dashboard/front-desk/special-offers/${id}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(offer),
+      }
+    );
   }
 
   /**
@@ -214,12 +249,12 @@ class APIService {
    * GET /api/guest/special-offers
    */
   async getSpecialOffers(page: number = 0, size: number = 10): Promise<any> {
-    const response = await fetch(`${this.baseURL}/api/guest/special-offers?page=${page}&size=${size}`, {
-      method: 'GET',
-      headers: this.getHeaders(true),
-    });
-
-    return this.handleResponse<any>(response);
+    return this.authenticatedFetch<any>(
+      `${this.baseURL}/api/guest/special-offers?page=${page}&size=${size}`,
+      {
+        method: 'GET',
+      }
+    );
   }
 
   // ==================== MENU ITEMS APIs ====================
@@ -229,13 +264,13 @@ class APIService {
    * POST /api/dashboard/room-service/menu
    */
   async createRoomServiceMenuItem(item: CreateMenuItemRequest): Promise<MenuItemResponse> {
-    const response = await fetch(`${this.baseURL}/api/dashboard/room-service/menu`, {
-      method: 'POST',
-      headers: this.getHeaders(true),
-      body: JSON.stringify(item),
-    });
-
-    return this.handleResponse<MenuItemResponse>(response);
+    return this.authenticatedFetch<MenuItemResponse>(
+      `${this.baseURL}/api/dashboard/room-service/menu`,
+      {
+        method: 'POST',
+        body: JSON.stringify(item),
+      }
+    );
   }
 
   /**
@@ -243,13 +278,13 @@ class APIService {
    * POST /api/dashboard/restaurant/menu
    */
   async createRestaurantMenuItem(item: CreateMenuItemRequest): Promise<MenuItemResponse> {
-    const response = await fetch(`${this.baseURL}/api/dashboard/restaurant/menu`, {
-      method: 'POST',
-      headers: this.getHeaders(true),
-      body: JSON.stringify(item),
-    });
-
-    return this.handleResponse<MenuItemResponse>(response);
+    return this.authenticatedFetch<MenuItemResponse>(
+      `${this.baseURL}/api/dashboard/restaurant/menu`,
+      {
+        method: 'POST',
+        body: JSON.stringify(item),
+      }
+    );
   }
 
   /**
@@ -257,13 +292,13 @@ class APIService {
    * POST /api/dashboard/cafe/menu
    */
   async createCafeMenuItem(item: CreateMenuItemRequest): Promise<MenuItemResponse> {
-    const response = await fetch(`${this.baseURL}/api/dashboard/cafe/menu`, {
-      method: 'POST',
-      headers: this.getHeaders(true),
-      body: JSON.stringify(item),
-    });
-
-    return this.handleResponse<MenuItemResponse>(response);
+    return this.authenticatedFetch<MenuItemResponse>(
+      `${this.baseURL}/api/dashboard/cafe/menu`,
+      {
+        method: 'POST',
+        body: JSON.stringify(item),
+      }
+    );
   }
 
   /**
@@ -271,13 +306,13 @@ class APIService {
    * PUT /api/dashboard/room-service/menu/{id}
    */
   async updateRoomServiceMenuItem(id: number, item: Partial<CreateMenuItemRequest>): Promise<MenuItemResponse> {
-    const response = await fetch(`${this.baseURL}/api/dashboard/room-service/menu/${id}`, {
-      method: 'PUT',
-      headers: this.getHeaders(true),
-      body: JSON.stringify(item),
-    });
-
-    return this.handleResponse<MenuItemResponse>(response);
+    return this.authenticatedFetch<MenuItemResponse>(
+      `${this.baseURL}/api/dashboard/room-service/menu/${id}`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(item),
+      }
+    );
   }
 
   /**
@@ -285,13 +320,13 @@ class APIService {
    * PUT /api/dashboard/restaurant/menu/{id}
    */
   async updateRestaurantMenuItem(id: number, item: Partial<CreateMenuItemRequest>): Promise<MenuItemResponse> {
-    const response = await fetch(`${this.baseURL}/api/dashboard/restaurant/menu/${id}`, {
-      method: 'PUT',
-      headers: this.getHeaders(true),
-      body: JSON.stringify(item),
-    });
-
-    return this.handleResponse<MenuItemResponse>(response);
+    return this.authenticatedFetch<MenuItemResponse>(
+      `${this.baseURL}/api/dashboard/restaurant/menu/${id}`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(item),
+      }
+    );
   }
 
   /**
@@ -299,13 +334,13 @@ class APIService {
    * PUT /api/dashboard/cafe/menu/{id}
    */
   async updateCafeMenuItem(id: number, item: Partial<CreateMenuItemRequest>): Promise<MenuItemResponse> {
-    const response = await fetch(`${this.baseURL}/api/dashboard/cafe/menu/${id}`, {
-      method: 'PUT',
-      headers: this.getHeaders(true),
-      body: JSON.stringify(item),
-    });
-
-    return this.handleResponse<MenuItemResponse>(response);
+    return this.authenticatedFetch<MenuItemResponse>(
+      `${this.baseURL}/api/dashboard/cafe/menu/${id}`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(item),
+      }
+    );
   }
 
   /**
@@ -313,13 +348,13 @@ class APIService {
    * PATCH /api/dashboard/room-service/menu/{id}
    */
   async patchRoomServiceMenuItem(id: number, item: Partial<CreateMenuItemRequest>): Promise<MenuItemResponse> {
-    const response = await fetch(`${this.baseURL}/api/dashboard/room-service/menu/${id}`, {
-      method: 'PATCH',
-      headers: this.getHeaders(true),
-      body: JSON.stringify(item),
-    });
-
-    return this.handleResponse<MenuItemResponse>(response);
+    return this.authenticatedFetch<MenuItemResponse>(
+      `${this.baseURL}/api/dashboard/room-service/menu/${id}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(item),
+      }
+    );
   }
 
   /**
@@ -327,13 +362,13 @@ class APIService {
    * PATCH /api/dashboard/restaurant/menu/{id}
    */
   async patchRestaurantMenuItem(id: number, item: Partial<CreateMenuItemRequest>): Promise<MenuItemResponse> {
-    const response = await fetch(`${this.baseURL}/api/dashboard/restaurant/menu/${id}`, {
-      method: 'PATCH',
-      headers: this.getHeaders(true),
-      body: JSON.stringify(item),
-    });
-
-    return this.handleResponse<MenuItemResponse>(response);
+    return this.authenticatedFetch<MenuItemResponse>(
+      `${this.baseURL}/api/dashboard/restaurant/menu/${id}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(item),
+      }
+    );
   }
 
   /**
@@ -341,13 +376,13 @@ class APIService {
    * PATCH /api/dashboard/cafe/menu/{id}
    */
   async patchCafeMenuItem(id: number, item: Partial<CreateMenuItemRequest>): Promise<MenuItemResponse> {
-    const response = await fetch(`${this.baseURL}/api/dashboard/cafe/menu/${id}`, {
-      method: 'PATCH',
-      headers: this.getHeaders(true),
-      body: JSON.stringify(item),
-    });
-
-    return this.handleResponse<MenuItemResponse>(response);
+    return this.authenticatedFetch<MenuItemResponse>(
+      `${this.baseURL}/api/dashboard/cafe/menu/${id}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(item),
+      }
+    );
   }
 
   // ==================== ORDER APIs ====================
@@ -357,13 +392,13 @@ class APIService {
    * POST /api/guest/orders
    */
   async createGuestOrder(roomNumber: string, order: CreateOrderRequest): Promise<any> {
-    const response = await fetch(`${this.baseURL}/api/guest/orders?roomNumber=${roomNumber}`, {
-      method: 'POST',
-      headers: this.getHeaders(true),
-      body: JSON.stringify(order),
-    });
-
-    return this.handleResponse<any>(response);
+    return this.authenticatedFetch<any>(
+      `${this.baseURL}/api/guest/orders?roomNumber=${roomNumber}`,
+      {
+        method: 'POST',
+        body: JSON.stringify(order),
+      }
+    );
   }
 
   /**
@@ -371,12 +406,12 @@ class APIService {
    * GET /api/guest/orders
    */
   async getGuestOrders(roomNumber: string, page: number = 0, size: number = 10): Promise<any> {
-    const response = await fetch(`${this.baseURL}/api/guest/orders?roomNumber=${roomNumber}&page=${page}&size=${size}`, {
-      method: 'GET',
-      headers: this.getHeaders(true),
-    });
-
-    return this.handleResponse<any>(response);
+    return this.authenticatedFetch<any>(
+      `${this.baseURL}/api/guest/orders?roomNumber=${roomNumber}&page=${page}&size=${size}`,
+      {
+        method: 'GET',
+      }
+    );
   }
 
   /**
@@ -384,12 +419,12 @@ class APIService {
    * POST /api/guest/orders/{orderId}/cancel
    */
   async cancelOrder(orderId: number, roomNumber: string): Promise<any> {
-    const response = await fetch(`${this.baseURL}/api/guest/orders/${orderId}/cancel?roomNumber=${roomNumber}`, {
-      method: 'POST',
-      headers: this.getHeaders(true),
-    });
-
-    return this.handleResponse<any>(response);
+    return this.authenticatedFetch<any>(
+      `${this.baseURL}/api/guest/orders/${orderId}/cancel?roomNumber=${roomNumber}`,
+      {
+        method: 'POST',
+      }
+    );
   }
 
   /**
@@ -397,12 +432,12 @@ class APIService {
    * GET /api/guest/orders/{orderId}
    */
   async getOrderDetails(orderId: number, roomNumber: string): Promise<any> {
-    const response = await fetch(`${this.baseURL}/api/guest/orders/${orderId}?roomNumber=${roomNumber}`, {
-      method: 'GET',
-      headers: this.getHeaders(true),
-    });
-
-    return this.handleResponse<any>(response);
+    return this.authenticatedFetch<any>(
+      `${this.baseURL}/api/guest/orders/${orderId}?roomNumber=${roomNumber}`,
+      {
+        method: 'GET',
+      }
+    );
   }
 }
 
