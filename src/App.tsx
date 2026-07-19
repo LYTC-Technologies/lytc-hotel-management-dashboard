@@ -37,6 +37,7 @@ import GoogleBusinessSection from './components/GoogleBusinessSection';
 import ReportsSection from './components/ReportsSection';
 import SettingsSection from './components/SettingsSection';
 import SpecialOffersSection from './components/SpecialOffersSection';
+import AnalyticsPage from './analytics/AnalyticsPage';
 
 import { 
   INITIAL_ROOMS, 
@@ -65,7 +66,7 @@ export default function App() {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   // Active view tab state with # routing
-  const [activeTab, setActiveTab] = useState<'لوحة التحكم' | 'الحجوزات' | 'الغرف' | 'النزلاء' | 'طلبات النزلاء' | 'خدمة الغرف' | 'المطعم' | 'الصيانة' | 'المدفوعات' | 'التحليلات' | 'التسويق' | 'الموظفين' | 'إدارة الموقع' | 'إدارة السمعة' | 'Google Business' | 'التقارير' | 'الإعدادات' | 'العروض والمزايا' | 'إدارة المستخدمين' | 'إدارة الموظفين' | 'النزلاء VIP' | 'التقييمات' | 'الطلبات الخاصة' | 'الحجوزات القادمة' | 'إحصائيات خدمة الغرف' | 'إحصائيات المطعم' | 'إحصائيات المقهى' | 'الطلبات المعلقة'>(() => {
+  const [activeTab, setActiveTab] = useState<'لوحة التحكم' | 'الحجوزات' | 'الغرف' | 'النزلاء' | 'طلبات النزلاء' | 'خدمة الغرف' | 'المطعم' | 'الصيانة' | 'المدفوعات' | 'التحليلات' | 'التسويق' | 'الموظفين' | 'إدارة الموقع' | 'إدارة السمعة' | 'Google Business' | 'التقارير' | 'الإعدادات' | 'العروض والمزايا' | 'إدارة المستخدمين' | 'إدارة الموظفين' | 'النزلاء VIP' | 'التقييمات' | 'الطلبات الخاصة' | 'الحجوزات القادمة' | 'إحصائيات خدمة الغرف' | 'إحصائيات المطعم' | 'إحصائيات المقهى' | 'الطلبات المعلقة' | 'التحليلات الذكية'>(() => {
     const hash = window.location.hash.replace('#', '');
     if (hash) {
       try {
@@ -415,6 +416,8 @@ export default function App() {
         return <PaymentsSection invoices={invoices} onUpdateInvoiceStatus={handleUpdateInvoiceStatus} />;
       case 'التحليلات':
         return <AnalyticsSection />;
+      case 'التحليلات الذكية':
+        return <AnalyticsPage />;
       case 'التسويق':
         return <MarketingSection />;
       case 'تحليلات التسويق':
@@ -530,6 +533,7 @@ export default function App() {
             { label: 'الصيانة', icon: <Wrench size={16} /> },
             { label: 'المدفوعات', icon: <CreditCard size={16} /> },
             { label: 'التحليلات', icon: <BarChart3 size={16} /> },
+            { label: 'التحليلات الذكية', icon: <Brain size={16} /> },
             { label: 'التسويق', icon: <Globe size={16} /> },
             { label: 'تحليلات التسويق', icon: <TrendingUp size={16} /> },
             { label: 'مركز الذكاء الاصطناعي', icon: <Brain size={16} /> },
