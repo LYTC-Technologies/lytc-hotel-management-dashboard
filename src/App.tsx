@@ -415,13 +415,13 @@ export default function App() {
       case 'المدفوعات':
         return <PaymentsSection invoices={invoices} onUpdateInvoiceStatus={handleUpdateInvoiceStatus} />;
       case 'التحليلات':
-        return <AnalyticsSection />;
+        return <AnalyticsPage />;
       case 'التحليلات الذكية':
         return <AnalyticsPage />;
       case 'التسويق':
         return <MarketingSection />;
       case 'تحليلات التسويق':
-        return <MarketingAnalyticsSection />;
+        return <AnalyticsPage />;
       case 'مركز الذكاء الاصطناعي':
         return <AICenterSection />;
       case 'الموظفين':

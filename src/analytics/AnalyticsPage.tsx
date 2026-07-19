@@ -683,6 +683,69 @@ export default function AnalyticsPage() {
           </table>
         </div>
       </div>
+
+      {/* Performance Timeline */}
+      <div className="p-6 bg-[#090909] border border-gray-900 rounded-xl">
+        <h3 className="text-lg font-bold text-white mb-4">الجدول الزمني للأداء</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h4 className="text-sm font-bold text-[#D4AF37] mb-3">التقارير السابقة</h4>
+            <div className="space-y-2">
+              {report.performanceTimeline.previousReports.map((entry, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-[#121212] rounded-lg">
+                  <div>
+                    <span className="text-xs text-gray-300">{entry.date}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-bold text-white">{entry.score}</span>
+                    <span className={`px-2 py-1 rounded-full text-xs ${
+                      entry.status === 'مكتمل' ? 'bg-emerald-950/20 text-emerald-400' :
+                      'bg-red-950/20 text-red-400'
+                    }`}>
+                      {entry.status}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <h4 className="text-sm font-bold text-[#D4AF37] mb-3">نمو الأداء</h4>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-gray-400">التسويق</span>
+                <span className="text-gray-300">{report.performanceTimeline.marketingProgress[report.performanceTimeline.marketingProgress.length - 1]}%</span>
+              </div>
+              <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-l from-[#AA7B30] to-[#D4AF37] rounded-full" 
+                  style={{ width: `${report.performanceTimeline.marketingProgress[report.performanceTimeline.marketingProgress.length - 1]}%` }}
+                />
+              </div>
+              <div className="flex items-center justify-between text-xs mt-3">
+                <span className="text-gray-400">الموقع</span>
+                <span className="text-gray-300">{report.performanceTimeline.websiteProgress[report.performanceTimeline.websiteProgress.length - 1]}%</span>
+              </div>
+              <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-l from-[#AA7B30] to-[#D4AF37] rounded-full" 
+                  style={{ width: `${report.performanceTimeline.websiteProgress[report.performanceTimeline.websiteProgress.length - 1]}%` }}
+                />
+              </div>
+              <div className="flex items-center justify-between text-xs mt-3">
+                <span className="text-gray-400">التواصل الاجتماعي</span>
+                <span className="text-gray-300">{report.performanceTimeline.socialMediaProgress[report.performanceTimeline.socialMediaProgress.length - 1]}%</span>
+              </div>
+              <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-l from-[#AA7B30] to-[#D4AF37] rounded-full" 
+                  style={{ width: `${report.performanceTimeline.socialMediaProgress[report.performanceTimeline.socialMediaProgress.length - 1]}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
