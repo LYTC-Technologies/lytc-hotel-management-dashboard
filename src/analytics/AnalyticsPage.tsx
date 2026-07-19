@@ -18,6 +18,7 @@ import EmptyState from './components/EmptyState';
 import LoadingState from './components/LoadingState';
 import ErrorState from './components/ErrorState';
 import ExportButtons from './components/ExportButtons';
+import NotificationToast from './components/NotificationToast';
 
 export default function AnalyticsPage() {
   const [report, setReport] = useState<AnalyticsReport | null>(null);
@@ -26,6 +27,7 @@ export default function AnalyticsPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [workflowSteps, setWorkflowSteps] = useState<WorkflowStep[]>([]);
+  const [notification, setNotification] = useState<{ id: string; type: 'success' | 'error' | 'warning' | 'info'; message: string; timestamp: string; read: boolean } | null>(null);
 
   const workflowStepsList: WorkflowStep[] = [
     { id: 1, title: 'التحقق من الاتصال بالحسابات', status: 'pending' },
@@ -132,8 +134,24 @@ export default function AnalyticsPage() {
   const handleCopySummary = () => {
     if (report) {
       navigator.clipboard.writeText(report.executiveSummary.aiSummary);
-      alert('تم نسخ الملخص');
+      setNotification({
+        id: Date.now().toString(),
+        type: 'success',
+        message: 'تم نسخ الملخص بنجاح',
+        timestamp: new Date().toLocaleTimeString('ar-SA'),
+        read: false
+      });
     }
+  };
+
+  const showNotification = (type: 'success' | 'error' | 'warning' | 'info', message: string) => {
+    setNotification({
+      id: Date.now().toString(),
+      type,
+      message,
+      timestamp: new Date().toLocaleTimeString('ar-SA'),
+      read: false
+    });
   };
 
   if (isLoading) {
@@ -746,6 +764,16 @@ export default function AnalyticsPage() {
           </div>
         </div>
       </div>
+
+      {/* Notification Toast */}
+      {notification && (
+        <div className="fixed top-4 left-4 z-50">
+          <NotificationToast
+            notification={notification}
+            onClose={() => setNotification(null)}
+          />
+        </div>
+      )}
     </div>
   );
 }
