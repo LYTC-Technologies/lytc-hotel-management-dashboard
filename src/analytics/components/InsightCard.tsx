@@ -4,6 +4,7 @@ import { Lightbulb, AlertTriangle, CheckCircle, Target } from 'lucide-react';
 import { AIInsight } from '../types';
 
 interface InsightCardProps {
+  key?: number | string;
   insight: AIInsight;
 }
 

@@ -37,14 +37,6 @@ export default function Login({ onLoginSuccess }: LoginProps) {
       
       const response = await apiService.login(credentials);
       
-      // Log response structure
-      console.log('Login Response:', response);
-      console.log('Token:', response.token);
-      console.log('User ID:', response.userId);
-      console.log('Username:', response.username);
-      console.log('Role:', response.role);
-      console.log('Token Type:', response.tokenType);
-      
       setIsLoading(false);
       
       // Backend doesn't use 2FA, proceed directly to dashboard
@@ -58,7 +50,6 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     } catch (error) {
       setIsLoading(false);
       setErrorMessage('فشل تسجيل الدخول. الرجاء التحقق من بيانات الاعتماد والمحاولة مرة أخرى.');
-      console.error('Login error:', error);
     }
   };
 
@@ -106,7 +97,6 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     } catch (error) {
       setIsLoading(false);
       setErrorMessage('فشل التحقق من الرمز. الرجاء المحاولة مرة أخرى.');
-      console.error('2FA error:', error);
     }
   };
 

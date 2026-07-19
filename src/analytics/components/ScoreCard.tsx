@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
 interface ScoreCardProps {
+  key?: number | string;
   name: string;
   score: number;
   description: string;

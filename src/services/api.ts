@@ -271,7 +271,6 @@ class APIService {
     // Always try to send token if available
     if (this.token) {
       headers['Authorization'] = `Bearer ${this.token}`;
-      console.log('Sending token in Authorization header:', this.token.substring(0, 20) + '...');
     }
 
     return headers;
@@ -730,7 +729,6 @@ class APIService {
    * POST /api/dashboard/front-desk/stays
    */
   async createStay(stay: CreateStayRequest): Promise<StayDetailsResponse> {
-    console.log('API: Creating stay with body:', JSON.stringify(stay, null, 2));
     return this.authenticatedFetch<StayDetailsResponse>(
       `${this.baseURL}/api/dashboard/front-desk/stays`,
       {

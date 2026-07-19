@@ -4,6 +4,7 @@ import { CheckCircle2, XCircle, AlertCircle, Wifi } from 'lucide-react';
 import { PlatformStatus } from '../types';
 
 interface PlatformCardProps {
+  key?: number | string;
   name: string;
   logo: React.ReactNode;
   status: PlatformStatus;
