@@ -263,7 +263,12 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="space-y-6 pb-12">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="space-y-6 pb-12"
+    >
       <SectionHeader
         title="التحليلات الذكية"
         subtitle="تحليل شامل لأداء الفندق والموقع الإلكتروني ومنصات التواصل الاجتماعي باستخدام الذكاء الاصطناعي"
@@ -805,6 +810,6 @@ export default function AnalyticsPage() {
           />
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
