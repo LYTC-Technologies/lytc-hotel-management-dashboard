@@ -11,7 +11,7 @@ export default function GuestsSection({ guests, reservations }: GuestsSectionPro
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGuest, setSelectedGuest] = useState<Guest | null>(null);
 
-  const filteredGuests = guests.filter(guest => 
+  const filteredGuests = (guests || []).filter(guest => 
     guest.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     guest.phone.includes(searchQuery) ||
     guest.email.toLowerCase().includes(searchQuery.toLowerCase())
@@ -45,11 +45,11 @@ export default function GuestsSection({ guests, reservations }: GuestsSectionPro
         <div className="flex justify-end gap-3 text-xs font-bold">
           <div className="px-3.5 py-2 bg-amber-950/20 text-[#D4AF37] border border-[#D4AF37]/15 rounded-lg">
             <span>VIP المتميزين: </span>
-            <span className="font-mono">{guests.filter(g => g.isVIP).length}</span>
+            <span className="font-mono">{(guests || []).filter(g => g.isVIP).length}</span>
           </div>
           <div className="px-3.5 py-2 bg-[#121212] border border-gray-800 rounded-lg">
             <span>المسجلين كلياً: </span>
-            <span className="font-mono">{guests.length}</span>
+            <span className="font-mono">{(guests || []).length}</span>
           </div>
         </div>
       </div>
@@ -169,7 +169,7 @@ export default function GuestsSection({ guests, reservations }: GuestsSectionPro
                   <span>تاريخ وسجلات الإقامة بالفندق:</span>
                 </h3>
                 <div className="space-y-2">
-                  {reservations.filter(res => res.guestName === selectedGuest.name).map((res) => (
+                  {(reservations || []).filter(res => res.guestName === selectedGuest.name).map((res) => (
                     <div key={res.id} className="p-3 bg-[#121212] border border-gray-800 rounded-xl flex justify-between items-center">
                       <div>
                         <span className="text-xs font-bold text-white block">جناح رقم {res.roomNumber}</span>

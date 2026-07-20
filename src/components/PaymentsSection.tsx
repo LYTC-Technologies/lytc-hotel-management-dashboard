@@ -18,17 +18,17 @@ export default function PaymentsSection({ invoices, onUpdateInvoiceStatus }: Pay
   const [viewMode, setViewMode] = useState<'invoices' | 'taxes' | 'gateways' | 'installments'>('invoices');
   const [filter, setFilter] = useState<'all' | Invoice['status']>('all');
 
-  const filteredInvoices = filter === 'all' ? invoices : invoices.filter(inv => inv.status === filter);
+  const filteredInvoices = filter === 'all' ? (invoices || []) : (invoices || []).filter(inv => inv.status === filter);
 
-  const totalPayments = invoices
+  const totalPayments = (invoices || [])
     .filter(inv => inv.status === 'paid')
     .reduce((sum, inv) => sum + inv.amount, 0);
 
-  const pendingPayments = invoices
+  const pendingPayments = (invoices || [])
     .filter(inv => inv.status === 'unpaid')
     .reduce((sum, inv) => sum + inv.amount, 0);
 
-  const refundedPayments = invoices
+  const refundedPayments = (invoices || [])
     .filter(inv => inv.status === 'refunded')
     .reduce((sum, inv) => sum + inv.amount, 0);
 

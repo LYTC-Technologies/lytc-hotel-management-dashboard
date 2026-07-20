@@ -68,9 +68,9 @@ export default function PendingOrdersSection() {
   // Get all orders based on active tab
   const getAllOrders = () => {
     const allOrders = [
-      ...roomServiceOrders.map(o => ({ ...o, section: 'room-service' })),
-      ...restaurantOrders.map(o => ({ ...o, section: 'restaurant' })),
-      ...cafeOrders.map(o => ({ ...o, section: 'cafe' })),
+      ...(roomServiceOrders || []).map(o => ({ ...o, section: 'room-service' })),
+      ...(restaurantOrders || []).map(o => ({ ...o, section: 'restaurant' })),
+      ...(cafeOrders || []).map(o => ({ ...o, section: 'cafe' })),
     ];
 
     if (activeTab === 'all') return allOrders;
@@ -84,7 +84,7 @@ export default function PendingOrdersSection() {
     return matchesSearch;
   });
 
-  const totalOrders = roomServiceOrders.length + restaurantOrders.length + cafeOrders.length;
+  const totalOrders = (roomServiceOrders || []).length + (restaurantOrders || []).length + (cafeOrders || []).length;
 
   return (
     <div className="space-y-6 pb-12">

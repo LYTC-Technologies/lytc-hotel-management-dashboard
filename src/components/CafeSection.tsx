@@ -85,29 +85,25 @@ export default function CafeSection({ orders: initialOrders = [], onUpdateOrderS
 
   const handleUpdateOrderStatus = async (orderId: string, status: string) => {
     try {
-      console.log('Updating cafe order status:', orderId, status);
       await apiService.updateCafeOrderStatus(parseInt(orderId), status);
       loadOrders();
       loadPendingOrders();
     } catch (error) {
-      console.error('Failed to update order status:', error);
       alert('فشل تحديث حالة الطلب. الرجاء المحاولة مرة أخرى.');
     }
   };
 
   const handleUpdateMenuItem = async (id: number, itemData: any) => {
     try {
-      console.log('Updating cafe menu item:', id, itemData);
       await apiService.updateCafeMenuItem(id, itemData);
       loadMenu();
     } catch (error) {
-      console.error('Failed to update menu item:', error);
       alert('فشل تحديث العنصر. الرجاء المحاولة مرة أخرى.');
     }
   };
 
-  const totalCafeSales = orders.reduce((sum, order) => sum + order.total, 0);
-  const filteredOrders = filter === 'all' ? orders : orders.filter(o => o.status === filter);
+  const totalCafeSales = (orders || []).reduce((sum, order) => sum + order.total, 0);
+  const filteredOrders = filter === 'all' ? (orders || []) : (orders || []).filter(o => o.status === filter);
 
   const getStatusColor = (status: RestaurantOrder['status']) => {
     switch (status) {

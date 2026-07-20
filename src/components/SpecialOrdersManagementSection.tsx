@@ -36,7 +36,7 @@ export default function SpecialOrdersManagementSection() {
   };
 
   // Filter special orders based on search
-  const filteredSpecialOrders = specialOrders.filter(order => {
+  const filteredSpecialOrders = (specialOrders || []).filter(order => {
     const matchesSearch = order.id.toString().includes(searchQuery) ||
                           order.stayId.toString().includes(searchQuery);
     return matchesSearch;
