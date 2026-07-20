@@ -31,7 +31,13 @@ export default function UsersManagementSection() {
       const response = await apiService.getUsers(0, 50);
       setUsers(response.content || []);
     } catch (error: any) {
-      console.error('Failed to load users:', error);
+      if (error.message && error.message.includes('Access denied')) {
+        setError('ليس لديك صلاحية للوصول إلى إدارة المستخدمين. يرجى التواصل مع المسؤول.');
+      } else if (error.message && error.message.includes('NetworkError')) {
+        setError('فشل الاتصال بالخادم. يرجى التحقق من اتصال الإنترنت.');
+      } else {
+        setError('فشل تحميل المستخدمين. الرجاء المحاولة مرة أخرى.');
+      }
       setUsers([]);
     } finally {
       setIsLoading(false);
@@ -65,8 +71,13 @@ export default function UsersManagementSection() {
       // Reload users
       loadUsers();
     } catch (error: any) {
-      console.error('Failed to create user:', error);
-      setCreateUserError('فشل إنشاء المستخدم. الرجاء المحاولة مرة أخرى.');
+      if (error.message && error.message.includes('Access denied')) {
+        setCreateUserError('ليس لديك صلاحية لإنشاء المستخدمين. يرجى التواصل مع المسؤول.');
+      } else if (error.message && error.message.includes('NetworkError')) {
+        setCreateUserError('فشل الاتصال بالخادم. يرجى التحقق من اتصال الإنترنت.');
+      } else {
+        setCreateUserError('فشل إنشاء المستخدم. الرجاء المحاولة مرة أخرى.');
+      }
     } finally {
       setIsCreatingUser(false);
     }
@@ -74,12 +85,16 @@ export default function UsersManagementSection() {
 
   const handleUpdateUser = async (userId: number, userData: UpdateUserRequest) => {
     try {
-      console.log('Updating user:', userId, userData);
       await apiService.updateUser(userId, userData);
       loadUsers();
-    } catch (error) {
-      console.error('Failed to update user:', error);
-      alert('فشل تحديث المستخدم. الرجاء المحاولة مرة أخرى.');
+    } catch (error: any) {
+      if (error.message && error.message.includes('Access denied')) {
+        alert('ليس لديك صلاحية لتحديث المستخدمين. يرجى التواصل مع المسؤول.');
+      } else if (error.message && error.message.includes('NetworkError')) {
+        alert('فشل الاتصال بالخادم. يرجى التحقق من اتصال الإنترنت.');
+      } else {
+        alert('فشل تحديث المستخدم. الرجاء المحاولة مرة أخرى.');
+      }
     }
   };
 
