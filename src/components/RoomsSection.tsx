@@ -48,7 +48,7 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
 
   useEffect(() => {
     loadRooms();
-  }, []);
+  }, [filter, selectedFloor]);
 
   const loadRooms = async () => {
     setIsLoading(true);
@@ -190,19 +190,23 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
     setEditModalOpen(true);
   };
 
-  const handleUpdateRoom = async (roomId: string, roomData: any) => {
+  const handleUpdateRoomStatus = async (roomId: string, status: Room['status']) => {
     try {
-      console.log('Updating room:', roomId, roomData);
-      const roomResponse = await apiService.updateRoom(parseInt(roomId), roomData);
-      // Update local state with the updated room
-      setRooms(rooms.map(room => 
-        room.id === roomId ? { ...room, ...roomData } : room
+      const room = rooms.find(r => r.id === roomId);
+      if (!room) return;
+
+      // Map frontend status to backend status
+      const backendStatus = status.toUpperCase() as 'AVAILABLE' | 'OCCUPIED' | 'CLEANING' | 'MAINTENANCE' | 'OUT_OF_SERVICE';
+      
+      await apiService.updateRoom(parseInt(roomId), { status: backendStatus });
+      
+      // Update local state
+      setRooms(rooms.map(r => 
+        r.id === roomId ? { ...r, status } : r
       ));
-      setEditModalOpen(false);
-      setEditingRoom(null);
     } catch (error) {
-      console.error('Failed to update room:', error);
-      alert('فشل تحديث الغرفة. الرجاء المحاولة مرة أخرى.');
+      console.error('Failed to update room status:', error);
+      alert('فشل تحديث حالة الغرفة. الرجاء المحاولة مرة أخرى.');
     }
   };
 
@@ -226,9 +230,9 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
       const room = rooms.find(r => r.id === roomId);
       if (room) {
         if (action === 'available') {
-          onUpdateRoomStatus(roomId, 'available');
+          handleUpdateRoomStatus(roomId, 'available');
         } else if (action === 'maintenance') {
-          onUpdateRoomStatus(roomId, 'maintenance');
+          handleUpdateRoomStatus(roomId, 'maintenance');
         }
       }
     });
@@ -614,7 +618,7 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
                       <span>التفاصيل</span>
                     </button>
                     <button
-                      onClick={() => onUpdateRoomStatus(room.id, 'available')}
+                      onClick={() => handleUpdateRoomStatus(room.id, 'available')}
                       className="flex items-center justify-center gap-2 px-4 py-2 bg-emerald-950/40 border border-emerald-500/20 rounded-lg text-xs font-bold text-emerald-400 hover:bg-emerald-950/60 transition"
                     >
                       <Calendar size={14} />
@@ -822,7 +826,7 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
                     <button
                       key={status}
                       onClick={() => {
-                        onUpdateRoomStatus(selectedRoom.id, status);
+                        handleUpdateRoomStatus(selectedRoom.id, status);
                         setSelectedRoom(prev => prev ? { ...prev, status } : null);
                       }}
                       className={`px-2 py-3 rounded-lg text-xs font-bold text-center border transition-all duration-200 ${

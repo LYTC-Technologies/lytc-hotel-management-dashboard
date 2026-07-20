@@ -129,10 +129,32 @@ export default function ReservationsSection() {
 
   const handleCheckIn = async (stayId: number) => {
     try {
+      // First check if the room is available
+      const stay = stays.find(s => s.stayId === stayId);
+      if (!stay) {
+        alert('لم يتم العثور على الحجز');
+        return;
+      }
+
+      // Get rooms to check availability
+      const roomsResponse = await apiService.getRooms(undefined, undefined, 0, 100);
+      const room = roomsResponse.content?.find(r => r.number === stay.roomNumber);
+
+      if (!room) {
+        alert('لم يتم العثور على الغرفة');
+        return;
+      }
+
+      if (room.status !== 'AVAILABLE') {
+        alert(`الغرفة غير متاحة حالياً. حالتها: ${room.status}`);
+        return;
+      }
+
       await apiService.checkInStay(stayId);
       loadStays();
     } catch (error) {
       console.error('Failed to check-in:', error);
+      alert('فشل تسجيل الدخول. الرجاء المحاولة مرة أخرى.');
     }
   };
 
@@ -142,6 +164,7 @@ export default function ReservationsSection() {
       loadStays();
     } catch (error) {
       console.error('Failed to check-out:', error);
+      alert('فشل تسجيل المغادرة. الرجاء المحاولة مرة أخرى.');
     }
   };
 

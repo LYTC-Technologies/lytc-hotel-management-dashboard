@@ -21,7 +21,6 @@ import VipGuestsSection from './components/VipGuestsSection';
 import RatingsSection from './components/RatingsSection';
 import SpecialOrdersManagementSection from './components/SpecialOrdersManagementSection';
 import TodayArrivalsSection from './components/TodayArrivalsSection';
-import RoomServiceStatsSection from './components/RoomServiceStatsSection';
 import RestaurantStatsSection from './components/RestaurantStatsSection';
 import CafeStatsSection from './components/CafeStatsSection';
 import PendingOrdersSection from './components/PendingOrdersSection';
@@ -64,7 +63,7 @@ export default function App() {
   }, []);
 
   // Active view tab state with # routing
-  const [activeTab, setActiveTab] = useState<'لوحة التحكم' | 'الحجوزات' | 'الغرف' | 'النزلاء' | 'طلبات النزلاء' | 'خدمة الغرف' | 'المطعم' | 'الصيانة' | 'المدفوعات' | 'إدارة المستخدمين' | 'إدارة الموظفين' | 'النزلاء VIP' | 'التقييمات' | 'الطلبات الخاصة' | 'الحجوزات القادمة' | 'إحصائيات خدمة الغرف' | 'إحصائيات المطعم' | 'إحصائيات المقهى' | 'الطلبات المعلقة' | 'العروض والمزايا' | 'الموظفين' | 'إدارة الضيوف' | 'التحليلات الذكية'>(() => {
+  const [activeTab, setActiveTab] = useState<'لوحة التحكم' | 'الحجوزات' | 'الغرف' | 'النزلاء' | 'طلبات النزلاء' | 'المطعم' | 'الصيانة' | 'المدفوعات' | 'إدارة المستخدمين' | 'إدارة الموظفين' | 'النزلاء VIP' | 'التقييمات' | 'الطلبات الخاصة' | 'الحجوزات القادمة' | 'إحصائيات المطعم' | 'إحصائيات المقهى' | 'الطلبات المعلقة' | 'العروض والمزايا' | 'الموظفين' | 'إدارة الضيوف' | 'التحليلات الذكية'>(() => {
     const hash = window.location.hash.replace('#', '');
     if (hash) {
       try {
@@ -316,8 +315,6 @@ export default function App() {
             onAssignRequest={handleAssignRequest}
           />
         );
-      case 'خدمة الغرف':
-        return <HousekeepingSection tasks={housekeeping} onUpdateTaskStatus={handleUpdateTaskStatus} />;
       case 'المطعم':
         return <RestaurantSection />;
       case 'الصيانة':
@@ -338,8 +335,6 @@ export default function App() {
         return <SpecialOrdersManagementSection />;
       case 'الحجوزات القادمة':
         return <TodayArrivalsSection />;
-      case 'إحصائيات خدمة الغرف':
-        return <RoomServiceStatsSection />;
       case 'إحصائيات المطعم':
         return <RestaurantStatsSection />;
       case 'إحصائيات المقهى':
@@ -416,9 +411,7 @@ export default function App() {
             { label: 'لوحة التحكم', icon: <Building size={16} /> },
             { label: 'الحجوزات', icon: <Calendar size={16} /> },
             { label: 'الغرف', icon: <BedDouble size={16} /> },
-            { label: 'إدارة الضيوف', icon: <Users size={16} /> },
             { label: 'طلبات النزلاء', icon: <MessageSquare size={16} /> },
-            { label: 'خدمة الغرف', icon: <Sparkles size={16} /> },
             { label: 'المطعم', icon: <Coffee size={16} /> },
             { label: 'الصيانة', icon: <Wrench size={16} /> },
             { label: 'المدفوعات', icon: <CreditCard size={16} /> },
@@ -430,7 +423,6 @@ export default function App() {
             { label: 'التقييمات', icon: <Star size={16} /> },
             { label: 'الطلبات الخاصة', icon: <ShoppingBag size={16} /> },
             { label: 'الحجوزات القادمة', icon: <Clock size={16} /> },
-            { label: 'إحصائيات خدمة الغرف', icon: <BarChart3 size={16} /> },
             { label: 'إحصائيات المطعم', icon: <BarChart3 size={16} /> },
             { label: 'إحصائيات المقهى', icon: <BarChart3 size={16} /> },
             { label: 'الطلبات المعلقة', icon: <Clock size={16} /> }
@@ -587,9 +579,7 @@ export default function App() {
                     { label: 'لوحة التحكم', icon: <Building size={14} /> },
                     { label: 'الحجوزات', icon: <Calendar size={14} /> },
                     { label: 'الغرف', icon: <BedDouble size={14} /> },
-                    { label: 'النزلاء', icon: <Users size={14} /> },
                     { label: 'طلبات النزلاء', icon: <MessageSquare size={14} /> },
-                    { label: 'خدمة الغرف', icon: <Sparkles size={14} /> },
                     { label: 'المطعم', icon: <Coffee size={14} /> },
                     { label: 'الصيانة', icon: <Wrench size={14} /> },
                     { label: 'المدفوعات', icon: <CreditCard size={14} /> },
