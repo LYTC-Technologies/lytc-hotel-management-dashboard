@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { 
-  Users, Calendar, Clock, TrendingUp, Award, Star, CheckCircle2, AlertCircle, 
-  Filter, Search, Download, Printer, Plus, X, Save, BarChart3, Timer, 
+import {
+  Users, Calendar, Clock, TrendingUp, Award, Star, CheckCircle2, AlertCircle,
+  Filter, Search, Download, Printer, Plus, X, Save, BarChart3, Timer,
   MapPin, Phone, Mail as MailIcon, Briefcase, UserCheck, UserX, Edit, Eye
 } from 'lucide-react';
 import { Staff } from '../types';
+import { apiService, EmployeeResponse, CreateEmployeeRequest, UpdateEmployeeStatusRequest } from '../services/api';
 
 interface StaffSectionProps {
   staff: Staff[];
@@ -17,30 +18,59 @@ export default function StaffSection({ staff, onUpdateStaffStatus }: StaffSectio
   const [departmentFilter, setDepartmentFilter] = useState<'all' | string>('all');
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [employees, setEmployees] = useState<EmployeeResponse[]>([]);
 
-  const filteredStaff = staff.filter(person => {
-    const statusMatch = filter === 'all' || person.status === filter;
-    const departmentMatch = departmentFilter === 'all' || person.department === departmentFilter;
-    const searchMatch = person.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                      person.position.toLowerCase().includes(searchQuery.toLowerCase());
-    return statusMatch && departmentMatch && searchMatch;
-  });
+  useEffect(() => {
+    loadEmployees();
+  }, []);
 
-  const departments = Array.from(new Set(staff.map(s => s.department)));
-
-  const getStatusColor = (status: Staff['status']) => {
-    switch (status) {
-      case 'active': return 'text-emerald-400 bg-emerald-950/20 border-emerald-500/30';
-      case 'on_leave': return 'text-amber-400 bg-amber-950/20 border-amber-500/30';
-      case 'inactive': return 'text-gray-400 bg-gray-900 border-gray-700';
+  const loadEmployees = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await apiService.getEmployees(0, 50);
+      setEmployees(response.content || []);
+    } catch (err: any) {
+      setError('فشل تحميل الموظفين. الرجاء المحاولة مرة أخرى.');
+      console.error('Error loading employees:', err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const getStatusLabel = (status: Staff['status']) => {
-    switch (status) {
-      case 'active': return 'نشط';
-      case 'on_leave': return 'في إجازة';
-      case 'inactive': return 'غير نشط';
+  const filteredEmployees = employees.filter(person => {
+    const statusMatch = filter === 'all' || person.status.toLowerCase() === filter.toLowerCase();
+    const departmentMatch = departmentFilter === 'all' || person.department === departmentFilter;
+    const searchMatch = person.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      person.job.toLowerCase().includes(searchQuery.toLowerCase());
+    return statusMatch && departmentMatch && searchMatch;
+  });
+
+  const departments = Array.from(new Set(employees.map(s => s.department)));
+
+  const getStatusColor = (status: string) => {
+    const statusLower = status.toLowerCase();
+    if (statusLower === 'active' || statusLower === 'نشط') return 'text-emerald-400 bg-emerald-950/20 border-emerald-500/30';
+    if (statusLower === 'on_leave' || statusLower === 'في إجازة') return 'text-amber-400 bg-amber-950/20 border-amber-500/30';
+    return 'text-gray-400 bg-gray-900 border-gray-700';
+  };
+
+  const getStatusLabel = (status: string) => {
+    const statusLower = status.toLowerCase();
+    if (statusLower === 'active' || statusLower === 'نشط') return 'نشط';
+    if (statusLower === 'on_leave' || statusLower === 'في إجازة') return 'في إجازة';
+    if (statusLower === 'inactive' || statusLower === 'غير نشط') return 'غير نشط';
+    return status;
+  };
+
+  const handleUpdateStatus = async (id: number, newStatus: string) => {
+    try {
+      await apiService.updateEmployeeStatus(id, { status: newStatus });
+      loadEmployees();
+    } catch (err: any) {
+      alert('فشل تحديث حالة الموظف. الرجاء المحاولة مرة أخرى.');
     }
   };
 
@@ -72,7 +102,7 @@ export default function StaffSection({ staff, onUpdateStaffStatus }: StaffSectio
         <div className="p-4 bg-[#090909] border border-gray-900 rounded-xl hover:border-emerald-500/35 transition duration-200">
           <div className="space-y-1">
             <span className="text-[10px] text-gray-500">إجمالي الموظفين</span>
-            <div className="text-lg font-bold text-white font-mono">{staff.length}</div>
+            <div className="text-lg font-bold text-white font-mono">{employees.length}</div>
           </div>
           <div className="p-2 bg-emerald-950/20 text-emerald-400 rounded-lg mt-2">
             <Users size={16} />
@@ -81,8 +111,8 @@ export default function StaffSection({ staff, onUpdateStaffStatus }: StaffSectio
 
         <div className="p-4 bg-[#090909] border border-gray-900 rounded-xl hover:border-blue-500/35 transition duration-200">
           <div className="space-y-1">
-            <span className="text-[10px] text-gray-500">نسبة الحضور اليوم</span>
-            <div className="text-lg font-bold text-white font-mono">94%</div>
+            <span className="text-[10px] text-gray-500">الموظفون النشطون</span>
+            <div className="text-lg font-bold text-white font-mono">{employees.filter(e => e.status === 'ACTIVE').length}</div>
           </div>
           <div className="p-2 bg-blue-950/20 text-blue-400 rounded-lg mt-2">
             <CheckCircle2 size={16} />
@@ -91,8 +121,8 @@ export default function StaffSection({ staff, onUpdateStaffStatus }: StaffSectio
 
         <div className="p-4 bg-[#090909] border border-gray-900 rounded-xl hover:border-purple-500/35 transition duration-200">
           <div className="space-y-1">
-            <span className="text-[10px] text-gray-500">متوسط الأداء</span>
-            <div className="text-lg font-bold text-white font-mono">4.6/5</div>
+            <span className="text-[10px] text-gray-500">الموظفون في إجازة</span>
+            <div className="text-lg font-bold text-white font-mono">{employees.filter(e => e.status === 'INACTIVE').length}</div>
           </div>
           <div className="p-2 bg-purple-950/20 text-purple-400 rounded-lg mt-2">
             <Star size={16} />
@@ -101,8 +131,8 @@ export default function StaffSection({ staff, onUpdateStaffStatus }: StaffSectio
 
         <div className="p-4 bg-[#090909] border border-gray-900 rounded-xl hover:border-amber-500/35 transition duration-200">
           <div className="space-y-1">
-            <span className="text-[10px] text-gray-500">الموظفون في إجازة</span>
-            <div className="text-lg font-bold text-white font-mono">{staff.filter(s => s.status === 'on_leave').length}</div>
+            <span className="text-[10px] text-gray-500">عدد الأقسام</span>
+            <div className="text-lg font-bold text-white font-mono">{departments.length}</div>
           </div>
           <div className="p-2 bg-amber-950/20 text-amber-400 rounded-lg mt-2">
             <Calendar size={16} />
@@ -166,70 +196,81 @@ export default function StaffSection({ staff, onUpdateStaffStatus }: StaffSectio
 
       {/* Staff List */}
       <div className="bg-[#0b0b0b] border border-gray-900 rounded-xl p-6 shadow-xl">
-        <div className="overflow-x-auto">
-          <table className="w-full text-right text-sm">
-            <thead>
-              <tr className="border-b border-gray-800 text-gray-500 pb-2">
-                <th className="py-3 font-bold">الموظف</th>
-                <th className="py-3 font-bold">المسمى الوظيفي</th>
-                <th className="py-3 font-bold">القسم</th>
-                <th className="py-3 font-bold">الحالة</th>
-                <th className="py-3 font-bold">الأداء</th>
-                <th className="py-3 font-bold">المهام المنجزة</th>
-                <th className="py-3 font-bold text-left">الإجراءات</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-800/40">
-              {filteredStaff.map((person) => (
-                <tr key={person.id} className="hover:bg-white/[0.01] transition duration-150">
-                  <td className="py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-[#D4AF37]/20 border border-[#D4AF37]/30 rounded-full flex items-center justify-center">
-                        <UserCheck size={18} className="text-[#E6C587]" />
-                      </div>
-                      <div>
-                        <div className="font-bold text-white">{person.name}</div>
-                        <div className="text-xs text-gray-500">{person.email}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-4 text-gray-300">{person.position}</td>
-                  <td className="py-4 text-gray-400">{person.department}</td>
-                  <td className="py-4">
-                    <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold border ${getStatusColor(person.status)}`}>
-                      {getStatusLabel(person.status)}
-                    </span>
-                  </td>
-                  <td className="py-4">
-                    <div className="flex items-center gap-1">
-                      <Star size={14} className="text-amber-400" />
-                      <span className="text-white font-bold">{person.performance?.rating || 'N/A'}</span>
-                    </div>
-                  </td>
-                  <td className="py-4 text-white font-mono">{person.completedTasks || 0}</td>
-                  <td className="py-4 text-left">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setSelectedStaff(person)}
-                        className="p-1.5 bg-[#121212] border border-gray-800 rounded-lg hover:border-[#D4AF37]/30 transition"
-                        title="عرض التفاصيل"
-                      >
-                        <Eye size={14} className="text-gray-400" />
-                      </button>
-                      <button
-                        onClick={() => onUpdateStaffStatus(person.id, person.status === 'active' ? 'on_leave' : 'active')}
-                        className="p-1.5 bg-[#121212] border border-gray-800 rounded-lg hover:border-[#D4AF37]/30 transition"
-                        title="تغيير الحالة"
-                      >
-                        <Edit size={14} className="text-gray-400" />
-                      </button>
-                    </div>
-                  </td>
+        {isLoading ? (
+          <div className="text-center py-8 text-gray-500">جاري تحميل الموظفين...</div>
+        ) : error ? (
+          <div className="text-center py-8 text-red-400">{error}</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-right text-sm">
+              <thead>
+                <tr className="border-b border-gray-800 text-gray-500 pb-2">
+                  <th className="py-3 font-bold">الموظف</th>
+                  <th className="py-3 font-bold">المسمى الوظيفي</th>
+                  <th className="py-3 font-bold">القسم</th>
+                  <th className="py-3 font-bold">الحالة</th>
+                  <th className="py-3 font-bold">رقم الهاتف</th>
+                  <th className="py-3 font-bold text-left">الإجراءات</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-gray-800/40">
+                {filteredEmployees.map((person) => (
+                  <tr key={person.id} className="hover:bg-white/[0.01] transition duration-150">
+                    <td className="py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-[#D4AF37]/20 border border-[#D4AF37]/30 rounded-full flex items-center justify-center">
+                          <UserCheck size={18} className="text-[#E6C587]" />
+                        </div>
+                        <div>
+                          <div className="font-bold text-white">{person.fullName}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-4 text-gray-300">{person.job}</td>
+                    <td className="py-4 text-gray-400">{person.department}</td>
+                    <td className="py-4">
+                      <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold border ${getStatusColor(person.status)}`}>
+                        {getStatusLabel(person.status)}
+                      </span>
+                    </td>
+                    <td className="py-4 text-white font-mono">{person.phone}</td>
+                    <td className="py-4 text-left">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setSelectedStaff({
+                            id: person.id.toString(),
+                            name: person.fullName,
+                            email: '',
+                            phone: person.phone,
+                            position: person.job,
+                            department: person.department,
+                            status: person.status.toLowerCase() as Staff['status'],
+                            performance: undefined,
+                            attendance: [],
+                            shiftSchedule: [],
+                            rewards: [],
+                            completedTasks: 0
+                          })}
+                          className="p-1.5 bg-[#121212] border border-gray-800 rounded-lg hover:border-[#D4AF37]/30 transition"
+                          title="عرض التفاصيل"
+                        >
+                          <Eye size={14} className="text-gray-400" />
+                        </button>
+                        <button
+                          onClick={() => handleUpdateStatus(person.id, person.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE')}
+                          className="p-1.5 bg-[#121212] border border-gray-800 rounded-lg hover:border-[#D4AF37]/30 transition"
+                          title="تغيير الحالة"
+                        >
+                          <Edit size={14} className="text-gray-400" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Staff Details Modal */}
