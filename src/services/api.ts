@@ -199,6 +199,7 @@ interface CreateEmployeeRequest {
   phone: string;
   job: string;
   department: string;
+  status?: string;
 }
 
 interface UpdateEmployeeStatusRequest {

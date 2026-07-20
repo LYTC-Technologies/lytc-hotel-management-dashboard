@@ -65,9 +65,12 @@ export default function EmployeesManagementSection() {
         phone,
         job,
         department,
+        status,
       };
 
+      console.log('Creating employee:', newEmployee);
       await apiService.createEmployee(newEmployee);
+      console.log('Employee created successfully');
 
       // Reset form
       setFullName('');
@@ -91,12 +94,14 @@ export default function EmployeesManagementSection() {
     if (!confirm('هل أنت متأكد من حذف هذا الموظف؟')) return;
 
     try {
+      console.log('Deleting employee:', employeeId);
       await apiService.deleteEmployee(employeeId);
+      console.log('Employee deleted successfully');
       loadEmployees();
       setIsDetailsOverlayOpen(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to delete employee:', error);
-      alert('فشل حذف الموظف. الرجاء المحاولة مرة أخرى.');
+      alert(`فشل حذف الموظف: ${error.message || 'الرجاء المحاولة مرة أخرى.'}`);
     }
   };
 
@@ -115,9 +120,12 @@ export default function EmployeesManagementSection() {
         phone: editPhone,
         job: editJob,
         department: editDepartment,
+        status: editStatus,
       };
 
+      console.log('Updating employee:', selectedEmployee.id, updateData);
       await apiService.updateEmployee(selectedEmployee.id, updateData);
+      console.log('Employee updated successfully');
       loadEmployees();
       setIsEditModalOpen(false);
       setIsDetailsOverlayOpen(false);
@@ -127,9 +135,9 @@ export default function EmployeesManagementSection() {
       setEditJob('');
       setEditDepartment('');
       setEditStatus('ACTIVE');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to update employee:', error);
-      alert('فشل تحديث الموظف. الرجاء المحاولة مرة أخرى.');
+      alert(`فشل تحديث الموظف: ${error.message || 'الرجاء المحاولة مرة أخرى.'}`);
     } finally {
       setIsUpdatingEmployee(false);
     }
