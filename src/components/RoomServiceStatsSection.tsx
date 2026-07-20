@@ -21,7 +21,6 @@ export default function RoomServiceStatsSection() {
       const response = await apiService.getRoomServiceStats();
       setStats(response);
     } catch (error: any) {
-      console.error('Failed to load stats:', error);
       // Dummy data fallback - ensure error is not set
       setError(null);
       setStats({

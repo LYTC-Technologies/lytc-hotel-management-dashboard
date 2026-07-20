@@ -22,7 +22,6 @@ export default function SpecialOrdersManagementSection() {
       const response = await apiService.getManagerSpecialOrders();
       setSpecialOrders(response || []);
     } catch (error: any) {
-      console.error('Failed to load special orders:', error);
       // Dummy data fallback
       setSpecialOrders([
         { id: 1, stayId: 101, specialOfferId: 1, agreedPrice: 500, status: 'PENDING' },

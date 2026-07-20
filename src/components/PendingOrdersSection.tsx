@@ -32,7 +32,6 @@ export default function PendingOrdersSection() {
       setRestaurantOrders(restaurant || []);
       setCafeOrders(cafe || []);
     } catch (error: any) {
-      console.error('Failed to load pending orders:', error);
       // Dummy data fallback
       setRoomServiceOrders([
         { orderId: 1, guestName: 'أحمد محمد', roomNumber: '101', items: 'شاي، قهوة', totalAmount: 45, orderTime: '10:30', status: 'PENDING' },
@@ -62,7 +61,7 @@ export default function PendingOrdersSection() {
       }
       loadPendingOrders();
     } catch (error) {
-      console.error('Failed to update order status:', error);
+      // Error handling
     }
   };
 

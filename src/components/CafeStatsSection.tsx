@@ -21,7 +21,6 @@ export default function CafeStatsSection() {
       const response = await apiService.getCafeStats();
       setStats(response);
     } catch (error: any) {
-      console.error('Failed to load stats:', error);
       // Dummy data fallback - ensure error is not set
       setError(null);
       setStats({
