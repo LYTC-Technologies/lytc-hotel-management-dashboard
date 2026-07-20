@@ -250,7 +250,12 @@ export default function EmployeesManagementSection() {
               </div>
 
               <div className="mt-4 pt-4 border-t border-gray-800 flex justify-end">
-                <span className="text-[10px] text-gray-500">المعرف: {employee.id}</span>
+                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                  employee.status === 'ACTIVE' ? 'bg-emerald-950/20 text-emerald-400 border border-emerald-500/30' :
+                  'bg-gray-800 text-gray-400 border border-gray-700'
+                }`}>
+                  {employee.status === 'ACTIVE' ? 'نشط' : employee.status}
+                </span>
               </div>
             </motion.div>
           ))}
