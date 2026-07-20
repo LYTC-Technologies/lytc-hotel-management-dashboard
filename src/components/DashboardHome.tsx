@@ -8,7 +8,7 @@ import {
 import { Room, Reservation, Guest, ServiceRequest, HousekeepingTask, MaintenanceTicket, Invoice } from '../types';
 
 interface DashboardHomeProps {
-  rooms: Room[];
+  rooms?: Room[];
   reservations: Reservation[];
   guests: Guest[];
   requests: ServiceRequest[];
@@ -21,7 +21,7 @@ interface DashboardHomeProps {
 }
 
 export default function DashboardHome({
-  rooms,
+  rooms = [],
   reservations,
   guests,
   requests,

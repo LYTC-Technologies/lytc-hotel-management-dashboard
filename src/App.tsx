@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
+import {
   Building, Bell, Search, User, LogOut, Sparkles, Clock, Menu, X, Check, CheckCircle2,
   Calendar, BedDouble, Users, MessageSquare, Wrench, Coffee, CreditCard, BarChart3, Globe, Settings, Award, TrendingUp, Brain, Star, FileText, Shield, Crown, ShoppingBag, ShoppingBag as ShoppingBagIcon
 } from 'lucide-react';
@@ -100,11 +100,7 @@ export default function App() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  // Core Entity States
-  const [rooms, setRooms] = useState<Room[]>(() => {
-    const saved = localStorage.getItem('lytc_rooms');
-    return saved ? JSON.parse(saved) : [];
-  });
+  // Core Entity States (only for pages not connected to backend)
   const [reservations, setReservations] = useState<Reservation[]>(() => {
     const saved = localStorage.getItem('lytc_reservations');
     return saved ? JSON.parse(saved) : [];
@@ -150,9 +146,6 @@ export default function App() {
   const [quickRequestOpen, setQuickRequestOpen] = useState(false);
 
   // Sync to localStorage on every state change to keep data persistent
-  useEffect(() => {
-    localStorage.setItem('lytc_rooms', JSON.stringify(rooms));
-  }, [rooms]);
   useEffect(() => {
     localStorage.setItem('lytc_reservations', JSON.stringify(reservations));
   }, [reservations]);
@@ -206,54 +199,8 @@ export default function App() {
   };
 
   // State Manipulator Functions
-  const handleUpdateRoomStatus = (roomId: string, status: Room['status']) => {
-    setRooms(prev => prev.map(r => r.id === roomId ? { ...r, status } : r));
-    
-    // Add real-time event notice
-    const roomNo = rooms.find(r => r.id === roomId)?.number;
-    const labels: Record<Room['status'], string> = {
-      available: 'متاحاً', occupied: 'مشغولاً بالنزلاء', cleaning: 'تحت النظافة والتعقيم',
-      maintenance: 'تحت الصيانة الفنية', out_of_service: 'خارج الخدمة الفندقية'
-    };
-    
-    setNotifications(prev => [
-      { id: Date.now().toString(), title: `تعديل حالة الجناح ${roomNo} ليصبح ${labels[status]} الآن`, time: 'الآن', read: false },
-      ...prev
-    ]);
-  };
-
-  const handleUpdateRoom = (updatedRoom: Room) => {
-    setRooms(prev => prev.map(r => r.id === updatedRoom.id ? updatedRoom : r));
-    
-    // Add real-time event notice
-    const labels: Record<Room['status'], string> = {
-      available: 'متاحاً', occupied: 'مشغولاً بالنزلاء', cleaning: 'تحت النظافة والتعقيم',
-      maintenance: 'تحت الصيانة الفنية', out_of_service: 'خارج الخدمة الفندقية'
-    };
-    
-    setNotifications(prev => [
-      { id: Date.now().toString(), title: `تم تحديث معلومات الجناح ${updatedRoom.number}`, time: 'الآن', read: false },
-      ...prev
-    ]);
-  };
-
   const handleAddReservation = (newRes: Reservation) => {
     setReservations(prev => [newRes, ...prev]);
-    
-    // Autooccupy assigned room
-    setRooms(prev => prev.map(r => r.number === newRes.roomNumber ? { ...r, status: 'occupied', guestName: newRes.guestName } : r));
-
-    // Auto-create invoice
-    const newInvoice: Invoice = {
-      id: `inv-${Date.now().toString().slice(-4)}`,
-      guestName: newRes.guestName,
-      roomNumber: newRes.roomNumber,
-      amount: newRes.amount,
-      status: 'unpaid',
-      date: new Date().toISOString().split('T')[0],
-      method: 'بوابة دفع إلكترونية'
-    };
-    setInvoices(prev => [newInvoice, ...prev]);
 
     setNotifications(prev => [
       { id: Date.now().toString(), title: `حجز مؤكد وجديد باسم ${newRes.guestName} للجناح ${newRes.roomNumber}`, time: 'الآن', read: false },
@@ -266,10 +213,7 @@ export default function App() {
     const targetRes = reservations.find(r => r.id === resId);
     if (!targetRes) return;
 
-    if (status === 'checked_in') {
-      setRooms(prev => prev.map(r => r.number === targetRes.roomNumber ? { ...r, status: 'occupied', guestName: targetRes.guestName } : r));
-    } else if (status === 'checked_out') {
-      setRooms(prev => prev.map(r => r.number === targetRes.roomNumber ? { ...r, status: 'cleaning', guestName: undefined } : r));
+    if (status === 'checked_out') {
       // Auto-create cleaning task
       const newTask: HousekeepingTask = {
         id: `hk-${Date.now().toString().slice(-4)}`,
@@ -280,18 +224,16 @@ export default function App() {
         lastCleaned: 'الآن'
       };
       setHousekeeping(prev => [newTask, ...prev]);
-    } else if (status === 'cancelled') {
-      setRooms(prev => prev.map(r => r.number === targetRes.roomNumber ? { ...r, status: 'available', guestName: undefined } : r));
     }
 
     setNotifications(prev => [
-      { 
-        id: Date.now().toString(), 
+      {
+        id: Date.now().toString(),
         title: `تعديل حالة الإقامة للنزيل ${targetRes.guestName} إلى: ${
           status === 'checked_in' ? 'مقيم حالياً' : status === 'checked_out' ? 'مغادر للغرفة' : 'ملغي'
-        }`, 
-        time: 'الآن', 
-        read: false 
+        }`,
+        time: 'الآن',
+        read: false
       },
       ...prev
     ]);
@@ -366,7 +308,6 @@ export default function App() {
       case 'لوحة التحكم':
         return (
           <DashboardHome
-            rooms={rooms}
             reservations={reservations}
             guests={guests}
             requests={requests}
