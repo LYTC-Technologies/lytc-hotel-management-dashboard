@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import {
-  User, Plus, Search, XCircle, AlertCircle, Edit, X, Save, Briefcase, Phone, Building, Loader2, CheckCircle2
+  User, Plus, Search, XCircle, AlertCircle, Edit, X, Save, Briefcase, Phone, Building, Loader2, Trash2
 } from 'lucide-react';
 import { apiService, EmployeeResponse, CreateEmployeeRequest, UpdateEmployeeStatusRequest } from '../services/api';
 
@@ -11,6 +11,8 @@ export default function EmployeesManagementSection() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDetailsOverlayOpen, setIsDetailsOverlayOpen] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState<EmployeeResponse | null>(null);
   const [isCreatingEmployee, setIsCreatingEmployee] = useState(false);
   const [createEmployeeError, setCreateEmployeeError] = useState<string | null>(null);
 
@@ -74,15 +76,22 @@ export default function EmployeesManagementSection() {
     }
   };
 
-  const handleUpdateStatus = async (employeeId: number, status: string) => {
+  const handleDeleteEmployee = async (employeeId: number) => {
+    if (!confirm('هل أنت متأكد من حذف هذا الموظف؟')) return;
+
     try {
-      console.log('Updating employee status:', employeeId, status);
-      await apiService.updateEmployeeStatus(employeeId, { status });
+      await apiService.deleteEmployee(employeeId);
       loadEmployees();
+      setIsDetailsOverlayOpen(false);
     } catch (error) {
-      console.error('Failed to update employee status:', error);
-      alert('فشل تحديث حالة الموظف. الرجاء المحاولة مرة أخرى.');
+      console.error('Failed to delete employee:', error);
+      alert('فشل حذف الموظف. الرجاء المحاولة مرة أخرى.');
     }
+  };
+
+  const openDetailsOverlay = (employee: EmployeeResponse) => {
+    setSelectedEmployee(employee);
+    setIsDetailsOverlayOpen(true);
   };
 
   // Filter employees based on search
@@ -158,13 +167,15 @@ export default function EmployeesManagementSection() {
                 <th className="text-xs text-gray-500 font-bold text-right pb-3">الهاتف</th>
                 <th className="text-xs text-gray-500 font-bold text-right pb-3">الوظيفة</th>
                 <th className="text-xs text-gray-500 font-bold text-right pb-3">القسم</th>
-                <th className="text-xs text-gray-500 font-bold text-right pb-3">الحالة</th>
-                <th className="text-xs text-gray-500 font-bold text-right pb-3">الإجراءات</th>
               </tr>
             </thead>
             <tbody>
               {filteredEmployees.map((employee) => (
-                <tr key={employee.id} className="border-b border-gray-800/50 hover:bg-[#121212]/50 transition-colors">
+                <tr 
+                  key={employee.id} 
+                  className="border-b border-gray-800/50 hover:bg-[#121212]/50 transition-colors cursor-pointer"
+                  onClick={() => openDetailsOverlay(employee)}
+                >
                   <td className="py-3 text-sm text-white">{employee.id}</td>
                   <td className="py-3">
                     <div className="flex items-center gap-2">
@@ -185,32 +196,6 @@ export default function EmployeesManagementSection() {
                   <td className="py-3 text-sm text-white flex items-center gap-2">
                     <Building size={14} />
                     {employee.department}
-                  </td>
-                  <td className="py-3">
-                    <span className={`px-2 py-1 rounded-lg text-[10px] font-bold ${
-                      employee.status === 'ACTIVE' ? 'bg-emerald-950/20 text-emerald-400 border border-emerald-500/30' :
-                      'bg-gray-800 text-gray-400 border border-gray-700'
-                    }`}>
-                      {employee.status === 'ACTIVE' ? 'نشط' : employee.status}
-                    </span>
-                  </td>
-                  <td className="py-3">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleUpdateStatus(employee.id, employee.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE')}
-                        className={`p-1.5 rounded-lg transition ${
-                          employee.status === 'ACTIVE' 
-                            ? 'bg-red-950/20 border border-red-500/30 hover:bg-red-900/30' 
-                            : 'bg-emerald-950/20 border border-emerald-500/30 hover:bg-emerald-900/30'
-                        }`}
-                      >
-                        {employee.status === 'ACTIVE' ? (
-                          <X size={14} className="text-red-400" />
-                        ) : (
-                          <CheckCircle2 size={14} className="text-emerald-400" />
-                        )}
-                      </button>
-                    </div>
                   </td>
                 </tr>
               ))}
@@ -302,6 +287,77 @@ export default function EmployeesManagementSection() {
                       حفظ الموظف
                     </>
                   )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Employee Details Overlay */}
+      {isDetailsOverlayOpen && selectedEmployee && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#0b0b0b] border border-[#D4AF37]/30 rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-[#E6C587]">تفاصيل الموظف</h3>
+              <button onClick={() => setIsDetailsOverlayOpen(false)} className="p-2 bg-gray-900 border border-gray-800 rounded-lg">
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Employee Info */}
+              <div className="p-4 bg-[#121212] border border-gray-800 rounded-xl">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-[#D4AF37]/20 border border-[#D4AF37]/30 rounded-full flex items-center justify-center">
+                    <User size={24} className="text-[#E6C587]" />
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-bold text-white">{selectedEmployee.fullName}</h4>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                      selectedEmployee.status === 'ACTIVE' ? 'bg-emerald-950/20 text-emerald-400 border border-emerald-500/30' :
+                      'bg-gray-800 text-gray-400 border border-gray-700'
+                    }`}>
+                      {selectedEmployee.status === 'ACTIVE' ? 'نشط' : selectedEmployee.status}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-3 text-sm">
+                  <div className="flex items-center gap-2 text-gray-400">
+                    <Phone size={16} className="text-[#D4AF37]" />
+                    <span className="text-white">{selectedEmployee.phone}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-400">
+                    <Briefcase size={16} className="text-[#D4AF37]" />
+                    <span className="text-white">{selectedEmployee.job}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-400">
+                    <Building size={16} className="text-[#D4AF37]" />
+                    <span className="text-white">{selectedEmployee.department}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-4 border-t border-gray-800">
+                <button
+                  onClick={() => {
+                    setIsDetailsOverlayOpen(false);
+                    // TODO: Open edit modal
+                    alert('ميزة التعديل قيد التطوير');
+                  }}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-[#AA7B30] to-[#D4AF37] hover:from-[#C59740] hover:to-[#D4AF37] text-black font-extrabold text-xs rounded-xl shadow-lg transition duration-200"
+                >
+                  <Edit size={16} />
+                  <span>تعديل</span>
+                </button>
+                <button
+                  onClick={() => handleDeleteEmployee(selectedEmployee.id)}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-red-950/20 border border-red-500/30 hover:bg-red-900/30 text-red-400 font-extrabold text-xs rounded-xl transition duration-200"
+                >
+                  <Trash2 size={16} />
+                  <span>حذف</span>
                 </button>
               </div>
             </div>
