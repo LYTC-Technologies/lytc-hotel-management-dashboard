@@ -41,6 +41,8 @@ export default function EmployeesManagementSection() {
     setError(null);
     try {
       const response = await apiService.getEmployees(0, 50);
+      console.log('Loaded employees from API:', response);
+      console.log('Employees content:', response.content);
       setEmployees(response.content || []);
     } catch (error: any) {
       console.error('Failed to load employees:', error);
@@ -167,11 +169,16 @@ export default function EmployeesManagementSection() {
 
   // Filter employees based on search
   const filteredEmployees = (employees || []).filter(employee => {
-    const matchesSearch = employee.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    const matchesSearch = searchQuery === '' ||
+                          employee.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           employee.job.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           employee.department.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesSearch;
   });
+
+  console.log('Total employees:', employees.length);
+  console.log('Filtered employees:', filteredEmployees.length);
+  console.log('Search query:', searchQuery);
 
   return (
     <div className="space-y-6 pb-12">
