@@ -563,14 +563,9 @@ export default function App() {
 
         {/* Admin Footer Row */}
         <div className="pt-4 border-t border-gray-900 flex justify-between items-center text-xs">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full border border-[#D4AF37]/30 bg-[#121212] flex items-center justify-center font-bold text-[#E6C587]">
-              ع
-            </div>
-            <div>
-              <span className="text-gray-300 font-bold block">مرحباً {userRoleDisplay}</span>
-              <span className="text-[10px] text-gray-500 block">نظام إدارة الفندق</span>
-            </div>
+          <div>
+            <span className="text-gray-300 font-bold block">مرحباً {userRoleDisplay}</span>
+            <span className="text-[10px] text-gray-500 block">نظام إدارة الفندق</span>
           </div>
           <button
             onClick={handleLogout}

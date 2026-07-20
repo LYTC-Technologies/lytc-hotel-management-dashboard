@@ -97,8 +97,6 @@ export default function DashboardHome({
     ? (reservations.filter(r => r.status === 'cancelled').length / reservations.length) * 100 
     : 0;
 
-  const averageGuestRating = 0; // Would come from actual ratings
-
   const pendingPayments = invoices
     .filter(inv => inv.status === 'unpaid')
     .reduce((sum, inv) => sum + inv.amount, 0);
@@ -149,7 +147,7 @@ export default function DashboardHome({
             <div className="text-2xl font-black font-mono text-[#E6C587] tracking-widest mt-1">
               {time}
             </div>
-            <div className="text-[10px] text-gray-500 mt-0.5">الأحد، 5 يوليو 2026 م</div>
+            <div className="text-[10px] text-gray-500 mt-0.5">{new Date().toLocaleDateString('ar-SA', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</div>
           </div>
           <div className="h-10 w-[1px] bg-gray-800" />
           <div className="text-right">
@@ -158,9 +156,9 @@ export default function DashboardHome({
               <span>الطقس اليوم</span>
             </div>
             <div className="text-xl font-bold text-white mt-1">
-              42° م
+              --° م
             </div>
-            <div className="text-[10px] text-yellow-500 mt-0.5">مشمس • رطوبة منخفضة</div>
+            <div className="text-[10px] text-gray-500 mt-0.5">--</div>
           </div>
         </div>
       </div>
@@ -305,17 +303,6 @@ export default function DashboardHome({
           </div>
         </div>
 
-        {/* Average Guest Rating */}
-        <div className="p-4 bg-[#090909] border border-gray-900 rounded-xl flex items-center justify-between hover:border-yellow-500/35 transition duration-200">
-          <div className="space-y-1">
-            <span className="text-[10px] text-gray-500">متوسط تقييم النزلاء</span>
-            <div className="text-lg font-bold text-white font-mono">{averageGuestRating} <Star size={14} className="inline text-yellow-400" /></div>
-          </div>
-          <div className="p-2 bg-yellow-950/20 text-yellow-400 rounded-lg">
-            <Star size={16} />
-          </div>
-        </div>
-
         {/* Pending Payments */}
         <div className="p-4 bg-[#090909] border border-gray-900 rounded-xl flex items-center justify-between hover:border-orange-500/35 transition duration-200">
           <div className="space-y-1">
@@ -389,7 +376,7 @@ export default function DashboardHome({
         <div className="p-4 bg-[#090909] border border-gray-900 rounded-xl flex items-center justify-between hover:border-sky-500/35 transition duration-200">
           <div className="space-y-1">
             <span className="text-[10px] text-gray-500">حالة الطقس</span>
-            <div className="text-lg font-bold text-white font-mono">42° م</div>
+            <div className="text-lg font-bold text-white font-mono">--° م</div>
           </div>
           <div className="p-2 bg-sky-950/20 text-sky-400 rounded-lg">
             <CloudSun size={16} />
