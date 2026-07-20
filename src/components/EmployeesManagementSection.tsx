@@ -120,12 +120,19 @@ export default function EmployeesManagementSection() {
         phone: editPhone,
         job: editJob,
         department: editDepartment,
-        status: editStatus,
       };
 
       console.log('Updating employee:', selectedEmployee.id, updateData);
       await apiService.updateEmployee(selectedEmployee.id, updateData);
       console.log('Employee updated successfully');
+
+      // Update status separately if changed
+      if (editStatus !== selectedEmployee.status) {
+        console.log('Updating status to:', editStatus);
+        await apiService.updateEmployeeStatus(selectedEmployee.id, { status: editStatus });
+        console.log('Status updated successfully');
+      }
+
       loadEmployees();
       setIsEditModalOpen(false);
       setIsDetailsOverlayOpen(false);
