@@ -283,6 +283,10 @@ class APIService {
       const error = await response.json().catch(() => ({ message: 'An error occurred' }));
       throw new Error(error.message || `HTTP error! status: ${response.status}`);
     }
+    // Handle 204 No Content responses
+    if (response.status === 204) {
+      return undefined as T;
+    }
     return response.json();
   }
 
@@ -936,13 +940,13 @@ class APIService {
 
   /**
    * Update Employee
-   * PUT /api/dashboard/manager/employees/{id}
+   * PATCH /api/dashboard/manager/employees/{id}
    */
   async updateEmployee(id: number, employee: CreateEmployeeRequest): Promise<EmployeeResponse> {
     return this.authenticatedFetch<EmployeeResponse>(
       `${this.baseURL}/api/dashboard/manager/employees/${id}`,
       {
-        method: 'PUT',
+        method: 'PATCH',
         body: JSON.stringify(employee),
       }
     );
