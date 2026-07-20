@@ -21,6 +21,7 @@ export default function EmployeesManagementSection() {
   const [phone, setPhone] = useState('');
   const [job, setJob] = useState('');
   const [department, setDepartment] = useState('');
+  const [status, setStatus] = useState<'ACTIVE' | 'INACTIVE'>('ACTIVE');
 
   // Edit Employee Form States
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -28,6 +29,7 @@ export default function EmployeesManagementSection() {
   const [editPhone, setEditPhone] = useState('');
   const [editJob, setEditJob] = useState('');
   const [editDepartment, setEditDepartment] = useState('');
+  const [editStatus, setEditStatus] = useState<'ACTIVE' | 'INACTIVE'>('ACTIVE');
   const [isUpdatingEmployee, setIsUpdatingEmployee] = useState(false);
 
   useEffect(() => {
@@ -72,6 +74,7 @@ export default function EmployeesManagementSection() {
       setPhone('');
       setJob('');
       setDepartment('');
+      setStatus('ACTIVE');
       setIsModalOpen(false);
 
       // Reload employees
@@ -119,6 +122,11 @@ export default function EmployeesManagementSection() {
       setIsEditModalOpen(false);
       setIsDetailsOverlayOpen(false);
       setSelectedEmployee(null);
+      setEditFullName('');
+      setEditPhone('');
+      setEditJob('');
+      setEditDepartment('');
+      setEditStatus('ACTIVE');
     } catch (error) {
       console.error('Failed to update employee:', error);
       alert('فشل تحديث الموظف. الرجاء المحاولة مرة أخرى.');
@@ -133,6 +141,7 @@ export default function EmployeesManagementSection() {
     setEditPhone(selectedEmployee.phone);
     setEditJob(selectedEmployee.job);
     setEditDepartment(selectedEmployee.department);
+    setEditStatus(selectedEmployee.status as 'ACTIVE' | 'INACTIVE');
     setIsEditModalOpen(true);
   };
 
@@ -320,6 +329,18 @@ export default function EmployeesManagementSection() {
                 />
               </div>
 
+              <div>
+                <label className="text-xs text-gray-500 block mb-2">الحالة</label>
+                <select
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value as 'ACTIVE' | 'INACTIVE')}
+                  className="w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-white focus:outline-none"
+                >
+                  <option value="ACTIVE">نشط</option>
+                  <option value="INACTIVE">غير نشط</option>
+                </select>
+              </div>
+
               <div className="flex justify-end gap-3 pt-4 border-t border-gray-800">
                 <button
                   type="button"
@@ -469,6 +490,18 @@ export default function EmployeesManagementSection() {
                   onChange={(e) => setEditDepartment(e.target.value)}
                   className="w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-white focus:outline-none"
                 />
+              </div>
+
+              <div>
+                <label className="text-xs text-gray-500 block mb-2">الحالة</label>
+                <select
+                  value={editStatus}
+                  onChange={(e) => setEditStatus(e.target.value as 'ACTIVE' | 'INACTIVE')}
+                  className="w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-white focus:outline-none"
+                >
+                  <option value="ACTIVE">نشط</option>
+                  <option value="INACTIVE">غير نشط</option>
+                </select>
               </div>
 
               <div className="flex justify-end gap-3 pt-4 border-t border-gray-800">
