@@ -63,7 +63,7 @@ export default function App() {
   }, []);
 
   // Active view tab state with # routing
-  const [activeTab, setActiveTab] = useState<'لوحة التحكم' | 'الحجوزات' | 'الغرف' | 'النزلاء' | 'طلبات النزلاء' | 'المطعم' | 'الصيانة' | 'المدفوعات' | 'إدارة المستخدمين' | 'إدارة الموظفين' | 'النزلاء VIP' | 'التقييمات' | 'الطلبات الخاصة' | 'الحجوزات القادمة' | 'إحصائيات المطعم' | 'إحصائيات المقهى' | 'الطلبات المعلقة' | 'العروض والمزايا' | 'الموظفين' | 'إدارة الضيوف' | 'التحليلات الذكية'>(() => {
+  const [activeTab, setActiveTab] = useState<'لوحة التحكم' | 'الحجوزات' | 'الغرف' | 'النزلاء' | 'المطعم' | 'الصيانة' | 'المدفوعات' | 'إدارة المستخدمين' | 'إدارة الموظفين' | 'النزلاء VIP' | 'التقييمات' | 'الطلبات الخاصة' | 'الحجوزات القادمة' | 'إحصائيات المطعم' | 'إحصائيات المقهى' | 'الطلبات المعلقة' | 'العروض والمزايا' | 'الموظفين' | 'إدارة الضيوف' | 'التحليلات الذكية'>(() => {
     const hash = window.location.hash.replace('#', '');
     if (hash) {
       try {
@@ -307,14 +307,6 @@ export default function App() {
         return <ReservationsSection />;
       case 'النزلاء':
         return <GuestsSection guests={guests} reservations={reservations} />;
-      case 'طلبات النزلاء':
-        return (
-          <RequestsSection
-            requests={requests}
-            onUpdateRequestStatus={handleUpdateRequestStatus}
-            onAssignRequest={handleAssignRequest}
-          />
-        );
       case 'المطعم':
         return <RestaurantSection />;
       case 'الصيانة':
@@ -411,7 +403,6 @@ export default function App() {
             { label: 'لوحة التحكم', icon: <Building size={16} /> },
             { label: 'الحجوزات', icon: <Calendar size={16} /> },
             { label: 'الغرف', icon: <BedDouble size={16} /> },
-            { label: 'طلبات النزلاء', icon: <MessageSquare size={16} /> },
             { label: 'المطعم', icon: <Coffee size={16} /> },
             { label: 'الصيانة', icon: <Wrench size={16} /> },
             { label: 'المدفوعات', icon: <CreditCard size={16} /> },
@@ -579,7 +570,6 @@ export default function App() {
                     { label: 'لوحة التحكم', icon: <Building size={14} /> },
                     { label: 'الحجوزات', icon: <Calendar size={14} /> },
                     { label: 'الغرف', icon: <BedDouble size={14} /> },
-                    { label: 'طلبات النزلاء', icon: <MessageSquare size={14} /> },
                     { label: 'المطعم', icon: <Coffee size={14} /> },
                     { label: 'الصيانة', icon: <Wrench size={14} /> },
                     { label: 'المدفوعات', icon: <CreditCard size={14} /> },

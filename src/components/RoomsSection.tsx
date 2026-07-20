@@ -186,8 +186,11 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
   };
 
   const handleEditRoom = (room: Room) => {
-    setEditingRoom(room);
-    setEditModalOpen(true);
+    // Edit functionality removed as per requirements
+  };
+
+  const handleSaveRoom = () => {
+    // Edit functionality removed as per requirements
   };
 
   const handleUpdateRoomStatus = async (roomId: string, status: Room['status']) => {
@@ -198,30 +201,14 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
       // Map frontend status to backend status
       const backendStatus = status.toUpperCase() as 'AVAILABLE' | 'OCCUPIED' | 'CLEANING' | 'MAINTENANCE' | 'OUT_OF_SERVICE';
       
-      await apiService.updateRoom(parseInt(roomId), { status: backendStatus });
+      console.log('Updating room status:', roomId, 'to:', backendStatus);
+      await apiService.patchRoom(parseInt(roomId), { status: backendStatus });
       
-      // Update local state
-      setRooms(rooms.map(r => 
-        r.id === roomId ? { ...r, status } : r
-      ));
+      // Reload rooms to get updated state from backend
+      await loadRooms();
     } catch (error) {
       console.error('Failed to update room status:', error);
       alert('فشل تحديث حالة الغرفة. الرجاء المحاولة مرة أخرى.');
-    }
-  };
-
-  const handleSaveRoom = () => {
-    if (editingRoom) {
-      // Use API to update the room
-      handleUpdateRoom(editingRoom.id, {
-        number: editingRoom.number,
-        maxAdults: editingRoom.maxAdults,
-        maxKids: editingRoom.maxKids,
-        description: editingRoom.description,
-        floor: editingRoom.floor,
-        pricePerNight: editingRoom.pricePerNight,
-        status: editingRoom.status,
-      });
     }
   };
 

@@ -138,10 +138,17 @@ export default function ReservationsSection() {
 
       // Get rooms to check availability
       const roomsResponse = await apiService.getRooms(undefined, undefined, 0, 100);
-      const room = roomsResponse.content?.find(r => r.number === stay.roomNumber);
+      console.log('Available rooms:', roomsResponse.content);
+      console.log('Looking for room number:', stay.roomNumber);
+      
+      const room = roomsResponse.content?.find(r => {
+        console.log('Comparing:', r.roomNumber, 'with', stay.roomNumber, 'Match:', r.roomNumber === stay.roomNumber);
+        return r.roomNumber === stay.roomNumber;
+      });
 
       if (!room) {
-        alert('لم يتم العثور على الغرفة');
+        console.error('Room not found. Available room numbers:', roomsResponse.content?.map(r => r.roomNumber));
+        alert(`لم يتم العثور على الغرفة رقم ${stay.roomNumber}`);
         return;
       }
 
