@@ -63,7 +63,7 @@ export default function App() {
   }, []);
 
   // Active view tab state with # routing
-  const [activeTab, setActiveTab] = useState<'لوحة التحكم' | 'الحجوزات' | 'الغرف' | 'النزلاء' | 'المطعم' | 'الصيانة' | 'المدفوعات' | 'إدارة المستخدمين' | 'إدارة الموظفين' | 'النزلاء VIP' | 'التقييمات' | 'الطلبات الخاصة' | 'الحجوزات القادمة' | 'إحصائيات المطعم' | 'إحصائيات المقهى' | 'الطلبات المعلقة' | 'العروض والمزايا' | 'الموظفين' | 'إدارة الضيوف' | 'التحليلات الذكية'>(() => {
+  const [activeTab, setActiveTab] = useState<'لوحة التحكم' | 'الحجوزات' | 'الغرف' | 'النزلاء' | 'طلبات النزلاء' | 'المطعم' | 'الصيانة' | 'المدفوعات' | 'إدارة المستخدمين' | 'إدارة الموظفين' | 'النزلاء VIP' | 'التقييمات' | 'الطلبات الخاصة' | 'الحجوزات القادمة' | 'إحصائيات المطعم' | 'إحصائيات المقهى' | 'الطلبات المعلقة' | 'العروض والمزايا' | 'الموظفين' | 'إدارة الضيوف' | 'التحليلات الذكية'>(() => {
     const hash = window.location.hash.replace('#', '');
     if (hash) {
       try {
@@ -290,12 +290,6 @@ export default function App() {
       case 'لوحة التحكم':
         return (
           <DashboardHome
-            reservations={reservations}
-            guests={guests}
-            requests={requests}
-            housekeeping={housekeeping}
-            maintenance={maintenance}
-            invoices={invoices}
             onNavigate={(tab) => handleTabChange(tab as any)}
             onOpenQuickBook={() => setQuickBookOpen(true)}
             onOpenQuickRequest={() => setQuickRequestOpen(true)}
@@ -403,6 +397,7 @@ export default function App() {
             { label: 'لوحة التحكم', icon: <Building size={16} /> },
             { label: 'الحجوزات', icon: <Calendar size={16} /> },
             { label: 'الغرف', icon: <BedDouble size={16} /> },
+            { label: 'طلبات النزلاء', icon: <MessageSquare size={16} /> },
             { label: 'المطعم', icon: <Coffee size={16} /> },
             { label: 'الصيانة', icon: <Wrench size={16} /> },
             { label: 'المدفوعات', icon: <CreditCard size={16} /> },
@@ -570,6 +565,7 @@ export default function App() {
                     { label: 'لوحة التحكم', icon: <Building size={14} /> },
                     { label: 'الحجوزات', icon: <Calendar size={14} /> },
                     { label: 'الغرف', icon: <BedDouble size={14} /> },
+                    { label: 'طلبات النزلاء', icon: <MessageSquare size={14} /> },
                     { label: 'المطعم', icon: <Coffee size={14} /> },
                     { label: 'الصيانة', icon: <Wrench size={14} /> },
                     { label: 'المدفوعات', icon: <CreditCard size={14} /> },
@@ -637,7 +633,7 @@ export default function App() {
                 type="text"
                 id="qb-room"
                 className="w-full bg-[#121212] border border-gray-800 rounded-xl px-3 py-2 text-white focus:outline-none"
-                placeholder="مثال: 501"
+                placeholder="مثال: 101"
               />
               <div className="flex gap-3 pt-2">
                 <button

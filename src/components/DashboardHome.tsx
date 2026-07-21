@@ -3,37 +3,31 @@ import { motion } from 'motion/react';
 import { 
   TrendingUp, Calendar, BedDouble, Users, MessageSquare, Wrench, ShieldAlert, Sparkles, 
   Clock, CloudSun, Compass, UserCheck, CreditCard, ChevronLeft, Star, Heart,
-  Activity, ArrowUpRight, ArrowDownRight, Coffee, Shirt, ConciergeBell
+  Activity, ArrowUpRight, ArrowDownRight, Coffee, Shirt, ConciergeBell, Loader2
 } from 'lucide-react';
 import { Room, Reservation, Guest, ServiceRequest, HousekeepingTask, MaintenanceTicket, Invoice } from '../types';
+import { apiService } from '../services/api';
 
 interface DashboardHomeProps {
-  rooms?: Room[];
-  reservations: Reservation[];
-  guests: Guest[];
-  requests: ServiceRequest[];
-  housekeeping: HousekeepingTask[];
-  maintenance: MaintenanceTicket[];
-  invoices: Invoice[];
   onNavigate: (tab: string) => void;
   onOpenQuickBook: () => void;
   onOpenQuickRequest: () => void;
 }
 
 export default function DashboardHome({
-  rooms = [],
-  reservations,
-  guests,
-  requests,
-  housekeeping,
-  maintenance,
-  invoices,
   onNavigate,
   onOpenQuickBook,
   onOpenQuickRequest
 }: DashboardHomeProps) {
   const [time, setTime] = useState(new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
   const [userRole, setUserRole] = useState<string>('المدير');
+  const [isLoading, setIsLoading] = useState(true);
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [stays, setStays] = useState<any[]>([]);
+  const [vips, setVips] = useState<any[]>([]);
+  const [specialOrders, setSpecialOrders] = useState<any[]>([]);
+  const [restaurantStats, setRestaurantStats] = useState<any>(null);
+  const [cafeStats, setCafeStats] = useState<any>(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -61,20 +55,62 @@ export default function DashboardHome({
     }
   }, []);
 
-  // Compute live real metrics
-  const totalBookings = reservations.filter(r => r.status !== 'cancelled').length;
+  // Load dashboard data from API
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      setIsLoading(true);
+      try {
+        const [roomsData, staysData, vipsData, specialOrdersData, restaurantStatsData, cafeStatsData] = await Promise.all([
+          apiService.getRooms(undefined, undefined, 0, 100),
+          apiService.getStays(0, 50),
+          apiService.getVips(0, 20),
+          apiService.getManagerSpecialOrders(),
+          apiService.getRestaurantStats(),
+          apiService.getCafeStats()
+        ]);
+
+        // Transform rooms data
+        const transformedRooms = (roomsData.content || []).map((room: any) => ({
+          id: room.id.toString(),
+          number: room.roomNumber,
+          status: room.status.toLowerCase() as Room['status'],
+          floor: room.floor,
+          type: room.type || 'جناح',
+          capacity: room.maxAdults + (room.maxKids || 0),
+          pricePerNight: room.price || 0,
+          images: room.images || [],
+          name: `جناح ${room.roomNumber}`,
+          lastUpdated: new Date().toLocaleDateString('ar-SA'),
+          occupancyRate: room.status === 'OCCUPIED' ? 100 : 0
+        }));
+        setRooms(transformedRooms);
+
+        // Transform stays data
+        setStays(staysData.content || []);
+        setVips(vipsData.content || []);
+        setSpecialOrders(specialOrdersData || []);
+        setRestaurantStats(restaurantStatsData);
+        setCafeStats(cafeStatsData);
+      } catch (error) {
+        console.error('Failed to load dashboard data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadDashboardData();
+  }, []);
+
+  // Compute live real metrics from API data
+  const totalBookings = stays.length;
   const occupiedRoomsCount = rooms.filter(r => r.status === 'occupied').length;
   const availableRoomsCount = rooms.filter(r => r.status === 'available').length;
-  const totalRevenue = invoices
-    .filter(inv => inv.status === 'paid')
-    .reduce((sum, inv) => sum + inv.amount, 0);
+  const totalRevenue = 0; // No invoice API available yet
 
-  const activeGuestsCount = reservations
-    .filter(r => r.status === 'checked_in')
-    .reduce((sum, r) => sum + r.adultCount + r.childrenCount, 0);
+  const activeGuestsCount = stays.filter(s => s.status === 'CHECKED_IN').length;
 
-  const pendingRequestsCount = requests.filter(req => req.status === 'pending').length;
-  const openMaintenanceCount = maintenance.filter(m => m.status === 'open' || m.status === 'assigned').length;
+  const pendingRequestsCount = specialOrders.filter(s => s.status === 'PENDING').length;
+  const openMaintenanceCount = 0; // No maintenance API available yet
 
   // New Executive Dashboard KPIs
   const averageRoomRate = rooms.length > 0 
@@ -85,36 +121,36 @@ export default function DashboardHome({
     ? totalRevenue / (rooms.length - occupiedRoomsCount) 
     : 0;
 
-  const directBookings = reservations.filter(r => 
-    r.bookingSource === 'direct' || !r.bookingSource
-  ).length;
+  const directBookings = stays.filter(s => s.bookingSource === 'DIRECT' || !s.bookingSource).length;
 
-  const platformBookings = reservations.filter(r => 
-    r.bookingSource && r.bookingSource !== 'direct'
-  ).length;
+  const platformBookings = stays.filter(s => s.bookingSource && s.bookingSource !== 'DIRECT').length;
 
-  const cancellationRate = reservations.length > 0 
-    ? (reservations.filter(r => r.status === 'cancelled').length / reservations.length) * 100 
+  const cancellationRate = stays.length > 0 
+    ? (stays.filter(s => s.status === 'CANCELLED').length / stays.length) * 100 
     : 0;
 
-  const pendingPayments = invoices
-    .filter(inv => inv.status === 'unpaid')
-    .reduce((sum, inv) => sum + inv.amount, 0);
+  const pendingPayments = 0; // No invoice API available yet
 
-  const pendingHousekeeping = housekeeping.filter(h => h.status !== 'completed').length;
+  const pendingHousekeeping = rooms.filter(r => r.status === 'cleaning').length;
 
-  const vipGuestsArriving = guests.filter(g => g.isVIP).length;
+  const vipGuestsArriving = vips.length;
 
-  const latestReservations = [...reservations]
-    .sort((a, b) => b.id.localeCompare(a.id))
+  const latestReservations = [...stays]
+    .sort((a, b) => b.id - a.id)
     .slice(0, 4);
 
-  const recentRequests = [...requests]
-    .filter(req => req.status !== 'completed')
+  const recentRequests = [...specialOrders]
+    .filter(s => s.status !== 'COMPLETED')
     .slice(0, 4);
 
   return (
     <div className="space-y-8 pb-12">
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 size={24} className="text-[#D4AF37] animate-spin" />
+        </div>
+      ) : (
+        <>
       {/* Upper Welcoming Banner */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 p-6 lg:p-8 rounded-2xl bg-gradient-to-br from-[#0c0c0c] via-[#121212] to-[#0a0a0a] border border-[#D4AF37]/15 relative overflow-hidden shadow-[0_15px_35px_rgba(0,0,0,0.6)]">
         {/* Abstract Golden Circles Backdrop */}
@@ -330,11 +366,11 @@ export default function DashboardHome({
 
         {/* Pending Housekeeping */}
         <button 
-          onClick={() => onNavigate('خدمة الغرف')}
+          onClick={() => onNavigate('الغرف')}
           className="p-4 bg-[#090909] border border-gray-900 rounded-xl flex items-center justify-between hover:border-teal-500/35 transition duration-200 w-full"
         >
           <div className="space-y-1 text-right">
-            <span className="text-[10px] text-gray-500">مهام النظافة المتبقية</span>
+            <span className="text-[10px] text-gray-500">غرف تحت التنظيف</span>
             <div className="text-lg font-bold text-white font-mono">{pendingHousekeeping}</div>
           </div>
           <div className="p-2 bg-teal-950/20 text-teal-400 rounded-lg">
@@ -504,10 +540,10 @@ export default function DashboardHome({
             <div className="flex justify-between items-center">
               <h2 className="text-lg font-bold text-[#E6C587] flex items-center gap-2">
                 <ConciergeBell size={18} />
-                <span>طلبات النزلاء النشطة والجديدة</span>
+                <span>الطلبات الخاصة النشطة</span>
               </h2>
               <button 
-                onClick={() => onNavigate('طلبات النزلاء')}
+                onClick={() => onNavigate('الطلبات الخاصة')}
                 className="text-xs text-[#D4AF37] hover:underline flex items-center gap-1"
               >
                 <span>إدارة الطلبات</span>
@@ -516,41 +552,37 @@ export default function DashboardHome({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {recentRequests.map((req) => (
+              {recentRequests.length > 0 ? recentRequests.map((req) => (
                 <div key={req.id} className="p-4 bg-[#121212] border border-gray-800 rounded-xl hover:border-[#D4AF37]/20 transition duration-200 flex flex-col justify-between space-y-3">
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-2">
                       <span className="w-8 h-8 rounded-full bg-amber-950/20 border border-[#D4AF37]/20 flex items-center justify-center text-[#D4AF37]">
-                        {req.type === 'room_service' ? <Coffee size={14} /> :
-                         req.type === 'laundry' ? <Shirt size={14} /> :
-                         <ConciergeBell size={14} />}
+                        <ConciergeBell size={14} />
                       </span>
                       <div>
-                        <span className="text-xs text-gray-400 font-bold">غرفة {req.roomNumber}</span>
-                        <div className="text-[10px] text-gray-500 font-mono">سجل في: {req.timestamp}</div>
+                        <span className="text-xs text-gray-400 font-bold">طلب #{req.id}</span>
+                        <div className="text-[10px] text-gray-500 font-mono">{new Date(req.createdAt).toLocaleDateString('ar-SA')}</div>
                       </div>
                     </div>
                     <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
-                      req.priority === 'high' ? 'bg-red-950/40 text-red-400 border border-red-500/20' :
-                      req.priority === 'medium' ? 'bg-yellow-950/40 text-yellow-500 border border-yellow-500/20' :
+                      req.status === 'PENDING' ? 'bg-amber-950/40 text-amber-500 border border-amber-500/20' :
+                      req.status === 'IN_PROGRESS' ? 'bg-blue-950/40 text-blue-400 border border-blue-500/20' :
                       'bg-gray-900 text-gray-400 border border-gray-800'
                     }`}>
-                      {req.priority === 'high' ? 'عاجل جداً' :
-                       req.priority === 'medium' ? 'متوسط الأهمية' :
-                       'عادي'}
+                      {req.status === 'PENDING' ? 'قيد الانتظار' : 
+                       req.status === 'IN_PROGRESS' ? 'جاري التنفيذ' :
+                       'مكتمل'}
                     </span>
                   </div>
                   <p className="text-xs text-gray-300 leading-relaxed font-medium line-clamp-2">
-                    {req.details}
+                    {req.description || 'طلب خاص'}
                   </p>
-                  <div className="border-t border-gray-800/60 pt-2 flex justify-between items-center text-[11px]">
-                    <span className="text-gray-500">المسؤول: <strong className="text-gray-300">{req.assignee || 'غير معين'}</strong></span>
-                    <span className="px-2 py-0.5 bg-blue-950/20 text-blue-400 rounded-md font-bold">
-                      {req.status === 'pending' ? 'قيد الانتظار' : 'جاري التنفيذ'}
-                    </span>
-                  </div>
                 </div>
-              ))}
+              )) : (
+                <div className="col-span-2 text-center py-8 text-gray-500 text-xs">
+                  لا توجد طلبات خاصة نشطة
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -613,6 +645,8 @@ export default function DashboardHome({
           {/* Live System Activities Feed - Removed dummy data */}
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 }
