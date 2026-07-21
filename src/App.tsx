@@ -12,7 +12,6 @@ import ReservationsSection from './components/ReservationsSection';
 import GuestsSection from './components/GuestsSection';
 import RequestsSection from './components/RequestsSection';
 import HousekeepingSection from './components/HousekeepingSection';
-import MaintenanceSection from './components/MaintenanceSection';
 import RestaurantSection from './components/RestaurantSection';
 import PaymentsSection from './components/PaymentsSection';
 import UsersManagementSection from './components/UsersManagementSection';
@@ -20,7 +19,6 @@ import EmployeesManagementSection from './components/EmployeesManagementSection'
 import VipGuestsSection from './components/VipGuestsSection';
 import RatingsSection from './components/RatingsSection';
 import SpecialOrdersManagementSection from './components/SpecialOrdersManagementSection';
-import TodayArrivalsSection from './components/TodayArrivalsSection';
 import RestaurantStatsSection from './components/RestaurantStatsSection';
 import CafeStatsSection from './components/CafeStatsSection';
 import PendingOrdersSection from './components/PendingOrdersSection';
@@ -63,7 +61,7 @@ export default function App() {
   }, []);
 
   // Active view tab state with # routing
-  const [activeTab, setActiveTab] = useState<'لوحة التحكم' | 'الحجوزات' | 'الغرف' | 'النزلاء' | 'طلبات النزلاء' | 'المطعم' | 'الصيانة' | 'المدفوعات' | 'إدارة المستخدمين' | 'إدارة الموظفين' | 'النزلاء VIP' | 'التقييمات' | 'الطلبات الخاصة' | 'الحجوزات القادمة' | 'إحصائيات المطعم' | 'إحصائيات المقهى' | 'الطلبات المعلقة' | 'العروض والمزايا' | 'الموظفين' | 'إدارة الضيوف' | 'التحليلات الذكية'>(() => {
+  const [activeTab, setActiveTab] = useState<'لوحة التحكم' | 'الحجوزات' | 'الغرف' | 'النزلاء' | 'المطعم' | 'المدفوعات' | 'إدارة المستخدمين' | 'إدارة الموظفين' | 'النزلاء VIP' | 'التقييمات' | 'الطلبات الخاصة' | 'إحصائيات المطعم' | 'إحصائيات المقهى' | 'الطلبات المعلقة' | 'العروض والمزايا' | 'الموظفين' | 'إدارة الضيوف' | 'التحليلات الذكية'>(() => {
     const hash = window.location.hash.replace('#', '');
     if (hash) {
       try {
@@ -303,8 +301,6 @@ export default function App() {
         return <GuestsSection guests={guests} reservations={reservations} />;
       case 'المطعم':
         return <RestaurantSection />;
-      case 'الصيانة':
-        return <MaintenanceSection tickets={maintenance} onUpdateTicketStatus={handleUpdateTicketStatus} />;
       case 'المدفوعات':
         return <PaymentsSection invoices={invoices} onUpdateInvoiceStatus={handleUpdateInvoiceStatus} />;
       case 'التحليلات الذكية':
@@ -319,8 +315,6 @@ export default function App() {
         return <RatingsSection />;
       case 'الطلبات الخاصة':
         return <SpecialOrdersManagementSection />;
-      case 'الحجوزات القادمة':
-        return <TodayArrivalsSection />;
       case 'إحصائيات المطعم':
         return <RestaurantStatsSection />;
       case 'إحصائيات المقهى':
@@ -397,9 +391,7 @@ export default function App() {
             { label: 'لوحة التحكم', icon: <Building size={16} /> },
             { label: 'الحجوزات', icon: <Calendar size={16} /> },
             { label: 'الغرف', icon: <BedDouble size={16} /> },
-            { label: 'طلبات النزلاء', icon: <MessageSquare size={16} /> },
             { label: 'المطعم', icon: <Coffee size={16} /> },
-            { label: 'الصيانة', icon: <Wrench size={16} /> },
             { label: 'المدفوعات', icon: <CreditCard size={16} /> },
             { label: 'التحليلات الذكية', icon: <Brain size={16} /> },
             { label: 'العروض والمزايا', icon: <Sparkles size={16} /> },
@@ -408,7 +400,6 @@ export default function App() {
             { label: 'النزلاء VIP', icon: <Star size={16} /> },
             { label: 'التقييمات', icon: <Star size={16} /> },
             { label: 'الطلبات الخاصة', icon: <ShoppingBag size={16} /> },
-            { label: 'الحجوزات القادمة', icon: <Clock size={16} /> },
             { label: 'إحصائيات المطعم', icon: <BarChart3 size={16} /> },
             { label: 'إحصائيات المقهى', icon: <BarChart3 size={16} /> },
             { label: 'الطلبات المعلقة', icon: <Clock size={16} /> }
@@ -565,9 +556,7 @@ export default function App() {
                     { label: 'لوحة التحكم', icon: <Building size={14} /> },
                     { label: 'الحجوزات', icon: <Calendar size={14} /> },
                     { label: 'الغرف', icon: <BedDouble size={14} /> },
-                    { label: 'طلبات النزلاء', icon: <MessageSquare size={14} /> },
                     { label: 'المطعم', icon: <Coffee size={14} /> },
-                    { label: 'الصيانة', icon: <Wrench size={14} /> },
                     { label: 'المدفوعات', icon: <CreditCard size={14} /> },
                     { label: 'التحليلات', icon: <BarChart3 size={14} /> },
                     { label: 'التسويق', icon: <Globe size={14} /> },
