@@ -48,9 +48,10 @@ export default function App() {
         const user = JSON.parse(savedUser);
         const roleMap: { [key: string]: string } = {
           'MANAGER': 'المدير',
-          'ADMIN': 'المسؤول',
-          'STAFF': 'الموظف',
-          'GUEST': 'الضيف'
+          'STAFF': 'موظف',
+          'CHEF': 'شيف',
+          'BARISTA': 'باريستا',
+          'ROOM_SERVICE': 'خدمة الغرف'
         };
         setUserRoleDisplay(roleMap[user.role] || 'المدير');
       } catch (e) {
@@ -72,7 +73,40 @@ export default function App() {
     return 'لوحة التحكم';
   });
 
-  // Update URL hash when tab changes
+  // Define role-based permissions
+  const getAccessibleTabs = (role: string | null) => {
+    const allTabs = [
+      { label: 'لوحة التحكم', icon: <Building size={16} />, roles: ['MANAGER', 'STAFF', 'CHEF', 'BARISTA', 'ROOM_SERVICE'] },
+      { label: 'الحجوزات', icon: <Calendar size={16} />, roles: ['MANAGER', 'STAFF'] },
+      { label: 'الغرف', icon: <BedDouble size={16} />, roles: ['MANAGER', 'STAFF', 'ROOM_SERVICE'] },
+      { label: 'المطعم', icon: <Coffee size={16} />, roles: ['MANAGER', 'STAFF', 'CHEF'] },
+      { label: 'المدفوعات', icon: <CreditCard size={16} />, roles: ['MANAGER', 'STAFF'] },
+      { label: 'التحليلات الذكية', icon: <Brain size={16} />, roles: ['MANAGER'] },
+      { label: 'العروض والمزايا', icon: <Sparkles size={16} />, roles: ['MANAGER', 'STAFF'] },
+      { label: 'إدارة المستخدمين', icon: <User size={16} />, roles: ['MANAGER'] },
+      { label: 'إدارة الموظفين', icon: <Award size={16} />, roles: ['MANAGER'] },
+      { label: 'النزلاء VIP', icon: <Star size={16} />, roles: ['MANAGER', 'STAFF'] },
+      { label: 'التقييمات', icon: <Star size={16} />, roles: ['MANAGER', 'STAFF'] },
+      { label: 'الطلبات الخاصة', icon: <ShoppingBag size={16} />, roles: ['MANAGER', 'STAFF'] },
+      { label: 'إحصائيات المطعم', icon: <BarChart3 size={16} />, roles: ['MANAGER', 'CHEF'] },
+      { label: 'إحصائيات المقهى', icon: <BarChart3 size={16} />, roles: ['MANAGER', 'BARISTA'] }
+    ];
+
+    if (!role) return allTabs.filter(tab => tab.roles.includes('MANAGER'));
+    return allTabs.filter(tab => tab.roles.includes(role));
+  };
+
+  const accessibleTabs = getAccessibleTabs(currentUser?.role || null);
+
+  // Redirect to first accessible tab if current tab is not accessible
+  useEffect(() => {
+    const isTabAccessible = accessibleTabs.some(tab => tab.label === activeTab);
+    if (!isTabAccessible && accessibleTabs.length > 0) {
+      setActiveTab(accessibleTabs[0].label as any);
+      window.location.hash = encodeURIComponent(accessibleTabs[0].label);
+    }
+  }, [currentUser?.role, accessibleTabs, activeTab]);
+
   const handleTabChange = (tab: any) => {
     setActiveTab(tab);
     window.location.hash = encodeURIComponent(tab);
@@ -179,19 +213,60 @@ export default function App() {
       setIsLoggingIn(false);
       localStorage.setItem('lytc_logged_in', 'true');
       localStorage.setItem('lytc_user', JSON.stringify(user));
+      // Set session timestamp to check for session validity
+      localStorage.setItem('lytc_session_timestamp', Date.now().toString());
     }, 1500);
   };
 
   const handleLogout = () => {
-    setIsLoggingIn(true);
-    setTimeout(() => {
-      setIsLoggedIn(false);
-      setCurrentUser(null);
-      setIsLoggingIn(false);
-      localStorage.removeItem('lytc_logged_in');
-      localStorage.removeItem('lytc_user');
-    }, 1200);
+    setIsLoggedIn(false);
+    setCurrentUser(null);
+    localStorage.removeItem('lytc_logged_in');
+    localStorage.removeItem('lytc_user');
+    localStorage.removeItem('lytc_session_timestamp');
+    window.location.hash = '';
   };
+
+  // Check session validity on mount and periodically
+  useEffect(() => {
+    const checkSession = () => {
+      const loggedIn = localStorage.getItem('lytc_logged_in') === 'true';
+      const sessionTimestamp = localStorage.getItem('lytc_session_timestamp');
+      
+      if (loggedIn && sessionTimestamp) {
+        const timestamp = parseInt(sessionTimestamp);
+        const now = Date.now();
+        const sessionAge = now - timestamp;
+        const maxSessionAge = 24 * 60 * 60 * 1000; // 24 hours
+        
+        if (sessionAge > maxSessionAge) {
+          // Session expired
+          handleLogout();
+        } else if (!currentUser) {
+          // Restore user from localStorage if not in state
+          const savedUser = localStorage.getItem('lytc_user');
+          if (savedUser) {
+            try {
+              setCurrentUser(JSON.parse(savedUser));
+            } catch (e) {
+              console.error('Failed to restore user session:', e);
+              handleLogout();
+            }
+          }
+        }
+      } else if (loggedIn && !currentUser) {
+        // Inconsistent state, logout
+        handleLogout();
+      }
+    };
+
+    checkSession();
+    
+    // Check session every 5 minutes
+    const interval = setInterval(checkSession, 5 * 60 * 1000);
+    
+    return () => clearInterval(interval);
+  }, [currentUser]);
 
   // State Manipulator Functions
   const handleAddReservation = (newRes: Reservation) => {
@@ -384,22 +459,7 @@ export default function App() {
 
         {/* Sidebar Nav Links */}
         <nav className="flex-1 space-y-1.5 overflow-y-auto pr-1">
-          {[
-            { label: 'لوحة التحكم', icon: <Building size={16} /> },
-            { label: 'الحجوزات', icon: <Calendar size={16} /> },
-            { label: 'الغرف', icon: <BedDouble size={16} /> },
-            { label: 'المطعم', icon: <Coffee size={16} /> },
-            { label: 'المدفوعات', icon: <CreditCard size={16} /> },
-            { label: 'التحليلات الذكية', icon: <Brain size={16} /> },
-            { label: 'العروض والمزايا', icon: <Sparkles size={16} /> },
-            { label: 'إدارة المستخدمين', icon: <User size={16} /> },
-            { label: 'إدارة الموظفين', icon: <Award size={16} /> },
-            { label: 'النزلاء VIP', icon: <Star size={16} /> },
-            { label: 'التقييمات', icon: <Star size={16} /> },
-            { label: 'الطلبات الخاصة', icon: <ShoppingBag size={16} /> },
-            { label: 'إحصائيات المطعم', icon: <BarChart3 size={16} /> },
-            { label: 'إحصائيات المقهى', icon: <BarChart3 size={16} /> }
-          ].map((item) => (
+          {accessibleTabs.map((item) => (
             <button
               key={item.label}
               onClick={() => handleTabChange(item.label as any)}
@@ -548,23 +608,7 @@ export default function App() {
                 </div>
 
                 <nav className="space-y-1">
-                  {[
-                    { label: 'لوحة التحكم', icon: <Building size={14} /> },
-                    { label: 'الحجوزات', icon: <Calendar size={14} /> },
-                    { label: 'الغرف', icon: <BedDouble size={14} /> },
-                    { label: 'المطعم', icon: <Coffee size={14} /> },
-                    { label: 'المدفوعات', icon: <CreditCard size={14} /> },
-                    { label: 'التحليلات', icon: <BarChart3 size={14} /> },
-                    { label: 'التسويق', icon: <Globe size={14} /> },
-                    { label: 'تحليلات التسويق', icon: <TrendingUp size={14} /> },
-                    { label: 'مركز الذكاء الاصطناعي', icon: <Brain size={14} /> },
-                    { label: 'العروض والمزايا', icon: <Sparkles size={14} /> },
-                    { label: 'إدارة الموقع', icon: <Globe size={14} /> },
-                    { label: 'إدارة السمعة', icon: <Star size={14} /> },
-                    { label: 'Google Business', icon: <TrendingUp size={14} /> },
-                    { label: 'التقارير', icon: <FileText size={14} /> },
-                    { label: 'الإعدادات', icon: <Settings size={14} /> }
-                  ].map((item) => (
+                  {accessibleTabs.map((item) => (
                     <button
                       key={item.label}
                       onClick={() => {
