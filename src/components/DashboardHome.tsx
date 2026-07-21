@@ -69,6 +69,15 @@ export default function DashboardHome({
           apiService.getCafeStats()
         ]);
 
+        console.log('API Responses:', {
+          roomsData,
+          staysData,
+          vipsData,
+          specialOrdersData,
+          restaurantStatsData,
+          cafeStatsData
+        });
+
         // Transform rooms data
         const transformedRooms = (roomsData.content || []).map((room: any) => ({
           id: room.id.toString(),
@@ -85,14 +94,27 @@ export default function DashboardHome({
         }));
         setRooms(transformedRooms);
 
-        // Transform stays data
-        setStays(staysData.content || []);
-        setVips(vipsData.content || []);
-        setSpecialOrders(specialOrdersData || []);
+        // Transform stays data - ensure it's an array
+        const staysArray = Array.isArray(staysData) ? staysData : (staysData.content || []);
+        setStays(staysArray);
+
+        // Transform vips data - ensure it's an array
+        const vipsArray = Array.isArray(vipsData) ? vipsData : (vipsData.content || []);
+        setVips(vipsArray);
+
+        // Transform special orders - ensure it's an array
+        const specialOrdersArray = Array.isArray(specialOrdersData) ? specialOrdersData : [];
+        setSpecialOrders(specialOrdersArray);
+
         setRestaurantStats(restaurantStatsData);
         setCafeStats(cafeStatsData);
       } catch (error) {
         console.error('Failed to load dashboard data:', error);
+        // Set empty arrays on error to prevent filter errors
+        setRooms([]);
+        setStays([]);
+        setVips([]);
+        setSpecialOrders([]);
       } finally {
         setIsLoading(false);
       }
