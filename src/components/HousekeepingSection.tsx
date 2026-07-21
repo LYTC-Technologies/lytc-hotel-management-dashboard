@@ -17,7 +17,7 @@ export default function HousekeepingSection({ tasks, onUpdateTaskStatus }: House
   const [priorityFilter, setPriorityFilter] = useState<'all' | HousekeepingTask['priority']>('all');
   const [selectedTask, setSelectedTask] = useState<HousekeepingTask | null>(null);
 
-  const filteredTasks = tasks.filter(task => {
+  const filteredTasks = (tasks || []).filter(task => {
     const statusMatch = filter === 'all' || task.status === filter;
     const priorityMatch = priorityFilter === 'all' || task.priority === priorityFilter;
     return statusMatch && priorityMatch;

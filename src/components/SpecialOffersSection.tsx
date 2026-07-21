@@ -65,7 +65,7 @@ export default function SpecialOffersSection() {
     try {
       // Note: Delete API not available in current backend, this is a placeholder
       await new Promise(resolve => setTimeout(resolve, 500));
-      setOffers(offers.filter(o => o.id !== id));
+      setOffers((offers || []).filter(o => o.id !== id));
     } catch (error) {
       console.error('Failed to delete offer:', error);
     }
@@ -78,7 +78,7 @@ export default function SpecialOffersSection() {
     }));
   };
 
-  const filteredOffers = offers.filter(offer =>
+  const filteredOffers = (offers || []).filter(offer =>
     offer.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     offer.description.toLowerCase().includes(searchQuery.toLowerCase())
   );

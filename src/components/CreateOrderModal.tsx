@@ -35,7 +35,7 @@ export default function CreateOrderModal({ isOpen, onClose, onSuccess, roomNumbe
   };
 
   const removeItem = (index: number) => {
-    setItems(items.filter((_, i) => i !== index));
+    setItems((items || []).filter((_, i) => i !== index));
   };
 
   const updateItem = (index: number, field: keyof OrderItem, value: any) => {

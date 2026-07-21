@@ -43,7 +43,7 @@ export default function TodayArrivalsSection() {
   };
 
   // Filter arrivals based on search
-  const filteredArrivals = arrivals.filter(stay => {
+  const filteredArrivals = (arrivals || []).filter(stay => {
     const matchesSearch = stay.guestName.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           stay.roomNumber.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesSearch;
