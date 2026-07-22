@@ -1216,24 +1216,42 @@ class APIService {
   }
 
   /**
-   * Get Restaurant Menu
-   * GET /api/dashboard/restaurant/menu
+   * Get Guest Menu
+   * GET /api/guest/menu
    */
-  async getRestaurantMenu(
+  async getGuestMenu(
+    category?: string,
     page: number = 0,
-    size: number = 10
+    size: number = 50
   ): Promise<any> {
     const params = new URLSearchParams({
       page: page.toString(),
       size: size.toString(),
     });
+    
+    if (category) {
+      params.append('category', category);
+    }
 
     return this.authenticatedFetch<any>(
-      `${this.baseURL}/api/dashboard/restaurant/menu?${params.toString()}`,
+      `${this.baseURL}/api/guest/menu?${params.toString()}`,
       {
         method: 'GET',
       }
     );
+  }
+
+  /**
+   * Get Restaurant Menu
+   * GET /api/dashboard/restaurant/menu
+   * Note: This endpoint doesn't exist in Swagger as GET, using guest menu instead
+   */
+  async getRestaurantMenu(
+    page: number = 0,
+    size: number = 10
+  ): Promise<any> {
+    // Use guest menu endpoint as dashboard restaurant menu GET doesn't exist
+    return this.getGuestMenu(undefined, page, size);
   }
 
   /**
