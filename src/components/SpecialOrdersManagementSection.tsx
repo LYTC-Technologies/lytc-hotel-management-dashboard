@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import {
   ShoppingBag, Search, XCircle, AlertCircle, Building, DollarSign, Loader2, Plus, Utensils, List
 } from 'lucide-react';
-import { apiService, SpecialOrderResponse } from '../services/api';
+import { apiService, SpecialOrderResponse, StayDetailsResponse } from '../services/api';
 
 export default function SpecialOrdersManagementSection() {
   const [viewMode, setViewMode] = useState<'list' | 'create'>('list');
@@ -13,6 +13,7 @@ export default function SpecialOrdersManagementSection() {
   const [searchQuery, setSearchQuery] = useState('');
   
   // Create special order form state
+  const [stayId, setStayId] = useState<number>(0);
   const [serviceName, setServiceName] = useState('');
   const [specialOfferId, setSpecialOfferId] = useState<number>(0);
   const [agreedPrice, setAgreedPrice] = useState<number>(0);
@@ -47,7 +48,7 @@ export default function SpecialOrdersManagementSection() {
   };
 
   const handleCreateSpecialOrder = async () => {
-    if (!serviceName || !specialOfferId || !agreedPrice) {
+    if (!stayId || !specialOfferId || !agreedPrice) {
       setCreateError('الرجاء ملء جميع الحقول المطلوبة');
       return;
     }
@@ -55,8 +56,7 @@ export default function SpecialOrdersManagementSection() {
     setIsCreating(true);
     setCreateError('');
     try {
-      // Using default stayId=1 since API requires it
-      const response = await apiService.createStaySpecialOrder(1, {
+      const response = await apiService.createStaySpecialOrder(stayId, {
         specialOfferId,
         agreedPrice
       });
@@ -64,6 +64,7 @@ export default function SpecialOrdersManagementSection() {
       setSpecialOrders([...specialOrders, response]);
       setViewMode('list');
       // Reset form
+      setStayId(0);
       setServiceName('');
       setSpecialOfferId(0);
       setAgreedPrice(0);
@@ -221,6 +222,20 @@ export default function SpecialOrdersManagementSection() {
           )}
 
           <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-bold text-gray-400 mb-2">
+                رقم الحجز <span className="text-red-400">*</span>
+              </label>
+              <input
+                type="number"
+                value={stayId || ''}
+                onChange={(e) => setStayId(parseInt(e.target.value))}
+                className="w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] rounded-lg px-4 py-3 text-white text-sm focus:outline-none transition"
+                placeholder="أدخل رقم الحجز"
+                min="1"
+              />
+            </div>
+
             <div>
               <label className="block text-xs font-bold text-gray-400 mb-2">
                 اسم الخدمة <span className="text-red-400">*</span>
