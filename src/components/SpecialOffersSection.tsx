@@ -60,15 +60,8 @@ export default function SpecialOffersSection() {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('هل أنت متأكد من حذف هذا العرض؟')) return;
-    
-    try {
-      // Note: Delete API not available in current backend, this is a placeholder
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setOffers((offers || []).filter(o => o.id !== id));
-    } catch (error) {
-      console.error('Failed to delete offer:', error);
-    }
+    // Delete API not available in backend - remove this functionality
+    alert('حذف العروض غير متاح حالياً في الباك إند');
   };
 
   const toggleExpand = (id: number) => {
@@ -176,12 +169,6 @@ export default function SpecialOffersSection() {
                           className="p-1.5 bg-gray-900 hover:bg-gray-800 text-gray-400 hover:text-white rounded-lg transition"
                         >
                           <Edit size={12} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(offer.id)}
-                          className="p-1.5 bg-gray-900 hover:bg-red-950/30 text-gray-400 hover:text-red-400 rounded-lg transition"
-                        >
-                          <Trash2 size={12} />
                         </button>
                       </div>
                     </div>
