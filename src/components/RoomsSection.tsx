@@ -65,7 +65,7 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
       const transformedRooms = (response.content || []).map((room: RoomResponse) => ({
         id: room.id.toString(),
         number: room.roomNumber,
-        status: room.status as Room['status'],
+        status: room.status.toLowerCase() as Room['status'],
         floor: room.floor,
         pricePerNight: parseFloat(room.price),
         type: room.description || 'Standard',
@@ -208,6 +208,9 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
       if (updatedRoom && selectedRoom && selectedRoom.id === roomId) {
         setSelectedRoom(updatedRoom);
       }
+      
+      // Show alert with UI styling
+      alert(`تم تغيير حالة الغرفة إلى: ${getStatusLabel(status)}`);
     } catch (error) {
       console.error('Failed to update room status:', error);
       alert('فشل تحديث حالة الغرفة. الرجاء المحاولة مرة أخرى.');

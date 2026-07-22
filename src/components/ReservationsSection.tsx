@@ -85,7 +85,9 @@ export default function ReservationsSection() {
   const loadAvailableRooms = async () => {
     try {
       const response = await apiService.getRooms();
-      const available = response.content.filter((room: any) => room.status === 'available');
+      const available = response.content.filter((room: any) => 
+        room.status === 'available' || room.status === 'AVAILABLE'
+      );
       setAvailableRooms(available);
     } catch (error) {
       console.error('Failed to load available rooms:', error);
