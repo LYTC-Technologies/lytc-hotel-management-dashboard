@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { 
-  TrendingUp, Calendar, BedDouble, Users, MessageSquare, Wrench, ShieldAlert, Sparkles, 
-  Clock, CloudSun, Compass, UserCheck, CreditCard, ChevronLeft, Star, Heart,
-  Activity, ArrowUpRight, ArrowDownRight, Coffee, Shirt, ConciergeBell, Loader2
+  TrendingUp, Calendar, BedDouble, Users, MessageSquare, Sparkles, 
+  Clock, Compass, UserCheck, ChevronLeft, ConciergeBell, Loader2, ArrowDownRight, ShieldAlert, CreditCard
 } from 'lucide-react';
 import { Room, Reservation, Guest, ServiceRequest, HousekeepingTask, MaintenanceTicket, Invoice } from '../types';
 import { apiService } from '../services/api';
@@ -195,7 +194,7 @@ export default function DashboardHome({
           </p>
         </div>
 
-        {/* Live Clock & Weather Widget */}
+        {/* Live Clock Widget */}
         <div className="flex items-center gap-6 bg-[#000000]/30 border border-gray-800 p-4 rounded-xl backdrop-blur-md relative z-10 self-stretch lg:self-auto justify-between lg:justify-start">
           <div className="text-left">
             <div className="flex items-center gap-2 text-gray-400 text-xs">
@@ -206,17 +205,6 @@ export default function DashboardHome({
               {time}
             </div>
             <div className="text-[10px] text-gray-500 mt-0.5">{new Date().toLocaleDateString('ar-SA', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</div>
-          </div>
-          <div className="h-10 w-[1px] bg-gray-800" />
-          <div className="text-right">
-            <div className="flex items-center gap-2 text-gray-400 text-xs justify-end">
-              <CloudSun size={15} className="text-[#D4AF37]" />
-              <span>الطقس اليوم</span>
-            </div>
-            <div className="text-xl font-bold text-white mt-1">
-              --° م
-            </div>
-            <div className="text-[10px] text-gray-500 mt-0.5">--</div>
           </div>
         </div>
       </div>
@@ -262,7 +250,7 @@ export default function DashboardHome({
           </div>
         </div>
 
-        {/* KPI 3: Occupied Rooms */}
+        {/* KPI 3: Available Rooms */}
         <div className="p-4 sm:p-6 bg-[#0c0c0c] border border-gray-900 rounded-xl hover:border-emerald-500/35 transition-all duration-300 relative group overflow-hidden">
           <div className="absolute top-0 left-0 w-1.5 h-full bg-emerald-500" />
           <div className="flex justify-between items-start">
@@ -284,28 +272,28 @@ export default function DashboardHome({
           </div>
         </div>
 
-        {/* KPI 4: Financial Revenues */}
-        <div className="p-4 sm:p-6 bg-[#0c0c0c] border border-gray-900 rounded-xl hover:border-[#D4AF37]/35 transition-all duration-300 relative group overflow-hidden">
-          <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-[#D4AF37] to-[#AA7B30]" />
+        {/* KPI 4: Active Guests */}
+        <div className="p-4 sm:p-6 bg-[#0c0c0c] border border-gray-900 rounded-xl hover:border-purple-500/35 transition-all duration-300 relative group overflow-hidden">
+          <div className="absolute top-0 left-0 w-1.5 h-full bg-purple-500" />
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-[10px] sm:text-xs text-gray-500 font-bold">إجمالي الإيرادات المباشرة</p>
+              <p className="text-[10px] sm:text-xs text-gray-500 font-bold">النزلاء المقيمين الآن</p>
               <h3 className="text-2xl sm:text-3xl font-black text-white mt-1 sm:mt-2 font-mono">
-                {totalRevenue.toLocaleString('ar-SA', { maximumFractionDigits: 0 })} <span className="text-[10px] sm:text-xs text-[#D4AF37] font-sans">ريال</span>
+                {activeGuestsCount}
               </h3>
             </div>
-            <div className="p-2 sm:p-3 bg-amber-950/20 text-[#D4AF37] rounded-xl border border-[#D4AF37]/10">
-              <CreditCard size={18} sm:size={22} />
+            <div className="p-2 sm:p-3 bg-purple-950/20 text-purple-400 rounded-xl border border-purple-500/10">
+              <Users size={18} sm:size={22} />
             </div>
           </div>
           <div className="flex items-center gap-1.5 mt-3 sm:mt-4 text-[10px] sm:text-xs text-gray-400">
-            <span className="text-gray-600">معدل الإيراد اليومي</span>
+            <span className="text-gray-600">نزيل نشط حالياً</span>
           </div>
         </div>
       </div>
 
       {/* Expanded Executive Dashboard KPI Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Average Room Rate */}
         <div className="p-4 bg-[#090909] border border-gray-900 rounded-xl flex items-center justify-between hover:border-purple-500/35 transition duration-200">
           <div className="space-y-1">
@@ -314,17 +302,6 @@ export default function DashboardHome({
           </div>
           <div className="p-2 bg-purple-950/20 text-purple-400 rounded-lg">
             <TrendingUp size={16} />
-          </div>
-        </div>
-
-        {/* RevPAR */}
-        <div className="p-4 bg-[#090909] border border-gray-900 rounded-xl flex items-center justify-between hover:border-cyan-500/35 transition duration-200">
-          <div className="space-y-1">
-            <span className="text-[10px] text-gray-500">الإيراد لكل غرفة متاحة</span>
-            <div className="text-lg font-bold text-white font-mono">{Math.round(revPAR)} ريال</div>
-          </div>
-          <div className="p-2 bg-cyan-950/20 text-cyan-400 rounded-lg">
-            <Activity size={16} />
           </div>
         </div>
 
@@ -360,32 +337,10 @@ export default function DashboardHome({
             <ArrowDownRight size={16} />
           </div>
         </div>
+      </div>
 
-        {/* Pending Payments */}
-        <div className="p-4 bg-[#090909] border border-gray-900 rounded-xl flex items-center justify-between hover:border-orange-500/35 transition duration-200">
-          <div className="space-y-1">
-            <span className="text-[10px] text-gray-500">المدفوعات المستحقة</span>
-            <div className="text-lg font-bold text-white font-mono">{pendingPayments.toLocaleString('ar-SA', { maximumFractionDigits: 0 })} ريال</div>
-          </div>
-          <div className="p-2 bg-orange-950/20 text-orange-400 rounded-lg">
-            <CreditCard size={16} />
-          </div>
-        </div>
-
-        {/* Open Maintenance */}
-        <button 
-          onClick={() => onNavigate('الصيانة')}
-          className="p-4 bg-[#090909] border border-gray-900 rounded-xl flex items-center justify-between hover:border-pink-500/35 transition duration-200 w-full"
-        >
-          <div className="space-y-1 text-right">
-            <span className="text-[10px] text-gray-500">طلبات الصيانة المفتوحة</span>
-            <div className="text-lg font-bold text-white font-mono">{openMaintenanceCount}</div>
-          </div>
-          <div className="p-2 bg-pink-950/20 text-pink-400 rounded-lg">
-            <Wrench size={16} />
-          </div>
-        </button>
-
+      {/* Secondary KPI Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Pending Housekeeping */}
         <button 
           onClick={() => onNavigate('الغرف')}
@@ -399,22 +354,6 @@ export default function DashboardHome({
             <Sparkles size={16} />
           </div>
         </button>
-
-        {/* Restaurant Revenue */}
-        <button 
-          onClick={() => onNavigate('المطعم')}
-          className="p-4 bg-[#090909] border border-gray-900 rounded-xl flex items-center justify-between hover:border-amber-500/35 transition duration-200 w-full"
-        >
-          <div className="space-y-1">
-            <span className="text-[10px] text-gray-500">إيرادات المطعم</span>
-            <div className="text-lg font-bold text-white font-mono">-- ريال</div>
-          </div>
-          <div className="p-2 bg-amber-950/20 text-amber-400 rounded-lg">
-            <Coffee size={16} />
-          </div>
-        </button>
-
-        {/* Spa Revenue - Removed as no page exists */}
 
         {/* VIP Guests Arriving */}
         <button 
@@ -430,20 +369,23 @@ export default function DashboardHome({
           </div>
         </button>
 
-        {/* Weather */}
-        <div className="p-4 bg-[#090909] border border-gray-900 rounded-xl flex items-center justify-between hover:border-sky-500/35 transition duration-200">
+        {/* Pending Special Orders */}
+        <button 
+          onClick={() => onNavigate('الطلبات الخاصة')}
+          className="p-4 bg-[#090909] border border-gray-900 rounded-xl flex items-center justify-between hover:border-amber-500/35 transition duration-200 w-full"
+        >
           <div className="space-y-1">
-            <span className="text-[10px] text-gray-500">حالة الطقس</span>
-            <div className="text-lg font-bold text-white font-mono">--° م</div>
+            <span className="text-[10px] text-gray-500">الطلبات الخاصة المعلقة</span>
+            <div className="text-lg font-bold text-white font-mono">{pendingRequestsCount}</div>
           </div>
-          <div className="p-2 bg-sky-950/20 text-sky-400 rounded-lg">
-            <CloudSun size={16} />
+          <div className="p-2 bg-amber-950/20 text-amber-400 rounded-lg">
+            <ConciergeBell size={16} />
           </div>
-        </div>
+        </button>
       </div>
 
-      {/* KPI Secondary Stats Grid (Requests, Maintenance, Guests, Satisfaction) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* KPI Secondary Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Mini KPI 1 */}
         <div className="p-5 bg-[#090909] border border-gray-900 rounded-xl flex items-center justify-between hover:border-gray-800 transition duration-200">
           <div className="space-y-1">
@@ -471,24 +413,13 @@ export default function DashboardHome({
         {/* Mini KPI 3 */}
         <div className="p-5 bg-[#090909] border border-gray-900 rounded-xl flex items-center justify-between hover:border-gray-800 transition duration-200">
           <div className="space-y-1">
-            <span className="text-xs text-gray-500">بلاغات الصيانة المفتوحة</span>
+            <span className="text-xs text-gray-500">غرف تحت التنظيف</span>
             <div className="text-xl font-bold text-white font-mono">
-              {openMaintenanceCount} <span className="text-xs text-gray-500 font-sans">بلاغ</span>
+              {pendingHousekeeping} <span className="text-xs text-gray-500 font-sans">غرفة</span>
             </div>
           </div>
-          <div className="p-2.5 bg-gray-800/40 text-red-400 rounded-lg">
-            <Wrench size={18} />
-          </div>
-        </div>
-
-        {/* Mini KPI 4 */}
-        <div className="p-5 bg-[#090909] border border-gray-900 rounded-xl flex items-center justify-between hover:border-gray-800 transition duration-200">
-          <div className="space-y-1">
-            <span className="text-xs text-gray-500">معدل رضا النزلاء الإجمالي</span>
-            <div className="text-xl font-bold text-[#E6C587] font-mono">--%</div>
-          </div>
-          <div className="p-2.5 bg-amber-950/15 text-[#D4AF37] rounded-lg border border-[#D4AF37]/5">
-            <Star size={18} className="fill-[#D4AF37]" />
+          <div className="p-2.5 bg-gray-800/40 text-teal-400 rounded-lg">
+            <Sparkles size={18} />
           </div>
         </div>
       </div>
