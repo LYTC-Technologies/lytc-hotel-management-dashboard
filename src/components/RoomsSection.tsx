@@ -682,8 +682,8 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
               
               <div className="flex justify-between items-start border-b border-gray-800 pb-4">
                 <div>
-                  <h3 className="text-2xl font-bold text-[#E6C587]">{selectedRoom.name}</h3>
-                  <p className="text-sm text-gray-500 mt-1">{selectedRoom.type} • جناح {selectedRoom.number}</p>
+                  <h3 className="text-2xl font-bold text-[#E6C587]">{selectedRoom.name || 'غرفة'}</h3>
+                  <p className="text-sm text-gray-500 mt-1">{selectedRoom.type || '-'} • جناح {selectedRoom.number || '-'}</p>
                 </div>
                 <button
                   onClick={() => setSelectedRoom(null)}
@@ -700,7 +700,7 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
                     <img
                       key={`${selectedRoom.id}-image-${idx}`}
                       src={image}
-                      alt={`${selectedRoom.name} ${idx + 1}`}
+                      alt={`${selectedRoom.name || 'غرفة'} ${idx + 1}`}
                       className="w-full h-48 object-cover rounded-xl"
                       onError={(e) => {
                         e.currentTarget.src = 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=800';
@@ -723,14 +723,14 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
               {/* Room ID */}
               <div className="p-4 bg-[#121212] border border-gray-800 rounded-xl">
                 <h4 className="text-sm font-bold text-[#E6C587] mb-2">معرف الغرفة</h4>
-                <p className="text-sm text-gray-300 font-mono">{selectedRoom.id}</p>
+                <p className="text-sm text-gray-300 font-mono">{selectedRoom.id || '-'}</p>
               </div>
 
               {/* Info Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs font-semibold">
                 <div className="p-3 bg-[#121212] border border-gray-800/80 rounded-xl">
                   <span className="text-gray-500 block">رقم الغرفة</span>
-                  <span className="text-white text-sm font-bold block mt-1">{selectedRoom.number}</span>
+                  <span className="text-white text-sm font-bold block mt-1">{selectedRoom.number || '-'}</span>
                 </div>
                 <div className="p-3 bg-[#121212] border border-gray-800/80 rounded-xl">
                   <span className="text-gray-500 block">الطابق</span>
@@ -778,16 +778,16 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
                     {selectedRoom.maintenanceLog.map((log, idx) => (
                       <div key={`${selectedRoom.id}-maintenance-${idx}`} className="p-3 bg-[#121212] border border-gray-800 rounded-xl">
                         <div className="flex justify-between items-start mb-1">
-                          <span className="text-xs text-white font-bold">{log.issue}</span>
-                          <span className="text-[10px] text-gray-500">{log.date}</span>
+                          <span className="text-xs text-white font-bold">{log.issue || '-'}</span>
+                          <span className="text-[10px] text-gray-500">{log.date || '-'}</span>
                         </div>
                         <div className="flex justify-between items-center text-xs">
-                          <span className="text-gray-400">{log.technician}</span>
+                          <span className="text-gray-400">{log.technician || '-'}</span>
                           <span className={`px-2 py-0.5 rounded ${log.status === 'completed' ? 'bg-emerald-950/20 text-emerald-400' : 'bg-amber-950/20 text-amber-400'}`}>
                             {log.status === 'completed' ? 'مكتمل' : 'قيد التنفيذ'}
                           </span>
                         </div>
-                        <div className="text-xs text-[#E6C587] mt-1">{log.cost.toLocaleString('ar-SA')} ريال</div>
+                        <div className="text-xs text-[#E6C587] mt-1">{log.cost ? log.cost.toLocaleString('ar-SA') : '0'} ريال</div>
                       </div>
                     ))}
                   </div>
@@ -802,14 +802,14 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
                     {selectedRoom.cleaningLog.map((log, idx) => (
                       <div key={`${selectedRoom.id}-cleaning-${idx}`} className="p-3 bg-[#121212] border border-gray-800 rounded-xl">
                         <div className="flex justify-between items-start mb-1">
-                          <span className="text-xs text-white font-bold">{log.staff}</span>
-                          <span className="text-[10px] text-gray-500">{log.date}</span>
+                          <span className="text-xs text-white font-bold">{log.staff || '-'}</span>
+                          <span className="text-[10px] text-gray-500">{log.date || '-'}</span>
                         </div>
                         <div className="flex justify-between items-center text-xs">
-                          <span className="text-gray-400">المدة: {log.duration} دقيقة</span>
+                          <span className="text-gray-400">المدة: {log.duration || '-'} دقيقة</span>
                           <div className="flex items-center gap-1">
                             <Star size={12} className="text-amber-400" />
-                            <span className="text-amber-400">{log.quality}/5</span>
+                            <span className="text-amber-400">{log.quality || '-'}/5</span>
                           </div>
                         </div>
                       </div>

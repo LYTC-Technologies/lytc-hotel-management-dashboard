@@ -185,7 +185,7 @@ export default function CreateOrderModal({ isOpen, onClose, onSuccess, roomNumbe
                               value={item.menuItemId}
                               onChange={(e) => updateItem(index, 'menuItemId', parseInt(e.target.value))}
                               className="w-full bg-[#0b0b0b] border border-gray-800 focus:border-[#D4AF37] rounded-lg px-3 py-2 text-white text-xs focus:outline-none transition"
-                              placeholder="ID"
+                              placeholder="معرف العنصر"
                               min="1"
                             />
                           </div>
@@ -196,7 +196,7 @@ export default function CreateOrderModal({ isOpen, onClose, onSuccess, roomNumbe
                               value={item.quantity}
                               onChange={(e) => updateItem(index, 'quantity', parseInt(e.target.value))}
                               className="w-full bg-[#0b0b0b] border border-gray-800 focus:border-[#D4AF37] rounded-lg px-3 py-2 text-white text-xs focus:outline-none transition"
-                              placeholder="1"
+                              placeholder="الكمية"
                               min="1"
                             />
                           </div>
@@ -207,7 +207,7 @@ export default function CreateOrderModal({ isOpen, onClose, onSuccess, roomNumbe
                               value={item.notes || ''}
                               onChange={(e) => updateItem(index, 'notes', e.target.value)}
                               className="w-full bg-[#0b0b0b] border border-gray-800 focus:border-[#D4AF37] rounded-lg px-3 py-2 text-white text-xs focus:outline-none transition"
-                              placeholder="اختياري"
+                              placeholder="ملاحظات (اختياري)"
                             />
                           </div>
                         </div>
