@@ -204,10 +204,13 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
       await apiService.patchRoom(parseInt(roomId), { status: backendStatus });
       
       // Reload rooms to get updated data from backend
-      loadRooms();
+      await loadRooms();
       
-      // Update local state immediately for better UX
-      setRooms(prev => prev.map(r => r.id === roomId ? { ...r, status } : r));
+      // Update selectedRoom with the new data from backend
+      const updatedRoom = rooms.find(r => r.id === roomId);
+      if (updatedRoom && selectedRoom && selectedRoom.id === roomId) {
+        setSelectedRoom(updatedRoom);
+      }
     } catch (error) {
       console.error('Failed to update room status:', error);
       alert('فشل تحديث حالة الغرفة. الرجاء المحاولة مرة أخرى.');
@@ -693,27 +696,6 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
                 </button>
               </div>
 
-              {/* Room Images */}
-              <div className="grid grid-cols-2 gap-4">
-                {selectedRoom.images && selectedRoom.images.length > 0 ? (
-                  selectedRoom.images.filter(url => url).map((image, idx) => (
-                    <img
-                      key={`${selectedRoom.id}-image-${idx}`}
-                      src={image}
-                      alt={`${selectedRoom.name || 'غرفة'} ${idx + 1}`}
-                      className="w-full h-48 object-cover rounded-xl"
-                      onError={(e) => {
-                        e.currentTarget.src = 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=800';
-                      }}
-                    />
-                  ))
-                ) : (
-                  <div className="col-span-2 h-48 bg-[#121212] rounded-xl flex items-center justify-center text-gray-500 text-sm">
-                    لا توجد صور متاحة
-                  </div>
-                )}
-              </div>
-
               {/* Description */}
               <div className="p-4 bg-[#121212] border border-gray-800 rounded-xl">
                 <h4 className="text-sm font-bold text-[#E6C587] mb-2">الوصف</h4>
@@ -754,79 +736,6 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
                 </div>
               </div>
 
-              {/* Amenities */}
-              <div className="space-y-2">
-                <h4 className="text-sm font-bold text-[#E6C587]">المميزات والخدمات</h4>
-                <div className="flex flex-wrap gap-2">
-                  {selectedRoom.amenities && selectedRoom.amenities.length > 0 ? (
-                    selectedRoom.amenities.filter(a => a).map((amenity, idx) => (
-                      <span key={`${selectedRoom.id}-amenity-${idx}`} className="px-3 py-1.5 bg-[#121212] border border-gray-800 rounded-lg text-xs text-gray-300">
-                        {amenity}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="text-xs text-gray-500">لا توجد مميزات متاحة</span>
-                  )}
-                </div>
-              </div>
-
-              {/* Maintenance Log */}
-              {selectedRoom.maintenanceLog && selectedRoom.maintenanceLog.length > 0 && (
-                <div className="space-y-2">
-                  <h4 className="text-sm font-bold text-[#E6C587]">سجل الصيانة</h4>
-                  <div className="space-y-2 max-h-40 overflow-y-auto">
-                    {selectedRoom.maintenanceLog.map((log, idx) => (
-                      <div key={`${selectedRoom.id}-maintenance-${idx}`} className="p-3 bg-[#121212] border border-gray-800 rounded-xl">
-                        <div className="flex justify-between items-start mb-1">
-                          <span className="text-xs text-white font-bold">{log.issue || '-'}</span>
-                          <span className="text-[10px] text-gray-500">{log.date || '-'}</span>
-                        </div>
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="text-gray-400">{log.technician || '-'}</span>
-                          <span className={`px-2 py-0.5 rounded ${log.status === 'completed' ? 'bg-emerald-950/20 text-emerald-400' : 'bg-amber-950/20 text-amber-400'}`}>
-                            {log.status === 'completed' ? 'مكتمل' : 'قيد التنفيذ'}
-                          </span>
-                        </div>
-                        <div className="text-xs text-[#E6C587] mt-1">{log.cost ? log.cost.toLocaleString('ar-SA') : '0'} ريال</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Cleaning Log */}
-              {selectedRoom.cleaningLog && selectedRoom.cleaningLog.length > 0 && (
-                <div className="space-y-2">
-                  <h4 className="text-sm font-bold text-[#E6C587]">سجل التنظيف</h4>
-                  <div className="space-y-2 max-h-40 overflow-y-auto">
-                    {selectedRoom.cleaningLog.map((log, idx) => (
-                      <div key={`${selectedRoom.id}-cleaning-${idx}`} className="p-3 bg-[#121212] border border-gray-800 rounded-xl">
-                        <div className="flex justify-between items-start mb-1">
-                          <span className="text-xs text-white font-bold">{log.staff || '-'}</span>
-                          <span className="text-[10px] text-gray-500">{log.date || '-'}</span>
-                        </div>
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="text-gray-400">المدة: {log.duration || '-'} دقيقة</span>
-                          <div className="flex items-center gap-1">
-                            <Star size={12} className="text-amber-400" />
-                            <span className="text-amber-400">{log.quality || '-'}/5</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Room Revenue */}
-              {selectedRoom.roomRevenue && (
-                <div className="p-4 bg-[#121212] border border-gray-800 rounded-xl">
-                  <h4 className="text-sm font-bold text-[#E6C587] mb-2">إيرادات الغرفة</h4>
-                  <div className="text-2xl font-black text-white font-mono">{selectedRoom.roomRevenue.toLocaleString('ar-SA')} <span className="text-sm text-[#E6C587]">ريال</span></div>
-                  <div className="text-xs text-gray-500 mt-1">إجمالي الإيرادات لهذه الغرفة</div>
-                </div>
-              )}
-
               {/* Status Modification */}
               <div className="space-y-3 pt-4 border-t border-gray-800">
                 <h4 className="text-sm font-bold text-gray-400">تغيير الحالة</h4>
@@ -836,7 +745,6 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
                       key={status}
                       onClick={() => {
                         handleUpdateRoomStatus(selectedRoom.id, status);
-                        setSelectedRoom(prev => prev ? { ...prev, status } : null);
                       }}
                       className={`px-2 py-3 rounded-lg text-xs font-bold text-center border transition-all duration-200 ${
                         selectedRoom.status === status

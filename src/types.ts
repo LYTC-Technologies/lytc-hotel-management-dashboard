@@ -3,19 +3,12 @@ export interface Room {
   number: string;
   name: string;
   description: string;
-  type: 'جناح ملكي' | 'جناح ديلوكس' | 'بنتهاوس فاخر' | 'غرفة بريميوم دبل' | 'غرفة كلاسيك';
-  status: 'available' | 'occupied' | 'cleaning' | 'maintenance' | 'out_of_service';
+  type: string;
+  status: 'available' | 'occupied' | 'cleaning' | 'maintenance';
   floor: number;
   pricePerNight: number;
-  capacity: number;
-  amenities: string[];
-  images: string[];
-  guestName?: string;
-  lastUpdated: string;
-  occupancyRate: number;
-  maintenanceLog?: MaintenanceLog[];
-  cleaningLog?: CleaningLog[];
-  roomRevenue?: number;
+  maxAdults: number;
+  maxKids: number;
 }
 
 export interface MaintenanceLog {
