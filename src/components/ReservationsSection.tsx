@@ -319,8 +319,18 @@ export default function ReservationsSection() {
                   <td className="py-3 text-sm" style={{ color: colors.text.muted }}>{stay.checkInTime ? new Date(stay.checkInTime).toLocaleDateString('ar-SA', { calendar: 'gregory' }) : '-'}</td>
                   <td className="py-3 text-sm" style={{ color: colors.text.muted }}>{stay.expectedCheckOutDate ? new Date(stay.expectedCheckOutDate).toLocaleDateString('ar-SA', { calendar: 'gregory' }) : '-'}</td>
                   <td className="py-3">
-                    <span className={`px-2 py-1 rounded-lg text-[10px] font-bold border ${isDark ? 'text-gray-400 border-gray-800' : 'text-gray-600 border-gray-300'}`}>
-                      {stay.status === 'CHECKED_IN' ? 'نشط' : stay.status === 'CHECKED_OUT' ? 'مغلق' : stay.status === 'RESERVED' ? 'محجوز' : stay.status}
+                    <span className={`px-2 py-1 rounded-lg text-[10px] font-bold border ${
+                      stay.status === 'CHECKED_IN' ? (isDark ? 'bg-emerald-950/40 text-emerald-400 border-emerald-500/20' : 'bg-emerald-50 text-emerald-700 border-emerald-200') :
+                      stay.status === 'CHECKED_OUT' ? (isDark ? 'bg-red-950/40 text-red-400 border-red-500/20' : 'bg-red-50 text-red-700 border-red-200') :
+                      stay.status === 'RESERVED' ? (isDark ? 'bg-blue-950/40 text-blue-400 border-blue-500/20' : 'bg-blue-50 text-blue-700 border-blue-200') :
+                      (isDark ? 'bg-gray-950/40 text-gray-400 border-gray-800' : 'bg-gray-50 text-gray-600 border-gray-300')
+                    }`}>
+                      {stay.status === 'CHECKED_IN' ? 'نشط' : 
+                       stay.status === 'CHECKED_OUT' ? 'مغلق' : 
+                       stay.status === 'RESERVED' ? 'محجوز' : 
+                       stay.status === 'AVAILABLE' ? 'متاح' :
+                       stay.status === 'OCCUPIED' ? 'مشغول' :
+                       stay.status || '-'}
                     </span>
                   </td>
                   <td className="py-3 text-sm font-bold" style={{ color: colors.primary.goldLight }}>{stay.totalCharge ? stay.totalCharge.toLocaleString('ar-SA', { maximumFractionDigits: 0 }) : '0'} ريال</td>
