@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { KeyRound, Mail, ShieldCheck, Hotel, Sparkles, Building, Lock, Languages, Eye, EyeOff } from 'lucide-react';
+import { KeyRound, Mail, ShieldCheck, Hotel, Sparkles, Building, Languages, Eye, EyeOff } from 'lucide-react';
 import { apiService, LoginRequest } from '../services/api';
 
 interface LoginProps {
@@ -320,17 +320,6 @@ export default function Login({ onLoginSuccess }: LoginProps) {
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
-
-        {/* Footer info and security warning */}
-        <div className="mt-8 text-center space-y-2">
-          <div className="flex items-center justify-center space-x-2 space-x-reverse text-gray-600 text-xs">
-            <Lock size={12} className="text-[#D4AF37]" />
-            <span>نظام تشغيل محمي بالتشفير العسكري AES-256</span>
-          </div>
-          <p className="text-[10px] text-gray-600">
-            © 2026 مجموعة ليتك الدولية للفنادق المحدودة. جميع الحقوق محفوظة لجهة التطوير والمراقبة الأمنية.
-          </p>
         </div>
       </div>
     </div>
