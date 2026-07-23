@@ -31,6 +31,7 @@ export default function ReservationsSection() {
     setError(null);
     try {
       const response = await apiService.getStays(0, 50);
+      console.log('Stays response:', response.content);
       setStays(response.content || []);
     } catch (error: any) {
       if (error.message && error.message.includes('Authentication')) {
@@ -78,9 +79,9 @@ export default function ReservationsSection() {
 
     if (!matchesSearch) return false;
     if (activeTab === 'all') return true;
-    if (activeTab === 'active') return stay.status === 'CHECKED_IN';
-    if (activeTab === 'closed') return stay.status === 'CHECKED_OUT';
-    if (activeTab === 'booked') return stay.status === 'RESERVED';
+    if (activeTab === 'active') return stay.status === 'CHECKED_IN' || stay.status === 'ACTIVE' || stay.status === 'active';
+    if (activeTab === 'closed') return stay.status === 'CHECKED_OUT' || stay.status === 'CLOSED' || stay.status === 'closed';
+    if (activeTab === 'booked') return stay.status === 'RESERVED' || stay.status === 'BOOKED' || stay.status === 'booked';
     return true;
   });
 
