@@ -164,8 +164,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                       <input
                         type="text"
                         required
-                        className="block w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] rounded-xl pr-10 pl-4 py-3 text-sm text-gray-200 placeholder-gray-600 focus:outline-none transition-all duration-300"
-                        placeholder="admin"
+                        className="block w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] rounded-xl pr-10 pl-4 py-3 text-sm text-gray-200 focus:outline-none transition-all duration-300"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                       />
@@ -191,8 +190,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                       <input
                         type={showPassword ? 'text' : 'password'}
                         required
-                        className="block w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] rounded-xl pr-10 pl-10 py-3 text-sm text-gray-200 placeholder-gray-600 focus:outline-none transition-all duration-300"
-                        placeholder="••••••••••••"
+                        className="block w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] rounded-xl pr-10 pl-10 py-3 text-sm text-gray-200 focus:outline-none transition-all duration-300"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                       />
