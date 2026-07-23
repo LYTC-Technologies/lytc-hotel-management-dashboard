@@ -854,6 +854,19 @@ class APIService {
   }
 
   /**
+   * Get Stay Details
+   * GET /api/dashboard/front-desk/stays/{stayId}
+   */
+  async getStayDetails(stayId: number): Promise<StayDetailsResponse> {
+    return this.authenticatedFetch<StayDetailsResponse>(
+      `${this.baseURL}/api/dashboard/front-desk/stays/${stayId}`,
+      {
+        method: 'GET',
+      }
+    );
+  }
+
+  /**
    * Get Checkout Today Stays
    * GET /api/dashboard/front-desk/stays/checkout-today
    */

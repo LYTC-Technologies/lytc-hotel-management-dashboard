@@ -23,6 +23,7 @@ export default function PaymentsSection({ invoices: initialInvoices, onUpdateInv
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [stayOrders, setStayOrders] = useState<{ [stayId: string]: any[] }>({});
 
   // Ignore initialInvoices prop - always use real API data
   useEffect(() => {
@@ -50,6 +51,19 @@ export default function PaymentsSection({ invoices: initialInvoices, onUpdateInv
       }));
       
       setInvoices(transformedInvoices);
+
+      // Load orders for each stay
+      for (const stay of response.content || []) {
+        try {
+          const orders = await apiService.getStayOrders(stay.stayId);
+          setStayOrders(prev => ({
+            ...prev,
+            [stay.stayId.toString()]: orders || []
+          }));
+        } catch (error) {
+          console.error(`Failed to load orders for stay ${stay.stayId}:`, error);
+        }
+      }
     } catch (error: any) {
       console.error('Failed to load checkout stays:', error);
       setError('فشل تحميل بيانات المغادرين اليوم');
@@ -234,6 +248,24 @@ export default function PaymentsSection({ invoices: initialInvoices, onUpdateInv
                         </span>
                       </div>
                     </div>
+
+                    {/* Orders List */}
+                    {stayOrders[inv.id] && stayOrders[inv.id].length > 0 && (
+                      <div className="space-y-2 mb-4">
+                        <div className="text-[10px] font-bold" style={{ color: colors.text.muted }}>الطلبات:</div>
+                        {stayOrders[inv.id].slice(0, 3).map((order: any, idx: number) => (
+                          <div key={idx} className={`text-xs p-2 rounded ${isDark ? 'bg-[#121212]' : 'bg-gray-50'}`}>
+                            <div className="font-bold" style={{ color: colors.text.primary }}>{order.items || order.name || 'طلب'}</div>
+                            <div className="text-[10px]" style={{ color: colors.text.secondary }}>{order.totalAmount || order.price || 0} ريال</div>
+                          </div>
+                        ))}
+                        {stayOrders[inv.id].length > 3 && (
+                          <div className="text-[10px] text-center" style={{ color: colors.text.muted }}>
+                            +{stayOrders[inv.id].length - 3} طلبات أخرى
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* Amount */}
                     <div className={`pt-3 border-t flex justify-between items-center ${isDark ? 'border-gray-800' : 'border-gray-200'}`}>
