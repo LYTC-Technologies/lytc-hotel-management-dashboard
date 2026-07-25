@@ -48,7 +48,7 @@ export default function AnalyticsPage() {
   const platforms = [
     {
       name: 'تحليلات الموقع',
-      logo: <Globe className="w-6 h-6 text-blue-400" />,
+      logo: <Globe className="w-6 h-6 text-blue-600" />,
       status: 'connected' as PlatformStatus,
       lastSync: 'منذ 5 دقائق',
       apiHealth: 'جيد',
@@ -80,7 +80,7 @@ export default function AnalyticsPage() {
     },
     {
       name: 'Gemini AI',
-      logo: <Bot className="w-6 h-6 text-purple-400" />,
+      logo: <Bot className="w-6 h-6 text-purple-600" />,
       status: 'connected' as PlatformStatus,
       lastSync: 'منذ 30 دقيقة',
       apiHealth: 'ممتاز',
@@ -205,11 +205,11 @@ export default function AnalyticsPage() {
           subtitle="جاري إنشاء التقرير الذكي"
         />
         
-        <div className="p-8 bg-[#090909] border border-gray-900 rounded-xl">
+        <div className="p-8 bg-white border border-gray-200 rounded-xl">
           <div className="flex items-center justify-center mb-8">
             <div className="relative">
               <div className="absolute inset-0 bg-[#D4AF37]/20 rounded-full blur-3xl animate-pulse" />
-              <div className="relative w-24 h-24 border-4 border-gray-800 border-t-[#D4AF37] rounded-full animate-spin" />
+              <div className="relative w-24 h-24 border-4 border-gray-200 border-t-[#D4AF37] rounded-full animate-spin" />
             </div>
           </div>
 
@@ -221,20 +221,20 @@ export default function AnalyticsPage() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.2, delay: index * 0.05 }}
                 className={`flex items-center gap-3 p-3 rounded-lg ${
-                  step.status === 'completed' ? 'bg-emerald-950/20' :
+                  step.status === 'completed' ? 'bg-emerald-50/20' :
                   step.status === 'in_progress' ? 'bg-[#D4AF37]/20' :
-                  'bg-[#121212]'
+                  'bg-gray-50'
                 }`}
               >
                 {step.status === 'completed' ? (
-                  <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600" />
                 ) : step.status === 'in_progress' ? (
                   <div className="w-5 h-5 border-2 border-[#D4AF37] border-t-transparent rounded-full animate-spin" />
                 ) : (
                   <div className="w-5 h-5 border-2 border-gray-700 rounded-full" />
                 )}
                 <span className={`text-sm ${
-                  step.status === 'completed' ? 'text-emerald-400' :
+                  step.status === 'completed' ? 'text-emerald-600' :
                   step.status === 'in_progress' ? 'text-[#D4AF37]' :
                   'text-gray-500'
                 }`}>
@@ -245,7 +245,7 @@ export default function AnalyticsPage() {
           </div>
 
           <div className="mt-8">
-            <div className="w-full h-2 bg-gray-900 rounded-full overflow-hidden">
+            <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${(currentStep / workflowSteps.length) * 100}%` }}
@@ -287,7 +287,7 @@ export default function AnalyticsPage() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleRefreshData}
-              className="flex items-center gap-2 px-4 py-2 bg-[#121212] border border-gray-800 hover:border-[#D4AF37]/50 text-white font-bold text-xs rounded-xl transition duration-200"
+              className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 hover:border-[#D4AF37]/50 text-white font-bold text-xs rounded-xl transition duration-200"
             >
               <RefreshCw className="w-4 h-4" />
               <span>تحديث البيانات</span>
@@ -322,7 +322,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Executive Summary */}
-      <div className="p-6 bg-[#090909] border border-gray-900 rounded-xl">
+      <div className="p-6 bg-white border border-gray-200 rounded-xl">
         <h3 className="text-lg font-bold text-white mb-4">الملخص التنفيذي</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <SummaryCard
@@ -352,8 +352,8 @@ export default function AnalyticsPage() {
             color="#8B5CF6"
           />
         </div>
-        <div className="p-4 bg-[#121212] rounded-lg">
-          <p className="text-sm text-gray-300 leading-relaxed">{report.executiveSummary.aiSummary}</p>
+        <div className="p-4 bg-gray-50 rounded-lg">
+          <p className="text-sm text-gray-600 leading-relaxed">{report.executiveSummary.aiSummary}</p>
         </div>
       </div>
 
@@ -420,7 +420,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Website Analytics */}
-      <div className="p-6 bg-[#090909] border border-gray-900 rounded-xl">
+      <div className="p-6 bg-white border border-gray-200 rounded-xl">
         <h3 className="text-lg font-bold text-white mb-4">تحليلات الموقع الإلكتروني</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <SummaryCard
@@ -481,7 +481,7 @@ export default function AnalyticsPage() {
       {/* Social Media Analytics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Facebook */}
-        <div className="p-6 bg-[#090909] border border-gray-900 rounded-xl">
+        <div className="p-6 bg-white border border-gray-200 rounded-xl">
           <div className="flex items-center gap-2 mb-4">
             <Facebook className="w-6 h-6 text-blue-600" />
             <h3 className="text-lg font-bold text-white">Facebook</h3>
@@ -509,7 +509,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Instagram */}
-        <div className="p-6 bg-[#090909] border border-gray-900 rounded-xl">
+        <div className="p-6 bg-white border border-gray-200 rounded-xl">
           <div className="flex items-center gap-2 mb-4">
             <Instagram className="w-6 h-6 text-pink-500" />
             <h3 className="text-lg font-bold text-white">Instagram</h3>
@@ -537,7 +537,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Snapchat */}
-        <div className="p-6 bg-[#090909] border border-gray-900 rounded-xl">
+        <div className="p-6 bg-white border border-gray-200 rounded-xl">
           <div className="flex items-center gap-2 mb-4">
             <Camera className="w-6 h-6 text-yellow-400" />
             <h3 className="text-lg font-bold text-white">Snapchat</h3>
@@ -566,20 +566,20 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Monthly Action Plan */}
-      <div className="p-6 bg-[#090909] border border-gray-900 rounded-xl">
+      <div className="p-6 bg-white border border-gray-200 rounded-xl">
         <h3 className="text-lg font-bold text-white mb-4">خطة العمل الشهرية</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-4 bg-[#121212] rounded-lg">
+          <div className="p-4 bg-gray-50 rounded-lg">
             <h4 className="text-sm font-bold text-[#D4AF37] mb-3">الأسبوع الأول</h4>
             <div className="space-y-2">
               {report.monthlyActionPlan.week1.map((task, index) => (
                 <div key={index} className="text-xs">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-gray-300">{task.task}</span>
+                    <span className="text-gray-600">{task.task}</span>
                     <span className={`px-2 py-0.5 rounded-full ${
-                      task.priority === 'high' ? 'bg-red-950/20 text-red-400' :
-                      task.priority === 'medium' ? 'bg-amber-950/20 text-amber-400' :
-                      'bg-emerald-950/20 text-emerald-400'
+                      task.priority === 'high' ? 'bg-red-50/20 text-red-600' :
+                      task.priority === 'medium' ? 'bg-amber-50/20 text-amber-600' :
+                      'bg-emerald-50/20 text-emerald-600'
                     }`}>
                       {task.priority === 'high' ? 'high' : task.priority === 'medium' ? 'medium' : 'low'}
                     </span>
@@ -594,17 +594,17 @@ export default function AnalyticsPage() {
               ))}
             </div>
           </div>
-          <div className="p-4 bg-[#121212] rounded-lg">
+          <div className="p-4 bg-gray-50 rounded-lg">
             <h4 className="text-sm font-bold text-[#D4AF37] mb-3">الأسبوع الثاني</h4>
             <div className="space-y-2">
               {report.monthlyActionPlan.week2.map((task, index) => (
                 <div key={index} className="text-xs">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-gray-300">{task.task}</span>
+                    <span className="text-gray-600">{task.task}</span>
                     <span className={`px-2 py-0.5 rounded-full ${
-                      task.priority === 'high' ? 'bg-red-950/20 text-red-400' :
-                      task.priority === 'medium' ? 'bg-amber-950/20 text-amber-400' :
-                      'bg-emerald-950/20 text-emerald-400'
+                      task.priority === 'high' ? 'bg-red-50/20 text-red-600' :
+                      task.priority === 'medium' ? 'bg-amber-50/20 text-amber-600' :
+                      'bg-emerald-50/20 text-emerald-600'
                     }`}>
                       {task.priority === 'high' ? 'high' : task.priority === 'medium' ? 'medium' : 'low'}
                     </span>
@@ -619,17 +619,17 @@ export default function AnalyticsPage() {
               ))}
             </div>
           </div>
-          <div className="p-4 bg-[#121212] rounded-lg">
+          <div className="p-4 bg-gray-50 rounded-lg">
             <h4 className="text-sm font-bold text-[#D4AF37] mb-3">الأسبوع الثالث</h4>
             <div className="space-y-2">
               {report.monthlyActionPlan.week3.map((task, index) => (
                 <div key={index} className="text-xs">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-gray-300">{task.task}</span>
+                    <span className="text-gray-600">{task.task}</span>
                     <span className={`px-2 py-0.5 rounded-full ${
-                      task.priority === 'high' ? 'bg-red-950/20 text-red-400' :
-                      task.priority === 'medium' ? 'bg-amber-950/20 text-amber-400' :
-                      'bg-emerald-950/20 text-emerald-400'
+                      task.priority === 'high' ? 'bg-red-50/20 text-red-600' :
+                      task.priority === 'medium' ? 'bg-amber-50/20 text-amber-600' :
+                      'bg-emerald-50/20 text-emerald-600'
                     }`}>
                       {task.priority === 'high' ? 'high' : task.priority === 'medium' ? 'medium' : 'low'}
                     </span>
@@ -644,17 +644,17 @@ export default function AnalyticsPage() {
               ))}
             </div>
           </div>
-          <div className="p-4 bg-[#121212] rounded-lg">
+          <div className="p-4 bg-gray-50 rounded-lg">
             <h4 className="text-sm font-bold text-[#D4AF37] mb-3">الأسبوع الرابع</h4>
             <div className="space-y-2">
               {report.monthlyActionPlan.week4.map((task, index) => (
                 <div key={index} className="text-xs">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-gray-300">{task.task}</span>
+                    <span className="text-gray-600">{task.task}</span>
                     <span className={`px-2 py-0.5 rounded-full ${
-                      task.priority === 'high' ? 'bg-red-950/20 text-red-400' :
-                      task.priority === 'medium' ? 'bg-amber-950/20 text-amber-400' :
-                      'bg-emerald-950/20 text-emerald-400'
+                      task.priority === 'high' ? 'bg-red-50/20 text-red-600' :
+                      task.priority === 'medium' ? 'bg-amber-50/20 text-amber-600' :
+                      'bg-emerald-50/20 text-emerald-600'
                     }`}>
                       {task.priority === 'high' ? 'high' : task.priority === 'medium' ? 'medium' : 'low'}
                     </span>
@@ -673,12 +673,12 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Report History */}
-      <div className="p-6 bg-[#090909] border border-gray-900 rounded-xl">
+      <div className="p-6 bg-white border border-gray-200 rounded-xl">
         <h3 className="text-lg font-bold text-white mb-4">سجل التقارير</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-gray-800">
+              <tr className="border-b border-gray-200">
                 <th className="text-right py-3 px-4 text-gray-500 font-bold">اسم التقرير</th>
                 <th className="text-right py-3 px-4 text-gray-500 font-bold">تاريخ الإنشاء</th>
                 <th className="text-right py-3 px-4 text-gray-500 font-bold">النوع</th>
@@ -688,16 +688,16 @@ export default function AnalyticsPage() {
             </thead>
             <tbody>
               {report.reportHistory.map((history, index) => (
-                <tr key={index} className="border-b border-gray-800/50">
-                  <td className="py-3 px-4 text-gray-300">{history.reportName}</td>
+                <tr key={index} className="border-b border-gray-200/50">
+                  <td className="py-3 px-4 text-gray-600">{history.reportName}</td>
                   <td className="py-3 px-4 text-gray-400">{history.generatedDate}</td>
                   <td className="py-3 px-4 text-gray-400">{history.reportType}</td>
-                  <td className="py-3 px-4 text-gray-300">{history.overallScore}</td>
+                  <td className="py-3 px-4 text-gray-600">{history.overallScore}</td>
                   <td className="py-3 px-4">
                     <span className={`px-2 py-1 rounded-full ${
-                      history.status === 'completed' ? 'bg-emerald-950/20 text-emerald-400' :
-                      history.status === 'failed' ? 'bg-red-950/20 text-red-400' :
-                      'bg-amber-950/20 text-amber-400'
+                      history.status === 'completed' ? 'bg-emerald-50/20 text-emerald-600' :
+                      history.status === 'failed' ? 'bg-red-50/20 text-red-600' :
+                      'bg-amber-50/20 text-amber-600'
                     }`}>
                       {history.status === 'completed' ? 'مكتمل' : history.status === 'failed' ? 'فشل' : 'قيد التنفيذ'}
                     </span>
@@ -710,22 +710,22 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Performance Timeline */}
-      <div className="p-6 bg-[#090909] border border-gray-900 rounded-xl">
+      <div className="p-6 bg-white border border-gray-200 rounded-xl">
         <h3 className="text-lg font-bold text-white mb-4">الجدول الزمني للأداء</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <h4 className="text-sm font-bold text-[#D4AF37] mb-3">التقارير السابقة</h4>
             <div className="space-y-2">
               {report.performanceTimeline.previousReports.map((entry, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-[#121212] rounded-lg">
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div>
-                    <span className="text-xs text-gray-300">{entry.date}</span>
+                    <span className="text-xs text-gray-600">{entry.date}</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-xs font-bold text-white">{entry.score}</span>
                     <span className={`px-2 py-1 rounded-full text-xs ${
-                      entry.status === 'مكتمل' ? 'bg-emerald-950/20 text-emerald-400' :
-                      'bg-red-950/20 text-red-400'
+                      entry.status === 'مكتمل' ? 'bg-emerald-50/20 text-emerald-600' :
+                      'bg-red-50/20 text-red-600'
                     }`}>
                       {entry.status}
                     </span>
@@ -739,7 +739,7 @@ export default function AnalyticsPage() {
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-gray-400">التسويق</span>
-                <span className="text-gray-300">{report.performanceTimeline.marketingProgress[report.performanceTimeline.marketingProgress.length - 1]}%</span>
+                <span className="text-gray-600">{report.performanceTimeline.marketingProgress[report.performanceTimeline.marketingProgress.length - 1]}%</span>
               </div>
               <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
                 <div 
@@ -749,7 +749,7 @@ export default function AnalyticsPage() {
               </div>
               <div className="flex items-center justify-between text-xs mt-3">
                 <span className="text-gray-400">الموقع</span>
-                <span className="text-gray-300">{report.performanceTimeline.websiteProgress[report.performanceTimeline.websiteProgress.length - 1]}%</span>
+                <span className="text-gray-600">{report.performanceTimeline.websiteProgress[report.performanceTimeline.websiteProgress.length - 1]}%</span>
               </div>
               <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
                 <div 
@@ -759,7 +759,7 @@ export default function AnalyticsPage() {
               </div>
               <div className="flex items-center justify-between text-xs mt-3">
                 <span className="text-gray-400">التواصل الاجتماعي</span>
-                <span className="text-gray-300">{report.performanceTimeline.socialMediaProgress[report.performanceTimeline.socialMediaProgress.length - 1]}%</span>
+                <span className="text-gray-600">{report.performanceTimeline.socialMediaProgress[report.performanceTimeline.socialMediaProgress.length - 1]}%</span>
               </div>
               <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
                 <div 
@@ -774,7 +774,7 @@ export default function AnalyticsPage() {
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="p-6 bg-[#090909] border border-gray-900 rounded-xl">
+        <div className="p-6 bg-white border border-gray-200 rounded-xl">
           <AnalyticsLineChart 
             data={[
               { name: 'يناير', value: 65 },
@@ -788,7 +788,7 @@ export default function AnalyticsPage() {
             title="نمو الزوار"
           />
         </div>
-        <div className="p-6 bg-[#090909] border border-gray-900 rounded-xl">
+        <div className="p-6 bg-white border border-gray-200 rounded-xl">
           <AnalyticsBarChart 
             data={[
               { name: 'Facebook', value: report.facebookAnalytics.followers },

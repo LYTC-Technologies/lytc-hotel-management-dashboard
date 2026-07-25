@@ -39,8 +39,6 @@ export default function EmployeesManagementSection() {
     setError(null);
     try {
       const response = await apiService.getEmployees(0, 50);
-      console.log('Loaded employees from API:', response);
-      console.log('Employees content:', response.content);
       setEmployees(response.content || []);
     } catch (error: any) {
       console.error('Failed to load employees:', error);
@@ -67,9 +65,7 @@ export default function EmployeesManagementSection() {
         department,
       };
 
-      console.log('Creating employee:', newEmployee);
       await apiService.createEmployee(newEmployee);
-      console.log('Employee created successfully');
 
       // Reset form
       setFullName('');
@@ -92,9 +88,7 @@ export default function EmployeesManagementSection() {
     if (!confirm('هل أنت متأكد من حذف هذا الموظف؟')) return;
 
     try {
-      console.log('Deleting employee:', employeeId);
       await apiService.deleteEmployee(employeeId);
-      console.log('Employee deleted successfully');
       loadEmployees();
       setIsDetailsOverlayOpen(false);
     } catch (error: any) {
@@ -120,9 +114,7 @@ export default function EmployeesManagementSection() {
         department: editDepartment,
       };
 
-      console.log('Updating employee with PUT:', selectedEmployee.id, updateData);
       await apiService.updateEmployee(selectedEmployee.id, updateData);
-      console.log('Employee updated successfully');
 
       loadEmployees();
       setIsEditModalOpen(false);
@@ -163,16 +155,13 @@ export default function EmployeesManagementSection() {
     return matchesSearch;
   });
 
-  console.log('Total employees:', employees.length);
-  console.log('Filtered employees:', filteredEmployees.length);
-  console.log('Search query:', searchQuery);
 
   return (
     <div className="space-y-6 pb-12">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-900 pb-5">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-200 pb-5">
         <div>
-          <h1 className="text-2xl font-black text-[#E6C587]">إدارة الموظفين</h1>
+          <h1 className="text-2xl font-black text-[#AA7B30]">إدارة الموظفين</h1>
           <p className="text-gray-500 text-xs mt-1">عرض وإدارة بيانات الموظفين وحالاتهم</p>
         </div>
 
@@ -186,7 +175,7 @@ export default function EmployeesManagementSection() {
       </div>
 
       {/* Search Bar */}
-      <div className="flex items-center gap-3 bg-[#0b0b0b] border border-gray-900 p-4 rounded-xl">
+      <div className="flex items-center gap-3 bg-white border border-gray-200 p-4 rounded-xl">
         <div className="relative">
           <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" />
           <input
@@ -194,7 +183,7 @@ export default function EmployeesManagementSection() {
             placeholder="بحث بالاسم أو الوظيفة أو القسم..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="bg-[#121212] border border-gray-800 focus:border-[#D4AF37] rounded-lg px-4 py-2 pr-10 text-xs text-white focus:outline-none w-48"
+            className="bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-lg px-4 py-2 pr-10 text-xs text-gray-800 focus:outline-none w-48"
           />
         </div>
       </div>
@@ -205,7 +194,7 @@ export default function EmployeesManagementSection() {
           <Loader2 size={24} className="text-[#D4AF37] animate-spin" />
         </div>
       ) : error ? (
-        <div className="text-center py-16 bg-[#0b0b0b] border border-gray-900 rounded-2xl">
+        <div className="text-center py-16 bg-white border border-gray-200 rounded-2xl">
           <XCircle size={48} className="text-red-500 mx-auto mb-4" />
           <h3 className="text-sm font-bold text-gray-400 mb-2">فشل تحميل الموظفين</h3>
           <p className="text-xs text-gray-600 mb-4">{error}</p>
@@ -217,7 +206,7 @@ export default function EmployeesManagementSection() {
           </button>
         </div>
       ) : filteredEmployees.length === 0 ? (
-        <div className="text-center py-16 bg-[#0b0b0b] border border-gray-900 rounded-2xl">
+        <div className="text-center py-16 bg-white border border-gray-200 rounded-2xl">
           <AlertCircle size={48} className="text-gray-500 mx-auto mb-4" />
           <h3 className="text-sm font-bold text-gray-400 mb-2">لا يوجد موظفين</h3>
           <p className="text-xs text-gray-600 mb-4">ابدأ بإضافة موظف جديد</p>
@@ -233,18 +222,18 @@ export default function EmployeesManagementSection() {
               whileHover={{ scale: 1.02, y: -4 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => openDetailsOverlay(employee)}
-              className="bg-[#0b0b0b] border border-gray-900 rounded-2xl p-5 cursor-pointer hover:border-[#D4AF37]/30 hover:shadow-[0_8px_30px_rgba(212,175,55,0.1)] transition-all duration-300"
+              className="bg-white border border-gray-200 rounded-2xl p-5 cursor-pointer hover:border-[#D4AF37]/30 hover:shadow-[0_8px_30px_rgba(212,175,55,0.1)] transition-all duration-300"
             >
               <div className="flex items-start gap-4">
                 <div className="w-14 h-14 bg-[#D4AF37]/20 border border-[#D4AF37]/30 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <User size={24} className="text-[#E6C587]" />
+                  <User size={24} className="text-[#AA7B30]" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-base font-bold text-white truncate">{employee.fullName}</h3>
+                  <h3 className="text-base font-bold text-gray-800 truncate">{employee.fullName}</h3>
                   <div className="flex items-center gap-2 mt-1">
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                      employee.status === 'ACTIVE' ? 'bg-emerald-950/20 text-emerald-400 border border-emerald-500/30' :
-                      employee.status === 'INACTIVE' ? 'bg-red-950/20 text-red-400 border border-red-500/30' :
+                    <span className={`px-2 py-0.5 rounded text-xs font-bold ${
+                      employee.status === 'ACTIVE' ? 'bg-emerald-50/20 text-emerald-600 border border-emerald-500/30' :
+                      employee.status === 'INACTIVE' ? 'bg-red-50/20 text-red-600 border border-red-500/30' :
                       'bg-gray-800 text-gray-400 border border-gray-700'
                     }`}>
                       {employee.status === 'ACTIVE' ? 'نشط' : employee.status === 'INACTIVE' ? 'غير نشط' : employee.status}
@@ -268,10 +257,10 @@ export default function EmployeesManagementSection() {
                 </div>
               </div>
 
-              <div className="mt-4 pt-4 border-t border-gray-800 flex justify-end">
-                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                  employee.status === 'ACTIVE' ? 'bg-emerald-950/20 text-emerald-400 border border-emerald-500/30' :
-                  employee.status === 'INACTIVE' ? 'bg-red-950/20 text-red-400 border border-red-500/30' :
+              <div className="mt-4 pt-4 border-t border-gray-200 flex justify-end">
+                <span className={`px-2 py-0.5 rounded text-xs font-bold ${
+                  employee.status === 'ACTIVE' ? 'bg-emerald-50/20 text-emerald-600 border border-emerald-500/30' :
+                  employee.status === 'INACTIVE' ? 'bg-red-50/20 text-red-600 border border-red-500/30' :
                   'bg-gray-800 text-gray-400 border border-gray-700'
                 }`}>
                   {employee.status === 'ACTIVE' ? 'نشط' : employee.status === 'INACTIVE' ? 'غير نشط' : employee.status}
@@ -284,17 +273,17 @@ export default function EmployeesManagementSection() {
 
       {/* New Employee Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0b0b0b] border border-[#D4AF37]/30 rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-[#D4AF37]/30 rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-[#E6C587]">إضافة موظف جديد</h3>
-              <button onClick={() => setIsModalOpen(false)} className="p-2 bg-gray-900 border border-gray-800 rounded-lg">
+              <h3 className="text-xl font-bold text-[#AA7B30]">إضافة موظف جديد</h3>
+              <button onClick={() => setIsModalOpen(false)} className="p-2 bg-gray-100 border border-gray-200 rounded-lg">
                 <X size={18} />
               </button>
             </div>
 
             {createEmployeeError && (
-              <div className="bg-red-950/40 border border-red-500/30 text-red-200 text-sm p-3 rounded-lg mb-4">
+              <div className="bg-red-50/40 border border-red-500/30 text-red-200 text-sm p-3 rounded-lg mb-4">
                 {createEmployeeError}
               </div>
             )}
@@ -306,7 +295,7 @@ export default function EmployeesManagementSection() {
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-white focus:outline-none"
+                  className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
                 />
               </div>
 
@@ -316,7 +305,7 @@ export default function EmployeesManagementSection() {
                   type="text"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-white focus:outline-none"
+                  className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
                 />
               </div>
 
@@ -326,7 +315,7 @@ export default function EmployeesManagementSection() {
                   type="text"
                   value={job}
                   onChange={(e) => setJob(e.target.value)}
-                  className="w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-white focus:outline-none"
+                  className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
                 />
               </div>
 
@@ -336,15 +325,15 @@ export default function EmployeesManagementSection() {
                   type="text"
                   value={department}
                   onChange={(e) => setDepartment(e.target.value)}
-                  className="w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-white focus:outline-none"
+                  className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-800">
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 bg-[#121212] border border-gray-800 text-gray-400 rounded-xl text-xs font-bold hover:text-white transition"
+                  className="px-4 py-2 bg-gray-50 border border-gray-200 text-gray-400 rounded-xl text-xs font-bold hover:text-gray-800 transition"
                 >
                   إلغاء
                 </button>
@@ -374,26 +363,26 @@ export default function EmployeesManagementSection() {
 
       {/* Employee Details Overlay */}
       {isDetailsOverlayOpen && selectedEmployee && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0b0b0b] border border-[#D4AF37]/30 rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-[#D4AF37]/30 rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-[#E6C587]">تفاصيل الموظف</h3>
-              <button onClick={() => setIsDetailsOverlayOpen(false)} className="p-2 bg-gray-900 border border-gray-800 rounded-lg">
+              <h3 className="text-xl font-bold text-[#AA7B30]">تفاصيل الموظف</h3>
+              <button onClick={() => setIsDetailsOverlayOpen(false)} className="p-2 bg-gray-100 border border-gray-200 rounded-lg">
                 <X size={18} />
               </button>
             </div>
 
             <div className="space-y-4">
               {/* Employee Info */}
-              <div className="p-4 bg-[#121212] border border-gray-800 rounded-xl">
+              <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-12 h-12 bg-[#D4AF37]/20 border border-[#D4AF37]/30 rounded-full flex items-center justify-center">
-                    <User size={24} className="text-[#E6C587]" />
+                    <User size={24} className="text-[#AA7B30]" />
                   </div>
                   <div>
-                    <h4 className="text-lg font-bold text-white">{selectedEmployee.fullName}</h4>
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                      selectedEmployee.status === 'ACTIVE' ? 'bg-emerald-950/20 text-emerald-400 border border-emerald-500/30' :
+                    <h4 className="text-lg font-bold text-gray-800">{selectedEmployee.fullName}</h4>
+                    <span className={`px-2 py-0.5 rounded text-xs font-bold ${
+                      selectedEmployee.status === 'ACTIVE' ? 'bg-emerald-50/20 text-emerald-600 border border-emerald-500/30' :
                       'bg-gray-800 text-gray-400 border border-gray-700'
                     }`}>
                       {selectedEmployee.status === 'ACTIVE' ? 'نشط' : selectedEmployee.status}
@@ -404,24 +393,24 @@ export default function EmployeesManagementSection() {
                 <div className="space-y-3 text-sm">
                   <div className="flex items-center gap-2 text-gray-400">
                     <Phone size={16} className="text-[#D4AF37]" />
-                    <span className="text-white">{selectedEmployee.phone}</span>
+                    <span className="text-gray-800">{selectedEmployee.phone}</span>
                   </div>
                   <div className="flex items-center gap-2 text-gray-400">
                     <Briefcase size={16} className="text-[#D4AF37]" />
-                    <span className="text-white">{selectedEmployee.job}</span>
+                    <span className="text-gray-800">{selectedEmployee.job}</span>
                   </div>
                   <div className="flex items-center gap-2 text-gray-400">
                     <Building size={16} className="text-[#D4AF37]" />
-                    <span className="text-white">{selectedEmployee.department}</span>
+                    <span className="text-gray-800">{selectedEmployee.department}</span>
                   </div>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-3 pt-4 border-t border-gray-800">
+              <div className="flex gap-3 pt-4 border-t border-gray-200">
                 <button
                   onClick={() => handleDeleteEmployee(selectedEmployee.id)}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-red-950/20 border border-red-500/30 hover:bg-red-900/30 text-red-400 font-extrabold text-xs rounded-xl transition duration-200"
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-red-50/20 border border-red-500/30 hover:bg-red-100 text-red-600 font-extrabold text-xs rounded-xl transition duration-200"
                 >
                   <Trash2 size={16} />
                   <span>حذف</span>
@@ -434,11 +423,11 @@ export default function EmployeesManagementSection() {
 
       {/* Edit Employee Modal */}
       {isEditModalOpen && selectedEmployee && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0b0b0b] border border-[#D4AF37]/30 rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-[#D4AF37]/30 rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-[#E6C587]">تعديل الموظف</h3>
-              <button onClick={() => setIsEditModalOpen(false)} className="p-2 bg-gray-900 border border-gray-800 rounded-lg">
+              <h3 className="text-xl font-bold text-[#AA7B30]">تعديل الموظف</h3>
+              <button onClick={() => setIsEditModalOpen(false)} className="p-2 bg-gray-100 border border-gray-200 rounded-lg">
                 <X size={18} />
               </button>
             </div>
@@ -450,7 +439,7 @@ export default function EmployeesManagementSection() {
                   type="text"
                   value={editFullName}
                   onChange={(e) => setEditFullName(e.target.value)}
-                  className="w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-white focus:outline-none"
+                  className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
                 />
               </div>
 
@@ -460,7 +449,7 @@ export default function EmployeesManagementSection() {
                   type="text"
                   value={editPhone}
                   onChange={(e) => setEditPhone(e.target.value)}
-                  className="w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-white focus:outline-none"
+                  className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
                 />
               </div>
 
@@ -470,7 +459,7 @@ export default function EmployeesManagementSection() {
                   type="text"
                   value={editJob}
                   onChange={(e) => setEditJob(e.target.value)}
-                  className="w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-white focus:outline-none"
+                  className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
                 />
               </div>
 
@@ -480,15 +469,15 @@ export default function EmployeesManagementSection() {
                   type="text"
                   value={editDepartment}
                   onChange={(e) => setEditDepartment(e.target.value)}
-                  className="w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-white focus:outline-none"
+                  className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-800">
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
                 <button
                   type="button"
                   onClick={() => setIsEditModalOpen(false)}
-                  className="px-4 py-2 bg-[#121212] border border-gray-800 text-gray-400 rounded-xl text-xs font-bold hover:text-white transition"
+                  className="px-4 py-2 bg-gray-50 border border-gray-200 text-gray-400 rounded-xl text-xs font-bold hover:text-gray-800 transition"
                 >
                   إلغاء
                 </button>

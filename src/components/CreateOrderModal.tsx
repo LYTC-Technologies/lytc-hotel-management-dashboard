@@ -1,13 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Plus, Trash2, Save, Loader2, Utensils, Coffee, Sparkles, Search } from 'lucide-react';
-import { apiService, CreateOrderRequest, OrderItemRequest } from '../services/api';
-import { useThemeColors } from '../hooks/useThemeColors';
+import { X, Trash2, Save, Loader2, Utensils, Coffee, Sparkles, Search, Plus } from 'lucide-react';
+import { apiService, CreateOrderRequest } from '../services/api';
 
 interface CreateOrderModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (newOrder?: any) => void;
   roomNumber: string;
 }
 
@@ -17,6 +16,7 @@ interface OrderItem {
   notes?: string;
   name?: string;
   price?: number;
+  category?: string;
 }
 
 interface MenuItem {
@@ -28,15 +28,34 @@ interface MenuItem {
   available?: boolean;
 }
 
+const CATEGORY_LABELS: Record<string, string> = {
+  'FOOD': 'طعام',
+  'DRINK': 'مشروبات',
+  'SERVICE': 'خدمات',
+};
+
+const CATEGORY_COLORS: Record<string, string> = {
+  'FOOD': 'bg-amber-100 text-amber-700 border-amber-200',
+  'DRINK': 'bg-blue-100 text-blue-700 border-blue-200',
+  'SERVICE': 'bg-purple-100 text-purple-700 border-purple-200',
+};
+
+const CATEGORY_ICONS: Record<string, string> = {
+  'FOOD': '🍽️',
+  'DRINK': '🥤',
+  'SERVICE': '⭐',
+};
+
 export default function CreateOrderModal({ isOpen, onClose, onSuccess, roomNumber }: CreateOrderModalProps) {
-  const { colors, isDark } = useThemeColors();
-  const [category, setCategory] = useState<'FOOD' | 'DRINK' | 'SERVICE'>('FOOD');
+  const [orderCategory, setOrderCategory] = useState<string>('FOOD');
   const [items, setItems] = useState<OrderItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [allMenuItems, setAllMenuItems] = useState<MenuItem[]>([]);
   const [isLoadingMenu, setIsLoadingMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showItemPicker, setShowItemPicker] = useState<number | null>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
 
   const categories = [
     { value: 'FOOD', label: 'طعام', icon: Utensils },
@@ -44,69 +63,113 @@ export default function CreateOrderModal({ isOpen, onClose, onSuccess, roomNumbe
     { value: 'SERVICE', label: 'خدمات', icon: Sparkles },
   ];
 
+  // Load menu items ONCE when modal opens
   useEffect(() => {
     if (isOpen) {
-      loadMenuItems();
+      loadAllMenuItems();
+      setItems([]);
+      setOrderCategory('FOOD');
+      setErrorMessage('');
+      setShowItemPicker(null);
+      setSearchQuery('');
     }
-  }, [isOpen, category]);
+  }, [isOpen]);
 
-  const loadMenuItems = async () => {
+  useEffect(() => {
+    if (showItemPicker !== null && searchRef.current) {
+      searchRef.current.focus();
+    }
+  }, [showItemPicker]);
+
+  const loadAllMenuItems = async () => {
     setIsLoadingMenu(true);
     try {
-      // Load all menu items without category filter first
-      const response = await apiService.getGuestMenu(undefined, 0, 100);
-      console.log('Menu items response:', response);
-      console.log('Category filter:', category);
-      
-      // Filter items by category on the client side if needed
-      let items = response.content || [];
-      if (category && category !== 'ALL') {
-        items = items.filter((item: MenuItem) => item.category === category);
-      }
-      
-      console.log('Filtered menu items:', items);
-      setMenuItems(items);
+      // Load from restaurant menu endpoint
+      const response = await apiService.getRestaurantMenu(0, 100);
+      const rawItems = response.content || [];
+      const normalizedItems = rawItems.map((item: any) => ({
+        id: item.id,
+        name: item.name || '',
+        description: item.description || '',
+        price: typeof item.price === 'string' ? parseFloat(item.price) : (item.price || 0),
+        category: normalizeCategory(item.category),
+        available: item.available !== false,
+      }));
+      setAllMenuItems(normalizedItems);
     } catch (error) {
       console.error('Failed to load menu items:', error);
-      setMenuItems([]);
+      setAllMenuItems([]);
     } finally {
       setIsLoadingMenu(false);
     }
   };
 
+  const normalizeCategory = (cat: any): string => {
+    if (!cat || cat === '' || cat === null || cat === undefined) return 'FOOD';
+    const normalized = cat.toString().trim().toUpperCase();
+    if (['FOOD', 'DRINK', 'SERVICE'].includes(normalized)) return normalized;
+    // Map Arabic or other formats
+    if (normalized.includes('طعام') || normalized.includes('FOOD')) return 'FOOD';
+    if (normalized.includes('شرب') || normalized.includes('مشروب') || normalized.includes('DRINK')) return 'DRINK';
+    if (normalized.includes('خدم') || normalized.includes('SERVICE')) return 'SERVICE';
+    return 'FOOD';
+  };
+
+  // Filter by selected order category + search
+  const filteredMenuItems = allMenuItems.filter(item => {
+    const matchesCategory = item.category === orderCategory;
+    const matchesSearch = searchQuery === '' || item.name.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
+
   const addItem = () => {
-    setItems([...items, { menuItemId: 0, quantity: 1 }]);
+    const newItem = { menuItemId: 0, quantity: 1 };
+    setItems(prev => [...prev, newItem]);
+    // Open picker for the new item (it will be at index = items.length)
+    setTimeout(() => {
+      setShowItemPicker(items.length);
+      setSearchQuery('');
+    }, 0);
   };
 
   const removeItem = (index: number) => {
-    setItems((items || []).filter((_, i) => i !== index));
+    setItems(prev => prev.filter((_, i) => i !== index));
+    if (showItemPicker === index) setShowItemPicker(null);
+    else if (showItemPicker !== null && showItemPicker > index) {
+      setShowItemPicker(prev => prev !== null ? prev - 1 : null);
+    }
   };
 
-  const updateItem = (index: number, field: keyof OrderItem, value: any) => {
-    const newItems = [...items];
-    newItems[index] = { ...newItems[index], [field]: value };
-    
-    // When selecting a menu item, also set name and price
-    if (field === 'menuItemId') {
-      const selectedItem = menuItems.find(item => item.id === value);
-      if (selectedItem) {
-        newItems[index].name = selectedItem.name;
-        newItems[index].price = selectedItem.price;
-      }
-    }
-    
-    setItems(newItems);
+  const selectMenuItem = (index: number, menuItem: MenuItem) => {
+    // Use the ORDER category, not the item's category (backend may not store item category)
+    setItems(prev => {
+      const newItems = [...prev];
+      newItems[index] = {
+        ...newItems[index],
+        menuItemId: menuItem.id,
+        name: menuItem.name,
+        price: menuItem.price,
+        category: orderCategory,
+        quantity: newItems[index].quantity || 1,
+      };
+      return newItems;
+    });
+    setShowItemPicker(null);
+    setSearchQuery('');
+  };
+
+  const updateQuantity = (index: number, qty: number) => {
+    setItems(prev => {
+      const newItems = [...prev];
+      newItems[index] = { ...newItems[index], quantity: Math.max(1, qty) };
+      return newItems;
+    });
   };
 
   const handleSubmit = async () => {
-    if (items.length === 0) {
-      setErrorMessage('الرجاء إضافة عنصر واحد على الأقل');
-      return;
-    }
-
     const validItems = items.filter(item => item.menuItemId > 0 && item.quantity > 0);
     if (validItems.length === 0) {
-      setErrorMessage('الرجاء التأكد من جميع العناصر (معرف العنصر والكمية)');
+      setErrorMessage('الرجاء إضافة عنصر واحد على الأقل');
       return;
     }
 
@@ -115,7 +178,7 @@ export default function CreateOrderModal({ isOpen, onClose, onSuccess, roomNumbe
 
     try {
       const orderRequest: CreateOrderRequest = {
-        category: category,
+        category: orderCategory,
         items: validItems.map(item => ({
           menuItemId: item.menuItemId,
           quantity: item.quantity,
@@ -123,21 +186,36 @@ export default function CreateOrderModal({ isOpen, onClose, onSuccess, roomNumbe
         }))
       };
 
-      await apiService.createGuestOrder(roomNumber, orderRequest);
+      const response = await apiService.createGuestOrder(roomNumber, orderRequest);
       
+      // Build the new order object for immediate display
+      const newOrder = {
+        id: String(response?.orderId || Date.now()),
+        roomNumber: roomNumber,
+        guestName: response?.guestName || '',
+        category: orderCategory,
+        items: validItems.map(item => ({
+          name: item.name || '',
+          quantity: item.quantity,
+          price: item.price || 0,
+          category: orderCategory,
+          menuItemId: item.menuItemId,
+        })),
+        status: response?.status || 'PENDING',
+        total: validItems.reduce((sum, i) => sum + (i.price || 0) * i.quantity, 0),
+        createdAt: response?.createdAt || new Date().toISOString(),
+      };
+
       setIsLoading(false);
-      onSuccess();
+      onSuccess(newOrder);
       onClose();
-      
-      // Reset form
-      setCategory('FOOD');
-      setItems([]);
     } catch (error) {
       setIsLoading(false);
       setErrorMessage('فشل إنشاء الطلب. الرجاء المحاولة مرة أخرى.');
-      console.error('Create order error:', error);
     }
   };
+
+  const total = items.filter(i => i.menuItemId > 0).reduce((sum, i) => sum + (i.price || 0) * i.quantity, 0);
 
   return (
     <AnimatePresence>
@@ -147,8 +225,7 @@ export default function CreateOrderModal({ isOpen, onClose, onSuccess, roomNumbe
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          style={{ background: isDark ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.5)' }}
+          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4"
         >
           <motion.div
             initial={{ scale: 0.95, opacity: 0 }}
@@ -156,56 +233,54 @@ export default function CreateOrderModal({ isOpen, onClose, onSuccess, roomNumbe
             exit={{ scale: 0.95, opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={(e) => e.stopPropagation()}
-            className={`border rounded-2xl p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto relative ${isDark ? 'bg-[#0b0b0b] border-[#D4AF37]/30' : 'bg-white border-gray-200'}`}
+            className="border border-gray-200 rounded-2xl p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto relative bg-white shadow-2xl"
           >
-            <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent" />
+            <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent rounded-t-2xl" />
             
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
               <div>
-                <h2 className="text-xl font-bold flex items-center gap-2" style={{ color: colors.primary.goldLight }}>
-                  <Utensils size={20} style={{ color: colors.primary.gold }} />
+                <h2 className="text-xl font-black text-gray-900 flex items-center gap-2">
+                  <Utensils size={22} className="text-[#D4AF37]" />
                   إنشاء طلب جديد
                 </h2>
-                <p className="text-xs mt-1" style={{ color: colors.text.muted }}>رقم الغرفة: {roomNumber}</p>
+                <p className="text-sm mt-1 text-gray-500 font-bold">رقم الغرفة: {roomNumber}</p>
               </div>
-              <button
-                onClick={onClose}
-                className={`p-2 border rounded-lg transition ${isDark ? 'bg-gray-900 border-gray-800 hover:bg-gray-800' : 'bg-gray-100 border-gray-300 hover:bg-gray-200'}`}
-              >
-                <X size={18} />
+              <button onClick={onClose} className="p-2 border border-gray-200 rounded-xl hover:bg-gray-50 transition">
+                <X size={18} className="text-gray-500" />
               </button>
             </div>
 
-            {/* Form */}
             <div className="space-y-5">
               {errorMessage && (
-                <div className={`p-3 border rounded-lg text-xs ${isDark ? 'bg-red-950/20 border-red-500/20 text-red-400' : 'bg-red-50 border-red-200 text-red-700'}`}>
+                <div className="p-3 border border-red-200 rounded-lg text-sm font-bold bg-red-50 text-red-700">
                   {errorMessage}
                 </div>
               )}
 
               {/* Category Selection */}
               <div>
-                <label className="block text-xs font-bold mb-2" style={{ color: colors.text.muted }}>
-                  فئة الطلب <span className="text-red-400">*</span>
-                </label>
+                <label className="block text-sm font-bold text-gray-700 mb-2">فئة الطلب *</label>
                 <div className="flex gap-2">
                   {categories.map((cat) => {
                     const Icon = cat.icon;
+                    const count = allMenuItems.filter(i => i.category === cat.value).length;
                     return (
                       <button
                         key={cat.value}
                         type="button"
-                        onClick={() => setCategory(cat.value as any)}
-                        className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-xs font-bold transition ${
-                          category === cat.value
-                            ? 'bg-[#D4AF37] text-black'
-                            : (isDark ? 'bg-[#121212] text-gray-400 border border-gray-800 hover:text-white' : 'bg-gray-100 text-gray-600 border border-gray-300 hover:text-gray-900')
+                        onClick={() => { setOrderCategory(cat.value); setItems([]); setShowItemPicker(null); setSearchQuery(''); }}
+                        className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold transition border ${
+                          orderCategory === cat.value
+                            ? 'bg-[#D4AF37] text-white border-[#D4AF37]'
+                            : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
                         }`}
                       >
-                        <Icon size={16} />
+                        <Icon size={18} />
                         {cat.label}
+                        <span className={`text-xs px-1.5 py-0.5 rounded-full ${orderCategory === cat.value ? 'bg-white/20' : 'bg-gray-100 text-gray-500'}`}>
+                          {count}
+                        </span>
                       </button>
                     );
                   })}
@@ -214,138 +289,140 @@ export default function CreateOrderModal({ isOpen, onClose, onSuccess, roomNumbe
 
               {/* Items List */}
               <div>
-                <div className="flex justify-between items-center mb-2">
-                  <label className="block text-xs font-bold" style={{ color: colors.text.muted }}>
-                    عناصر الطلب <span className="text-red-400">*</span>
-                  </label>
-                  <button
-                    type="button"
-                    onClick={addItem}
-                    className="text-xs hover:underline flex items-center gap-1"
-                    style={{ color: colors.primary.gold }}
-                  >
-                    <Plus size={14} />
-                    إضافة عنصر
-                  </button>
-                </div>
+                <label className="block text-sm font-bold text-gray-700 mb-3">عناصر الطلب *</label>
                 
-                <div className="space-y-3">
-                  {items.map((item, index) => (
-                    <div key={index} className={`border rounded-xl p-4 space-y-3 ${isDark ? 'bg-[#121212] border-gray-800' : 'bg-gray-50 border-gray-200'}`}>
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1 space-y-3">
-                          {/* Menu Item Selector */}
-                          <div>
-                            <label className="block text-[10px] mb-1" style={{ color: colors.text.muted }}>اختر العنصر</label>
-                            {isLoadingMenu ? (
-                              <div className="flex items-center justify-center py-2">
-                                <Loader2 size={16} className="text-[#D4AF37] animate-spin" />
-                              </div>
-                            ) : (
-                              <select
-                                value={item.menuItemId}
-                                onChange={(e) => updateItem(index, 'menuItemId', parseInt(e.target.value))}
-                                className={`w-full border rounded-lg px-3 py-2 text-xs focus:outline-none transition ${isDark ? 'bg-[#0b0b0b] border-gray-800 focus:border-[#D4AF37] text-white' : 'bg-white border-gray-300 focus:border-[#D4AF37] text-gray-900'}`}
-                              >
-                                <option value={0}>-- اختر عنصر --</option>
-                                {menuItems
-                                  .filter(menuItem => 
-                                    searchQuery === '' || 
-                                    menuItem.name.toLowerCase().includes(searchQuery.toLowerCase())
-                                  )
-                                  .map((menuItem) => (
-                                    <option key={menuItem.id} value={menuItem.id}>
-                                      {menuItem.name} - {menuItem.price} ريال
-                                    </option>
-                                  ))}
-                              </select>
-                            )}
-                          </div>
-                          
-                          {/* Quantity */}
-                          <div>
-                            <label className="block text-[10px] mb-1" style={{ color: colors.text.muted }}>الكمية</label>
-                            <input
-                              type="number"
-                              value={item.quantity}
-                              onChange={(e) => updateItem(index, 'quantity', parseInt(e.target.value))}
-                              className={`w-full border rounded-lg px-3 py-2 text-xs focus:outline-none transition ${isDark ? 'bg-[#0b0b0b] border-gray-800 focus:border-[#D4AF37] text-white' : 'bg-white border-gray-300 focus:border-[#D4AF37] text-gray-900'}`}
-                              placeholder="الكمية"
-                              min="1"
-                            />
-                          </div>
-                          
-                          {/* Notes */}
-                          <div>
-                            <label className="block text-[10px] mb-1" style={{ color: colors.text.muted }}>ملاحظات</label>
-                            <input
-                              type="text"
-                              value={item.notes || ''}
-                              onChange={(e) => updateItem(index, 'notes', e.target.value)}
-                              className={`w-full border rounded-lg px-3 py-2 text-xs focus:outline-none transition ${isDark ? 'bg-[#0b0b0b] border-gray-800 focus:border-[#D4AF37] text-white' : 'bg-white border-gray-300 focus:border-[#D4AF37] text-gray-900'}`}
-                              placeholder="ملاحظات (اختياري)"
-                            />
-                          </div>
-                          
-                          {/* Selected Item Info */}
-                          {item.name && (
-                            <div className={`p-2 border rounded-lg ${isDark ? 'bg-[#0b0b0b] border-[#D4AF37]/20' : 'bg-gray-100 border-gray-200'}`}>
-                              <div className="flex justify-between items-center">
-                                <span className="text-xs font-bold" style={{ color: colors.text.primary }}>{item.name}</span>
-                                <span className="text-xs font-mono" style={{ color: colors.primary.gold }}>{item.price} ريال</span>
-                              </div>
-                              <div className="text-[10px] mt-1" style={{ color: colors.text.muted }}>
-                                الإجمالي: {(item.price || 0) * item.quantity} ريال
+                {isLoadingMenu ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 size={24} className="text-[#D4AF37] animate-spin" />
+                    <span className="mr-2 text-sm text-gray-500 font-bold">جاري تحميل القائمة...</span>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {items.map((item, index) => (
+                      <div key={index} className="border border-gray-200 rounded-xl p-4 bg-gray-50">
+                        {item.menuItemId > 0 ? (
+                          /* Selected Item Display */
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <span className="text-2xl">{CATEGORY_ICONS[item.category || 'FOOD'] || '🍽️'}</span>
+                              <div>
+                                <span className="text-base font-bold text-gray-900 block">{item.name}</span>
+                                <div className="flex items-center gap-2 mt-0.5">
+                                  <span className={`text-xs font-bold px-2 py-0.5 rounded border ${CATEGORY_COLORS[item.category || 'FOOD'] || 'bg-gray-100 text-gray-600'}`}>
+                                    {CATEGORY_LABELS[item.category || 'FOOD'] || item.category}
+                                  </span>
+                                  <span className="text-sm text-[#AA7B30] font-bold font-mono">{item.price} ريال</span>
+                                </div>
                               </div>
                             </div>
-                          )}
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => removeItem(index)}
-                          className={`p-2 rounded-lg transition ${isDark ? 'text-red-400 hover:bg-red-950/20' : 'text-red-600 hover:bg-red-50'}`}
-                        >
-                          <Trash2 size={14} />
-                        </button>
+                            <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-2 border border-gray-200 rounded-lg bg-white">
+                                <button onClick={() => updateQuantity(index, item.quantity - 1)} className="px-3 py-1.5 text-gray-500 font-bold hover:text-gray-900 transition">-</button>
+                                <span className="text-base font-bold text-gray-900 min-w-[2rem] text-center">{item.quantity}</span>
+                                <button onClick={() => updateQuantity(index, item.quantity + 1)} className="px-3 py-1.5 text-gray-500 font-bold hover:text-gray-900 transition">+</button>
+                              </div>
+                              <button onClick={() => removeItem(index)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition">
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          /* Item Picker */
+                          <div>
+                            <div className="relative mb-3">
+                              <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                              <input
+                                ref={searchRef}
+                                type="text"
+                                placeholder="ابحث عن عنصر..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full bg-white border border-gray-200 focus:border-[#D4AF37] rounded-xl pr-10 pl-4 py-3 text-base font-bold text-gray-800 placeholder-gray-400 focus:outline-none transition"
+                              />
+                            </div>
+
+                            <div className="max-h-60 overflow-y-auto space-y-2">
+                              {filteredMenuItems.length === 0 ? (
+                                <p className="text-sm text-gray-400 text-center py-4">لا توجد عناصر في "{CATEGORY_LABELS[orderCategory]}"</p>
+                              ) : (
+                                /* Show items grouped under current category */
+                                <div>
+                                  <div className="flex items-center gap-2 mb-2 px-1">
+                                    <span className="text-lg">{CATEGORY_ICONS[orderCategory] || '🍽️'}</span>
+                                    <span className="text-sm font-bold text-gray-600">{CATEGORY_LABELS[orderCategory] || orderCategory}</span>
+                                    <span className="text-xs text-gray-400">({filteredMenuItems.length})</span>
+                                  </div>
+                                  <div className="space-y-1.5">
+                                    {filteredMenuItems.map((menuItem) => (
+                                      <button
+                                        key={menuItem.id}
+                                        onClick={() => selectMenuItem(index, menuItem)}
+                                        className="w-full text-right p-3 rounded-xl border border-gray-200 hover:border-[#D4AF37]/40 hover:bg-amber-50 transition flex justify-between items-center bg-white"
+                                      >
+                                        <div>
+                                          <span className="text-base font-bold text-gray-900 block">{menuItem.name}</span>
+                                          {menuItem.description && (
+                                            <span className="text-sm text-gray-400">{menuItem.description}</span>
+                                          )}
+                                        </div>
+                                        <span className="text-base font-bold font-mono text-[#AA7B30]">{menuItem.price} ريال</span>
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                            <button onClick={() => { setShowItemPicker(null); removeItem(index); }} className="mt-2 text-sm text-gray-400 hover:text-gray-600 font-bold">إلغاء</button>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ))}
-                  
-                  {items.length === 0 && (
-                    <div className="text-center py-8 text-xs" style={{ color: colors.text.muted }}>
-                      لا توجد عناصر مضافة. اضغط على "إضافة عنصر" للبدء.
-                    </div>
-                  )}
-                </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Add Item Button - Centered */}
+                {!isLoadingMenu && (
+                  <div className="flex justify-center mt-4">
+                    <button
+                      type="button"
+                      onClick={addItem}
+                      className="flex items-center gap-2 px-8 py-3 border-2 border-dashed border-[#D4AF37]/40 rounded-xl text-sm font-bold text-[#AA7B30] hover:bg-amber-50 hover:border-[#D4AF37]/60 transition-all"
+                    >
+                      <Plus size={20} />
+                      إضافة عنصر
+                    </button>
+                  </div>
+                )}
+
+                {items.length === 0 && !isLoadingMenu && (
+                  <div className="text-center py-6 text-sm text-gray-400">
+                    اضغط على "إضافة عنصر" لبدء إنشاء الطلب
+                  </div>
+                )}
               </div>
 
-              {/* Submit Button */}
-              <div className={`flex justify-end gap-3 pt-4 border-t ${isDark ? 'border-gray-800' : 'border-gray-200'}`}>
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className={`px-4 py-2 border rounded-xl text-xs font-bold transition ${isDark ? 'bg-[#121212] border-gray-800 text-gray-400 hover:text-white' : 'bg-gray-100 border-gray-300 text-gray-600 hover:text-gray-900'}`}
-                >
+              {/* Total */}
+              {items.filter(i => i.menuItemId > 0).length > 0 && (
+                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 flex justify-between items-center">
+                  <span className="text-base font-bold text-gray-700">الإجمالي</span>
+                  <span className="text-2xl font-black font-mono text-[#AA7B30]">
+                    {total.toLocaleString('ar-SA')} ريال
+                  </span>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                <button onClick={onClose} className="px-6 py-3 border border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-50 transition">
                   إلغاء
                 </button>
                 <button
-                  type="button"
                   onClick={handleSubmit}
-                  disabled={isLoading || items.length === 0}
-                  className="px-6 py-2 text-black font-extrabold text-xs rounded-xl shadow hover:shadow-lg transition duration-200 flex items-center gap-2 disabled:opacity-50"
-                  style={{ background: colors.primary.goldGradient }}
+                  disabled={isLoading || items.filter(i => i.menuItemId > 0).length === 0}
+                  className="px-6 py-3 bg-gradient-to-r from-[#AA7B30] to-[#D4AF37] text-white font-bold text-sm rounded-xl shadow hover:shadow-lg transition flex items-center gap-2 disabled:opacity-50"
                 >
-                  {isLoading ? (
-                    <>
-                      <Loader2 size={14} className="animate-spin" />
-                      جاري إنشاء الطلب...
-                    </>
-                  ) : (
-                    <>
-                      <Save size={14} />
-                      إنشاء الطلب
-                    </>
-                  )}
+                  {isLoading ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                  {isLoading ? 'جاري الإنشاء...' : 'إنشاء الطلب'}
                 </button>
               </div>
             </div>

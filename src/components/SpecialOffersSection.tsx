@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { 
   Tag, Plus, X, Edit, Trash2, Save, Loader2, Sparkles, 
-  Search, Filter, ChevronDown, ChevronUp
+  Search, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { apiService, SpecialOfferResponse } from '../services/api';
 import SpecialOffersModal from './SpecialOffersModal';
@@ -49,7 +49,6 @@ export default function SpecialOffersSection() {
 
   const handleUpdate = async (id: number, offerData: { title?: string; description?: string }) => {
     try {
-      console.log('Updating special offer:', id, offerData);
       await apiService.updateSpecialOffer(id, offerData);
       loadOffers();
       setEditingOffer(null);
@@ -79,9 +78,9 @@ export default function SpecialOffersSection() {
   return (
     <div className="space-y-6 pb-12">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-900 pb-5">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-200 pb-5">
         <div>
-          <h1 className="text-2xl font-black text-[#E6C587] flex items-center gap-2">
+          <h1 className="text-2xl font-black text-[#AA7B30] flex items-center gap-2">
             <Sparkles size={24} className="text-[#D4AF37]" />
             العروض والمزايا
           </h1>
@@ -96,7 +95,7 @@ export default function SpecialOffersSection() {
         </button>
       </div>
 
-      {/* Search and Filter */}
+      {/* Search */}
       <div className="flex gap-3">
         <div className="flex-1 relative">
           <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" />
@@ -105,13 +104,9 @@ export default function SpecialOffersSection() {
             placeholder="بحث في العروض..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] rounded-xl pr-10 pl-4 py-2.5 text-xs text-white focus:outline-none transition"
+            className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl pr-10 pl-4 py-2.5 text-xs text-gray-800 focus:outline-none transition"
           />
         </div>
-        <button className="flex items-center gap-2 px-4 py-2.5 bg-[#121212] border border-gray-800 text-gray-400 rounded-xl text-xs font-bold hover:text-white transition">
-          <Filter size={14} />
-          تصفية
-        </button>
       </div>
 
       {/* Loading State */}
@@ -120,7 +115,7 @@ export default function SpecialOffersSection() {
           <Loader2 size={24} className="text-[#D4AF37] animate-spin" />
         </div>
       ) : error ? (
-        <div className="text-center py-16 bg-[#0b0b0b] border border-gray-900 rounded-2xl">
+        <div className="text-center py-16 bg-white border border-gray-200 rounded-2xl">
           <X size={48} className="text-red-500 mx-auto mb-4" />
           <h3 className="text-sm font-bold text-gray-400 mb-2">فشل تحميل العروض</h3>
           <p className="text-xs text-gray-600 mb-4">{error}</p>
@@ -135,7 +130,7 @@ export default function SpecialOffersSection() {
         <>
           {/* Empty State */}
           {filteredOffers.length === 0 ? (
-            <div className="text-center py-16 bg-[#0b0b0b] border border-gray-900 rounded-2xl">
+            <div className="text-center py-16 bg-white border border-gray-200 rounded-2xl">
               <Tag size={48} className="text-gray-700 mx-auto mb-4" />
               <h3 className="text-sm font-bold text-gray-400 mb-2">لا توجد عروض حالياً</h3>
               <p className="text-xs text-gray-600 mb-4">ابدأ بإضافة عرض جديد للنزلاء</p>
@@ -154,19 +149,19 @@ export default function SpecialOffersSection() {
                   key={offer.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-[#0b0b0b] border border-gray-900 rounded-xl overflow-hidden hover:border-[#D4AF37]/35 transition duration-300"
+                  className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-[#D4AF37]/35 transition duration-300"
                 >
                   {/* Header */}
-                  <div className="p-4 border-b border-gray-900">
+                  <div className="p-4 border-b border-gray-200">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
-                        <h3 className="text-sm font-bold text-white mb-1">{offer.title}</h3>
-                        <span className="text-[10px] text-gray-500 font-mono">#{offer.id}</span>
+                        <h3 className="text-sm font-bold text-gray-800 mb-1">{offer.title}</h3>
+                        <span className="text-xs text-gray-500 font-mono">#{offer.id}</span>
                       </div>
                       <div className="flex gap-1">
                         <button
                           onClick={() => handleEdit(offer)}
-                          className="p-1.5 bg-gray-900 hover:bg-gray-800 text-gray-400 hover:text-white rounded-lg transition"
+                          className="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-400 hover:text-gray-800 rounded-lg transition"
                         >
                           <Edit size={12} />
                         </button>
@@ -188,7 +183,7 @@ export default function SpecialOffersSection() {
                     {offer.description.length > 100 && (
                       <button
                         onClick={() => toggleExpand(offer.id)}
-                        className="mt-2 text-[10px] text-[#D4AF37] hover:underline flex items-center gap-1"
+                        className="mt-2 text-xs text-[#D4AF37] hover:underline flex items-center gap-1"
                       >
                         {isExpanded[offer.id] ? (
                           <>
@@ -206,9 +201,9 @@ export default function SpecialOffersSection() {
                   </div>
 
                   {/* Footer */}
-                  <div className="px-4 py-3 bg-[#121212]/50 border-t border-gray-900 flex justify-between items-center">
-                    <span className="text-[10px] text-gray-500">نشط</span>
-                    <button className="text-[10px] text-[#D4AF37] hover:underline">
+                  <div className="px-4 py-3 bg-gray-50/50 border-t border-gray-200 flex justify-between items-center">
+                    <span className="text-xs text-gray-500">نشط</span>
+                    <button className="text-xs text-[#D4AF37] hover:underline">
                       تعديل
                     </button>
                   </div>
@@ -228,11 +223,11 @@ export default function SpecialOffersSection() {
 
       {/* Edit Offer Modal */}
       {editingOffer && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0b0b0b] border border-[#D4AF37]/30 rounded-2xl p-6 max-w-md w-full">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-[#D4AF37]/30 rounded-2xl p-6 max-w-md w-full">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-[#E6C587]">تعديل العرض</h3>
-              <button onClick={() => setEditingOffer(null)} className="p-2 bg-gray-900 border border-gray-800 rounded-lg">
+              <h3 className="text-xl font-bold text-[#AA7B30]">تعديل العرض</h3>
+              <button onClick={() => setEditingOffer(null)} className="p-2 bg-gray-100 border border-gray-200 rounded-lg">
                 <X size={18} />
               </button>
             </div>
@@ -244,7 +239,7 @@ export default function SpecialOffersSection() {
                   type="text"
                   defaultValue={editingOffer.title}
                   id="editTitle"
-                  className="w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-white focus:outline-none"
+                  className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
                 />
               </div>
 
@@ -254,15 +249,15 @@ export default function SpecialOffersSection() {
                   defaultValue={editingOffer.description}
                   id="editDescription"
                   rows={4}
-                  className="w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-white focus:outline-none resize-none"
+                  className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none resize-none"
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-800">
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
                 <button
                   type="button"
                   onClick={() => setEditingOffer(null)}
-                  className="px-4 py-2 bg-[#121212] border border-gray-800 text-gray-400 rounded-xl text-xs font-bold hover:text-white transition"
+                  className="px-4 py-2 bg-gray-50 border border-gray-200 text-gray-400 rounded-xl text-xs font-bold hover:text-gray-800 transition"
                 >
                   إلغاء
                 </button>

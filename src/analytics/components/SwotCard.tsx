@@ -14,10 +14,10 @@ export default function SwotCard({ title, items, color, icon }: SwotCardProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="p-6 bg-[#090909] border border-gray-900 rounded-xl hover:border-[#D4AF37]/30 transition duration-200"
+      className="p-6 bg-white border border-gray-200 rounded-xl hover:border-[#D4AF37]/30 transition duration-200"
     >
       <div className="flex items-center gap-3 mb-4">
-        <div className="p-3 bg-[#121212] rounded-lg" style={{ color }}>
+        <div className="p-3 bg-gray-50 rounded-lg" style={{ color }}>
           {icon}
         </div>
         <h3 className="text-lg font-bold text-white">{title}</h3>

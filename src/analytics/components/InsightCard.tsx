@@ -12,22 +12,22 @@ export default function InsightCard({ insight }: InsightCardProps) {
   const getPriorityIcon = () => {
     switch (insight.priority) {
       case 'high':
-        return <AlertTriangle className="w-5 h-5 text-red-400" />;
+        return <AlertTriangle className="w-5 h-5 text-red-600" />;
       case 'medium':
-        return <Target className="w-5 h-5 text-amber-400" />;
+        return <Target className="w-5 h-5 text-amber-600" />;
       case 'low':
-        return <CheckCircle className="w-5 h-5 text-emerald-400" />;
+        return <CheckCircle className="w-5 h-5 text-emerald-600" />;
     }
   };
 
   const getPriorityColor = () => {
     switch (insight.priority) {
       case 'high':
-        return 'bg-red-950/20 text-red-400 border-red-500/30';
+        return 'bg-red-50/20 text-red-600 border-red-500/30';
       case 'medium':
-        return 'bg-amber-950/20 text-amber-400 border-amber-500/30';
+        return 'bg-amber-50/20 text-amber-600 border-amber-500/30';
       case 'low':
-        return 'bg-emerald-950/20 text-emerald-400 border-emerald-500/30';
+        return 'bg-emerald-50/20 text-emerald-600 border-emerald-500/30';
     }
   };
 
@@ -47,7 +47,7 @@ export default function InsightCard({ insight }: InsightCardProps) {
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.3 }}
-      className="p-5 bg-[#090909] border border-gray-900 rounded-xl hover:border-[#D4AF37]/30 transition duration-200"
+      className="p-5 bg-white border border-gray-200 rounded-xl hover:border-[#D4AF37]/30 transition duration-200"
     >
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-2">

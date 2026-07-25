@@ -31,7 +31,6 @@ export default function ReservationsSection() {
     setError(null);
     try {
       const response = await apiService.getStays(0, 50);
-      console.log('Stays response:', response.content);
       setStays(response.content || []);
     } catch (error: any) {
       if (error.message && error.message.includes('Authentication')) {
@@ -123,7 +122,6 @@ export default function ReservationsSection() {
         expectedCheckOutDate: checkOut,
       };
 
-      console.log('Creating stay with data:', newStay);
       await apiService.createStay(newStay);
 
       // Reset form
@@ -160,11 +158,8 @@ export default function ReservationsSection() {
 
       // Get rooms to check availability
       const roomsResponse = await apiService.getRooms(undefined, undefined, 0, 100);
-      console.log('Available rooms:', roomsResponse.content);
-      console.log('Looking for room number:', stay.roomNumber);
       
       const room = roomsResponse.content?.find(r => {
-        console.log('Comparing:', r.roomNumber, 'with', stay.roomNumber, 'Match:', r.roomNumber === stay.roomNumber);
         return r.roomNumber === stay.roomNumber;
       });
 
@@ -320,18 +315,18 @@ export default function ReservationsSection() {
                   <td className="py-3 text-sm" style={{ color: colors.text.muted }}>{stay.checkInTime ? new Date(stay.checkInTime).toLocaleDateString('ar-SA', { calendar: 'gregory' }) : '-'}</td>
                   <td className="py-3 text-sm" style={{ color: colors.text.muted }}>{stay.expectedCheckOutDate ? new Date(stay.expectedCheckOutDate).toLocaleDateString('ar-SA', { calendar: 'gregory' }) : '-'}</td>
                   <td className="py-3">
-                    <span className={`px-2 py-1 rounded-lg text-[10px] font-bold border ${
-                      stay.status === 'CHECKED_IN' ? (isDark ? 'bg-emerald-950/40 text-emerald-400 border-emerald-500/20' : 'bg-emerald-50 text-emerald-700 border-emerald-200') :
-                      stay.status === 'CHECKED_OUT' ? (isDark ? 'bg-red-950/40 text-red-400 border-red-500/20' : 'bg-red-50 text-red-700 border-red-200') :
-                      stay.status === 'RESERVED' ? (isDark ? 'bg-blue-950/40 text-blue-400 border-blue-500/20' : 'bg-blue-50 text-blue-700 border-blue-200') :
+                    <span className={`px-2 py-1 rounded-lg text-xs font-bold border ${
+                      stay.status === 'CHECKED_IN' || stay.status === 'ACTIVE' || stay.status === 'active' ? (isDark ? 'bg-emerald-950/40 text-emerald-400 border-emerald-500/20' : 'bg-emerald-50 text-emerald-700 border-emerald-200') :
+                      stay.status === 'CHECKED_OUT' || stay.status === 'CLOSED' || stay.status === 'closed' ? (isDark ? 'bg-red-950/40 text-red-400 border-red-500/20' : 'bg-red-50 text-red-700 border-red-200') :
+                      stay.status === 'RESERVED' || stay.status === 'BOOKED' || stay.status === 'booked' ? (isDark ? 'bg-blue-950/40 text-blue-400 border-blue-500/20' : 'bg-blue-50 text-blue-700 border-blue-200') :
                       (isDark ? 'bg-gray-950/40 text-gray-400 border-gray-800' : 'bg-gray-50 text-gray-600 border-gray-300')
                     }`}>
-                      {stay.status === 'CHECKED_IN' ? 'نشط' : 
-                       stay.status === 'CHECKED_OUT' ? 'مغلق' : 
-                       stay.status === 'RESERVED' ? 'محجوز' : 
+                      {stay.status === 'CHECKED_IN' || stay.status === 'ACTIVE' || stay.status === 'active' ? 'نشط' :
+                       stay.status === 'CHECKED_OUT' || stay.status === 'CLOSED' || stay.status === 'closed' ? 'مغلق' :
+                       stay.status === 'RESERVED' || stay.status === 'BOOKED' || stay.status === 'booked' ? 'محجوز' :
                        stay.status === 'AVAILABLE' ? 'متاح' :
                        stay.status === 'OCCUPIED' ? 'مشغول' :
-                       stay.status || '-'}
+                       '—'}
                     </span>
                   </td>
                   <td className="py-3 text-sm font-bold" style={{ color: colors.primary.goldLight }}>{stay.totalCharge ? stay.totalCharge.toLocaleString('ar-SA', { maximumFractionDigits: 0 }) : '0'} ريال</td>
@@ -339,14 +334,14 @@ export default function ReservationsSection() {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleCheckIn(stay.stayId)}
-                        disabled={stay.status === 'CHECKED_IN'}
+                        disabled={stay.status === 'CHECKED_IN' || stay.status === 'ACTIVE' || stay.status === 'active' || stay.status === 'CHECKED_OUT' || stay.status === 'CLOSED' || stay.status === 'closed'}
                         className={`px-3 py-1.5 border rounded-lg hover:border-[#D4AF37]/30 transition disabled:opacity-50 text-xs font-bold ${isDark ? 'bg-[#121212] border-gray-800 text-gray-400 hover:text-white' : 'bg-gray-100 border-gray-300 text-gray-600 hover:text-gray-900'}`}
                       >
                         تسجيل دخول
                       </button>
                       <button
                         onClick={() => handleCheckOut(stay.stayId)}
-                        disabled={stay.status !== 'CHECKED_IN'}
+                        disabled={stay.status !== 'CHECKED_IN' && stay.status !== 'ACTIVE'}
                         className={`px-3 py-1.5 border rounded-lg hover:border-[#D4AF37]/30 transition disabled:opacity-50 text-xs font-bold ${isDark ? 'bg-[#121212] border-gray-800 text-gray-400 hover:text-white' : 'bg-gray-100 border-gray-300 text-gray-600 hover:text-gray-900'}`}
                       >
                         تسجيل مغادرة

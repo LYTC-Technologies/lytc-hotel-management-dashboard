@@ -101,16 +101,16 @@ export default function Login({ onLoginSuccess }: LoginProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[#030303] flex items-center justify-center relative overflow-hidden px-4 py-8">
+    <div className="min-h-screen bg-[#F8F6F2] flex items-center justify-center relative overflow-hidden px-4 py-8">
       {/* Premium Background Ambient Glows */}
       <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] rounded-full bg-[radial-gradient(circle,rgba(212,175,55,0.08)_0%,transparent_70%)] pointer-events-none" />
       <div className="absolute bottom-[-20%] right-[-20%] w-[60%] h-[60%] rounded-full bg-[radial-gradient(circle,rgba(30,64,175,0.1)_0%,transparent_70%)] pointer-events-none" />
 
       {/* Decorative Golden Stars / Particles */}
-      <div className="absolute top-1/4 right-1/4 text-yellow-500/10 animate-pulse pointer-events-none">
+      <div className="absolute top-1/4 right-1/4 text-yellow-600/10 animate-pulse pointer-events-none">
         <Sparkles size={120} />
       </div>
-      <div className="absolute bottom-1/4 left-1/4 text-yellow-500/5 animate-pulse pointer-events-none">
+      <div className="absolute bottom-1/4 left-1/4 text-yellow-600/5 animate-pulse pointer-events-none">
         <Sparkles size={80} />
       </div>
 
@@ -123,14 +123,14 @@ export default function Login({ onLoginSuccess }: LoginProps) {
           <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-[#E6C587] to-[#D4AF37] bg-clip-text text-transparent mb-2">
             مجموعة ليتك للفنادق والمنتجعات الفاخرة
           </h1>
-          <p className="text-sm font-medium text-gray-400 tracking-wider">
+          <p className="text-sm font-bold text-gray-400 tracking-wider">
             LYTC LUXURY HOTELS & RESORTS • PORTAL
           </p>
           <div className="w-24 h-[2px] bg-gradient-to-r from-transparent via-[#D4AF37]/50 to-transparent mx-auto mt-4" />
         </div>
 
         {/* Card Frame with Glassmorphism */}
-        <div className="bg-[#0b0b0b]/85 border border-[#D4AF37]/20 rounded-2xl p-8 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-xl relative">
+        <div className="bg-white/85 border border-[#D4AF37]/20 rounded-2xl p-8 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-xl relative">
           <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent" />
           
           <AnimatePresence mode="wait">
@@ -143,12 +143,12 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                 transition={{ duration: 0.4 }}
               >
                 <div className="mb-6 text-center">
-                  <h2 className="text-xl font-bold text-[#E6C587] mb-1">تسجيل دخول الإدارة الفنية والتشغيلية</h2>
+                  <h2 className="text-xl font-bold text-[#AA7B30] mb-1">تسجيل دخول الإدارة الفنية والتشغيلية</h2>
                   <p className="text-xs text-gray-500">يرجى إدخال بيانات الاعتماد الخاصة بك للوصول للوحة التحكم الفاخرة</p>
                 </div>
 
                 {errorMessage && (
-                  <div className="bg-red-950/40 border border-red-500/30 text-red-200 text-sm p-3 rounded-lg mb-4 text-center">
+                  <div className="bg-red-50/40 border border-red-500/30 text-red-200 text-sm p-3 rounded-lg mb-4 text-center">
                     {errorMessage}
                   </div>
                 )}
@@ -164,7 +164,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                       <input
                         type="text"
                         required
-                        className="block w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] rounded-xl pr-10 pl-4 py-3 text-sm text-gray-200 focus:outline-none transition-all duration-300"
+                        className="block w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] rounded-xl pr-10 pl-4 py-3 text-sm text-gray-700 focus:outline-none transition-all duration-300"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                       />
@@ -190,13 +190,13 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                       <input
                         type={showPassword ? 'text' : 'password'}
                         required
-                        className="block w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] rounded-xl pr-10 pl-10 py-3 text-sm text-gray-200 focus:outline-none transition-all duration-300"
+                        className="block w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] rounded-xl pr-10 pl-10 py-3 text-sm text-gray-700 focus:outline-none transition-all duration-300"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                       />
                       <button
                         type="button"
-                        className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 hover:text-gray-300"
+                        className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 hover:text-gray-600"
                         onClick={() => setShowPassword(!showPassword)}
                       >
                         {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -211,9 +211,9 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                         type="checkbox"
                         checked={rememberMe}
                         onChange={(e) => setRememberMe(e.target.checked)}
-                        className="rounded border-gray-800 bg-[#121212] text-[#D4AF37] focus:ring-0 focus:ring-offset-0 h-4 w-4"
+                        className="rounded border-gray-200 bg-gray-50 text-[#D4AF37] focus:ring-0 focus:ring-offset-0 h-4 w-4"
                       />
-                      <span className="text-xs text-gray-400 font-medium mr-2">تذكر هذا الجهاز في هذه الجلسة الأمنية</span>
+                      <span className="text-xs text-gray-400 font-bold mr-2">تذكر هذا الجهاز في هذه الجلسة الأمنية</span>
                     </label>
                   </div>
 
@@ -244,16 +244,16 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                 transition={{ duration: 0.4 }}
               >
                 <div className="mb-6 text-center">
-                  <div className="inline-flex p-3 rounded-full bg-blue-950/30 border border-blue-500/20 text-blue-400 mb-2">
+                  <div className="inline-flex p-3 rounded-full bg-blue-50/30 border border-blue-500/20 text-blue-600 mb-2">
                     <ShieldCheck size={36} />
                   </div>
-                  <h2 className="text-xl font-bold text-[#E6C587] mb-1">المصادقة الثنائية (2FA)</h2>
+                  <h2 className="text-xl font-bold text-[#AA7B30] mb-1">المصادقة الثنائية (2FA)</h2>
                   <p className="text-xs text-gray-500">تم إرسال رمز تحقق مؤقت إلى تطبيق الحماية ومصادقة الجوال المسجل باسمك</p>
-                  <p className="text-xs text-[#D4AF37] font-semibold mt-1">المستخدم: الشيخ عبد الله (المدير العام)</p>
+                  <p className="text-xs text-[#D4AF37] font-bold mt-1">المستخدم: الشيخ عبد الله (المدير العام)</p>
                 </div>
 
                 {errorMessage && (
-                  <div className="bg-red-950/40 border border-red-500/30 text-red-200 text-sm p-3 rounded-lg mb-4 text-center">
+                  <div className="bg-red-50/40 border border-red-500/30 text-red-200 text-sm p-3 rounded-lg mb-4 text-center">
                     {errorMessage}
                   </div>
                 )}
@@ -269,7 +269,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                           id={`otp-${idx}`}
                           type="text"
                           maxLength={1}
-                          className="w-12 h-14 bg-[#121212] border border-gray-800 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] rounded-xl text-center text-xl font-bold text-white focus:outline-none transition-all duration-300"
+                          className="w-12 h-14 bg-gray-50 border border-gray-200 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] rounded-xl text-center text-xl font-bold text-gray-800 focus:outline-none transition-all duration-300"
                           value={digit}
                           onChange={(e) => handleOtpChange(idx, e.target.value)}
                           onKeyDown={(e) => handleOtpKeyDown(idx, e)}
@@ -282,7 +282,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                   <div className="text-center">
                     <button
                       type="button"
-                      className="text-xs text-gray-400 hover:text-white"
+                      className="text-xs text-gray-400 hover:text-gray-800"
                       onClick={() => {
                         setOtp(['', '', '', '', '', '']);
                         alert('تمت إعادة إرسال الرمز الآمن بنجاح في رسالة SMS مشفرة.');
@@ -295,7 +295,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                   <div className="flex gap-4">
                     <button
                       type="button"
-                      className="w-1/3 bg-[#121212] border border-gray-800 text-gray-400 hover:text-white hover:bg-gray-900 rounded-xl py-3 text-xs font-bold transition-all duration-200"
+                      className="w-1/3 bg-gray-50 border border-gray-200 text-gray-400 hover:text-gray-800 hover:bg-gray-100 rounded-xl py-3 text-xs font-bold transition-all duration-200"
                       onClick={() => setStep('credentials')}
                     >
                       تغيير الحساب

@@ -24,7 +24,7 @@ export default function EmptyState({
     >
       <div className="relative mb-6">
         <div className="absolute inset-0 bg-[#D4AF37]/20 rounded-full blur-3xl" />
-        <div className="relative p-8 bg-[#090909] border border-gray-900 rounded-full">
+        <div className="relative p-8 bg-white border border-gray-200 rounded-full">
           <FileText className="w-16 h-16 text-[#D4AF37]" />
         </div>
       </div>

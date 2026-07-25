@@ -252,10 +252,11 @@ interface PendingOrdersResponse {
   orderId: number;
   guestName: string;
   roomNumber: string;
-  items: string;
-  totalAmount: number;
-  orderTime: string;
-  status: string;
+  category: string;
+  totalAmount: string;
+  orderStatus: string;
+  createdAt: string;
+  items: any[];
 }
 
 // API Service Class
@@ -1071,12 +1072,74 @@ class APIService {
    * Get Rated Stays
    * GET /api/dashboard/manager/stays/rated
    */
-  async getRatedStays(): Promise<PageStayDetailsResponse> {
+  async getRatedStays(page: number = 0, size: number = 50): Promise<PageStayDetailsResponse> {
     return this.authenticatedFetch<PageStayDetailsResponse>(
-      `${this.baseURL}/api/dashboard/manager/stays/rated`,
+      `${this.baseURL}/api/dashboard/manager/stays/rated?page=${page}&size=${size}`,
       {
         method: 'GET',
       }
+    );
+  }
+
+  /**
+   * Rate Stay
+   * GET /api/guest/stay/rating
+   */
+  async rateStay(roomNumber: string, stars: number, notes?: string): Promise<StayDetailsResponse> {
+    const params = new URLSearchParams({ roomNumber, stars: stars.toString() });
+    if (notes) params.append('notes', notes);
+    return this.authenticatedFetch<StayDetailsResponse>(
+      `${this.baseURL}/api/guest/stay/rating?${params.toString()}`,
+      { method: 'GET' }
+    );
+  }
+
+  /**
+   * Subscribe to Events (SSE)
+   * GET /api/events/subscribe
+   */
+  subscribeToEvents(onMessage: (data: any) => void, lastEventId?: string): EventSource {
+    const headers: Record<string, string> = {};
+    if (this.token) {
+      headers['Authorization'] = `Bearer ${this.token}`;
+    }
+    const url = lastEventId
+      ? `${this.baseURL}/api/events/subscribe?Last-Event-ID=${lastEventId}`
+      : `${this.baseURL}/api/events/subscribe`;
+    const eventSource = new EventSource(url);
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        onMessage(data);
+      } catch (e) {
+        onMessage(event.data);
+      }
+    };
+    eventSource.onerror = (error) => {
+      console.error('SSE error:', error);
+    };
+    return eventSource;
+  }
+
+  /**
+   * Get Manager Overview
+   * GET /api/dashboard/manager/overview
+   */
+  async getManagerOverview(): Promise<any> {
+    return this.authenticatedFetch<any>(
+      `${this.baseURL}/api/dashboard/manager/overview`,
+      { method: 'GET' }
+    );
+  }
+
+  /**
+   * Get Manager Occupancy
+   * GET /api/dashboard/manager/occupancy
+   */
+  async getManagerOccupancy(): Promise<any> {
+    return this.authenticatedFetch<any>(
+      `${this.baseURL}/api/dashboard/manager/occupancy`,
+      { method: 'GET' }
     );
   }
 

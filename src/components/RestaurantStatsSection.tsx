@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import {
-  Utensils, XCircle, AlertCircle, DollarSign, Package, Clock, CheckCircle, Loader2
+  Utensils, XCircle, AlertCircle, DollarSign, Clock, CheckCircle, Loader2
 } from 'lucide-react';
 import { apiService, DashboardStatsResponse } from '../services/api';
 import { useThemeColors } from '../hooks/useThemeColors';
@@ -96,17 +96,6 @@ export default function RestaurantStatsSection() {
               <span className="text-xs" style={{ color: colors.text.muted }}>إجمالي الإيرادات</span>
             </div>
             <h3 className="text-3xl font-black" style={{ color: colors.primary.goldLight }}>{stats?.totalRevenue?.toLocaleString('ar-SA') || 0}</h3>
-            <p className="text-xs mt-2" style={{ color: colors.text.disabled }}>ريال</p>
-          </div>
-
-          <div className={`border rounded-2xl p-6 md:col-span-2 lg:col-span-4 ${isDark ? 'bg-[#0b0b0b] border-gray-900' : 'bg-white border-gray-200'}`}>
-            <div className="flex items-center justify-between mb-4">
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isDark ? 'bg-purple-950/20 border-purple-500/30' : 'bg-purple-50 border-purple-200'}`}>
-                <Package size={24} className={isDark ? 'text-purple-400' : 'text-purple-600'} />
-              </div>
-              <span className="text-xs" style={{ color: colors.text.muted }}>إيرادات اليوم</span>
-            </div>
-            <h3 className="text-3xl font-black" style={{ color: colors.primary.goldLight }}>{stats?.todayRevenue?.toLocaleString('ar-SA') || 0}</h3>
             <p className="text-xs mt-2" style={{ color: colors.text.disabled }}>ريال</p>
           </div>
         </div>

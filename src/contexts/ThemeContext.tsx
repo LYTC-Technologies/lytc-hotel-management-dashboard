@@ -33,7 +33,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
       return 'light';
     }
     
-    return 'dark'; // Default to dark
+    return 'light'; // Default to light
   });
 
   useEffect(() => {

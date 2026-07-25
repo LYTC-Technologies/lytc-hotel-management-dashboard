@@ -37,7 +37,7 @@ export default function ExportButtons({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={button.onClick}
-            className="flex items-center gap-2 px-4 py-2 bg-[#121212] border border-gray-800 hover:border-[#D4AF37]/50 text-white font-bold text-xs rounded-xl transition duration-200"
+            className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 hover:border-[#D4AF37]/50 text-white font-bold text-xs rounded-xl transition duration-200"
           >
             {button.icon}
             <span>{button.label}</span>

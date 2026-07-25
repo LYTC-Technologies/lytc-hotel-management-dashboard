@@ -44,9 +44,9 @@ export default function ScoreCard({
   const getTrendIcon = () => {
     switch (trend) {
       case 'up':
-        return <TrendingUp className="w-4 h-4 text-emerald-400" />;
+        return <TrendingUp className="w-4 h-4 text-emerald-600" />;
       case 'down':
-        return <TrendingDown className="w-4 h-4 text-red-400" />;
+        return <TrendingDown className="w-4 h-4 text-red-600" />;
       case 'stable':
         return <Minus className="w-4 h-4 text-gray-400" />;
     }
@@ -60,15 +60,15 @@ export default function ScoreCard({
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
-      className="p-6 bg-[#090909] border border-gray-900 rounded-xl hover:border-[#D4AF37]/30 transition duration-200"
+      className="p-6 bg-white border border-gray-200 rounded-xl hover:border-[#D4AF37]/30 transition duration-200"
     >
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-bold text-white">{name}</h3>
         <div className="flex items-center gap-1">
           {getTrendIcon()}
           <span className={`text-xs font-bold ${
-            trend === 'up' ? 'text-emerald-400' : 
-            trend === 'down' ? 'text-red-400' : 'text-gray-400'
+            trend === 'up' ? 'text-emerald-600' : 
+            trend === 'down' ? 'text-red-600' : 'text-gray-400'
           }`}>
             {Math.abs(trendValue)}%
           </span>

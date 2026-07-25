@@ -73,7 +73,7 @@ export default function CreateMenuItemModal({ isOpen, onClose, onSuccess }: Crea
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
             onClick={(e) => e.stopPropagation()}
-            className={`border rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto ${isDark ? 'bg-[#0b0b0b] border-[#D4AF37]/30' : 'bg-white border-gray-200'}`}
+            className={`border rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto ${isDark ? 'bg-white border-[#D4AF37]/30' : 'bg-white border-gray-200'}`}
           >
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-3">
@@ -82,13 +82,13 @@ export default function CreateMenuItemModal({ isOpen, onClose, onSuccess }: Crea
                 </div>
                 <h3 className="text-xl font-bold" style={{ color: colors.primary.goldLight }}>Create Item</h3>
               </div>
-              <button onClick={onClose} className={`p-2 border rounded-lg ${isDark ? 'bg-gray-900 border-gray-800' : 'bg-gray-100 border-gray-300'}`}>
+              <button onClick={onClose} className={`p-2 border rounded-lg ${isDark ? 'bg-gray-900 border-gray-200' : 'bg-gray-100 border-gray-300'}`}>
                 <X size={18} />
               </button>
             </div>
 
             {errorMessage && (
-              <div className={`border text-sm p-3 rounded-lg mb-4 ${isDark ? 'bg-red-950/40 border-red-500/30 text-red-200' : 'bg-red-50 border-red-200 text-red-700'}`}>
+              <div className={`border text-sm p-3 rounded-lg mb-4 ${isDark ? 'bg-red-50/40 border-red-500/30 text-red-200' : 'bg-red-50 border-red-200 text-red-700'}`}>
                 {errorMessage}
               </div>
             )}
@@ -100,7 +100,7 @@ export default function CreateMenuItemModal({ isOpen, onClose, onSuccess }: Crea
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none ${isDark ? 'bg-[#121212] border-gray-800 focus:border-[#D4AF37] text-white' : 'bg-white border-gray-300 focus:border-[#D4AF37] text-gray-900'}`}
+                  className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none ${isDark ? 'bg-gray-50 border-gray-200 focus:border-[#D4AF37] text-white' : 'bg-white border-gray-300 focus:border-[#D4AF37] text-gray-900'}`}
                   placeholder="Enter item name"
                 />
               </div>
@@ -110,7 +110,7 @@ export default function CreateMenuItemModal({ isOpen, onClose, onSuccess }: Crea
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none resize-none ${isDark ? 'bg-[#121212] border-gray-800 focus:border-[#D4AF37] text-white' : 'bg-white border-gray-300 focus:border-[#D4AF37] text-gray-900'}`}
+                  className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none resize-none ${isDark ? 'bg-gray-50 border-gray-200 focus:border-[#D4AF37] text-white' : 'bg-white border-gray-300 focus:border-[#D4AF37] text-gray-900'}`}
                   placeholder="Enter item description"
                   rows={3}
                 />
@@ -124,7 +124,7 @@ export default function CreateMenuItemModal({ isOpen, onClose, onSuccess }: Crea
                   onChange={(e) => setPrice(parseFloat(e.target.value) || 0)}
                   min="0"
                   step="0.01"
-                  className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none ${isDark ? 'bg-[#121212] border-gray-800 focus:border-[#D4AF37] text-white' : 'bg-white border-gray-300 focus:border-[#D4AF37] text-gray-900'}`}
+                  className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none ${isDark ? 'bg-gray-50 border-gray-200 focus:border-[#D4AF37] text-white' : 'bg-white border-gray-300 focus:border-[#D4AF37] text-gray-900'}`}
                   placeholder="0.00"
                 />
               </div>
@@ -134,7 +134,7 @@ export default function CreateMenuItemModal({ isOpen, onClose, onSuccess }: Crea
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none ${isDark ? 'bg-[#121212] border-gray-800 focus:border-[#D4AF37] text-white' : 'bg-white border-gray-300 focus:border-[#D4AF37] text-gray-900'}`}
+                  className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none ${isDark ? 'bg-gray-50 border-gray-200 focus:border-[#D4AF37] text-white' : 'bg-white border-gray-300 focus:border-[#D4AF37] text-gray-900'}`}
                 >
                   <option value="FOOD">Food</option>
                   <option value="DRINK">Drink</option>
@@ -148,18 +148,18 @@ export default function CreateMenuItemModal({ isOpen, onClose, onSuccess }: Crea
                   id="available"
                   checked={available}
                   onChange={(e) => setAvailable(e.target.checked)}
-                  className={`w-4 h-4 rounded focus:ring-offset-0 ${isDark ? 'bg-[#121212] border-gray-800 focus:ring-[#D4AF37]' : 'bg-white border-gray-300 focus:ring-[#D4AF37]'}`}
+                  className={`w-4 h-4 rounded focus:ring-offset-0 ${isDark ? 'bg-gray-50 border-gray-200 focus:ring-[#D4AF37]' : 'bg-white border-gray-300 focus:ring-[#D4AF37]'}`}
                 />
                 <label htmlFor="available" className="text-xs" style={{ color: colors.text.secondary }}>
                   Available
                 </label>
               </div>
 
-              <div className={`flex justify-end gap-3 pt-4 border-t ${isDark ? 'border-gray-800' : 'border-gray-200'}`}>
+              <div className={`flex justify-end gap-3 pt-4 border-t ${isDark ? 'border-gray-200' : 'border-gray-200'}`}>
                 <button
                   type="button"
                   onClick={onClose}
-                  className={`px-4 py-2 border rounded-xl text-xs font-bold transition ${isDark ? 'bg-[#121212] border-gray-800 text-gray-400 hover:text-white' : 'bg-gray-100 border-gray-300 text-gray-600 hover:text-gray-900'}`}
+                  className={`px-4 py-2 border rounded-xl text-xs font-bold transition ${isDark ? 'bg-gray-50 border-gray-200 text-gray-400 hover:text-gray-800' : 'bg-gray-100 border-gray-300 text-gray-600 hover:text-gray-900'}`}
                 >
                   Cancel
                 </button>

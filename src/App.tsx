@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
-  Building, Bell, Search, User, LogOut, Sparkles, Clock, Menu, X, Check, CheckCircle2,
+  Building, Bell, User, LogOut, Sparkles, Clock, Menu, X, Check, CheckCircle2,
   Calendar, BedDouble, Users, MessageSquare, Wrench, Coffee, CreditCard, BarChart3, Globe, Settings, Award, TrendingUp, Brain, Star, FileText, Shield, Crown, ShoppingBag, ShoppingBag as ShoppingBagIcon
 } from 'lucide-react';
 
@@ -23,10 +23,11 @@ import RestaurantStatsSection from './components/RestaurantStatsSection';
 import CafeStatsSection from './components/CafeStatsSection';
 import SpecialOffersSection from './components/SpecialOffersSection';
 import AnalyticsPage from './analytics/AnalyticsPage';
-import ThemeToggle from './components/ThemeToggle';
 import { ThemeProvider } from './contexts/ThemeContext';
 
+
 import { HOTEL_INFO } from './data';
+import { apiService } from './services/api';
 import { Room, Reservation, Guest, ServiceRequest, HousekeepingTask, MaintenanceTicket, RestaurantOrder, Invoice } from './types';
 
 function App() {
@@ -168,13 +169,16 @@ function App() {
     { id: 'n3', title: 'بلاغ صيانة عاجل جديد لجناح 202', time: 'منذ ساعتين', read: true }
   ]);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [globalSearchQuery, setGlobalSearchQuery] = useState('');
-  const [showSearchResults, setShowSearchResults] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  // Quick Modal Triggers (propagated from dashboard quick links)
+  // Quick Modal Triggers
   const [quickBookOpen, setQuickBookOpen] = useState(false);
   const [quickRequestOpen, setQuickRequestOpen] = useState(false);
+  const [quickBookName, setQuickBookName] = useState('');
+  const [quickBookRoom, setQuickBookRoom] = useState('');
+  const [quickReqRoom, setQuickReqRoom] = useState('');
+  const [quickReqType, setQuickReqType] = useState('room_service');
+  const [quickReqDetails, setQuickReqDetails] = useState('');
 
   // Sync to localStorage on every state change to keep data persistent
   useEffect(() => {
@@ -220,12 +224,18 @@ function App() {
     }, 1500);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await apiService.logout();
+    } catch (error) {
+      console.error('Logout API failed:', error);
+    }
     setIsLoggedIn(false);
     setCurrentUser(null);
     localStorage.removeItem('lytc_logged_in');
     localStorage.removeItem('lytc_user');
     localStorage.removeItem('lytc_session_timestamp');
+    localStorage.removeItem('auth_token');
     window.location.hash = '';
   };
 
@@ -335,29 +345,6 @@ function App() {
     setInvoices(prev => prev.map(inv => inv.id === invId ? { ...inv, status } : inv));
   };
 
-  // Global Search logic
-  const searchResults = () => {
-    if (!globalSearchQuery) return [];
-    const lower = globalSearchQuery.toLowerCase();
-    const results: Array<{ type: string; title: string; subtitle: string; actionTab: typeof activeTab }> = [];
-
-    // Search guests
-    guests.forEach(g => {
-      if (g.name.toLowerCase().includes(lower)) {
-        results.push({ type: 'نزيل', title: g.name, subtitle: `هاتف: ${g.phone}`, actionTab: 'النزلاء' });
-      }
-    });
-
-    // Search invoices
-    invoices.forEach(inv => {
-      if (inv.id.toLowerCase().includes(lower) || inv.guestName.toLowerCase().includes(lower)) {
-        results.push({ type: 'فاتورة', title: `فاتورة ${inv.id}`, subtitle: `للنزيل: ${inv.guestName}`, actionTab: 'المدفوعات' });
-      }
-    });
-
-    return results.slice(0, 5);
-  };
-
   // Render modular views
   const renderActiveView = () => {
     switch (activeTab) {
@@ -405,9 +392,9 @@ function App() {
     return (
       <>
         {isLoggingIn && (
-          <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex flex-col items-center justify-center">
+          <div className="fixed inset-0 bg-white/90 backdrop-blur-md z-50 flex flex-col items-center justify-center">
             <Building className="w-16 h-16 text-[#D4AF37] animate-pulse mb-4" />
-            <span className="text-[#E6C587] font-black text-sm tracking-widest animate-pulse">جاري فحص المدارات والتحقق الأمني الرقمي...</span>
+            <span className="text-[#AA7B30] font-black text-sm tracking-widest animate-pulse">جاري فحص المدارات والتحقق الأمني الرقمي...</span>
           </div>
         )}
         <Login onLoginSuccess={handleLoginSuccess} />
@@ -416,7 +403,7 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#030303] text-gray-200 font-sans flex relative overflow-hidden">
+    <div className="min-h-screen bg-[#F8F6F2] text-gray-800 font-sans flex relative overflow-hidden">
       
       {/* Luxury Loading Boot Screen */}
       <AnimatePresence>
@@ -426,16 +413,16 @@ function App() {
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.6 }}
-            className="fixed inset-0 bg-[#030303] z-[100] flex flex-col items-center justify-center space-y-6"
+            className="fixed inset-0 bg-[#F8F6F2] z-[100] flex flex-col items-center justify-center space-y-6"
           >
-            <div className="inline-flex items-center justify-center p-5 rounded-full bg-gradient-to-br from-[#121212] to-[#1d1d1d] border border-[#D4AF37]/30 shadow-[0_0_50px_rgba(212,175,55,0.2)] animate-bounce">
+            <div className="inline-flex items-center justify-center p-5 rounded-full bg-gradient-to-br from-white to-gray-50 border border-[#D4AF37]/30 shadow-[0_0_50px_rgba(212,175,55,0.15)] animate-bounce">
               <img src="/logo.jpg" alt="LYTC Logo" className="w-16 h-16 rounded-full object-cover" />
             </div>
             <div className="space-y-1.5 text-center">
-              <h1 className="text-xl font-extrabold tracking-widest text-[#E6C587]">ليتك للفنادق والمنتجعات الفاخرة</h1>
-              <p className="text-[10px] text-gray-500 font-bold tracking-wider">LYTC HOTELS & RESORTS • ROYAL MANAGEMENT PORTAL</p>
+              <h1 className="text-xl font-extrabold tracking-widest text-[#AA7B30]">ليتك للفنادق والمنتجعات الفاخرة</h1>
+              <p className="text-xs text-gray-400 font-bold tracking-wider">LYTC HOTELS & RESORTS • ROYAL MANAGEMENT PORTAL</p>
             </div>
-            <div className="w-48 h-1 bg-gray-900 rounded-full overflow-hidden relative">
+            <div className="w-48 h-1 bg-gray-200 rounded-full overflow-hidden relative">
               <div className="absolute top-0 right-0 h-full w-2/3 bg-gradient-to-l from-[#AA7B30] to-[#D4AF37] rounded-full animate-pulse" />
             </div>
           </motion.div>
@@ -443,19 +430,18 @@ function App() {
       </AnimatePresence>
 
       {/* BACKGROUND GRAPHICS */}
-      <div className="absolute top-0 right-0 w-[50%] h-[50%] rounded-full bg-[radial-gradient(circle,rgba(212,175,55,0.04)_0%,transparent_70%)] pointer-events-none" />
+      <div className="absolute top-0 right-0 w-[50%] h-[50%] rounded-full bg-[radial-gradient(circle,rgba(212,175,55,0.06)_0%,transparent_70%)] pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-[50%] h-[50%] rounded-full bg-[radial-gradient(circle,rgba(30,64,175,0.04)_0%,transparent_70%)] pointer-events-none" />
 
       {/* Sidebar for Desktop */}
-      <aside className="hidden lg:flex flex-col w-72 bg-[#060606] border-l border-gray-900 shrink-0 p-6 space-y-8 relative z-20 shadow-[5px_0_30px_rgba(0,0,0,0.6)]">
+      <aside className="hidden lg:flex flex-col w-72 bg-white border-l border-gray-200 shrink-0 p-6 space-y-8 relative z-20 shadow-[5px_0_30px_rgba(0,0,0,0.06)]">
         {/* Brand Header */}
-        <div className="flex items-center gap-3.5 pb-5 border-b border-gray-900">
-          <div className="p-2.5 rounded-lg bg-amber-950/20 border border-[#D4AF37]/20">
+        <div className="flex items-center gap-3.5 pb-5 border-b border-gray-200">
+          <div className="p-2.5 rounded-lg bg-amber-50 border border-[#D4AF37]/20">
             <img src="/logo.jpg" alt="LYTC Logo" className="w-10 h-10 rounded-lg object-cover" />
           </div>
           <div>
-            <h2 className="text-sm font-black text-[#E6C587]">ليتك للضيافة الفاخرة</h2>
-            <span className="text-[9px] text-gray-500 font-bold uppercase tracking-wider">LYTC LUXURY HOTELS</span>
+            <h2 className="text-sm font-black text-[#AA7B30]">ليتك للضيافة الفاخرة</h2>
           </div>
         </div>
 
@@ -468,15 +454,15 @@ function App() {
               className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-xs font-bold transition-all duration-200 group ${
                 activeTab === item.label
                   ? 'bg-[#D4AF37] text-black shadow-[0_5px_15px_rgba(212,175,55,0.2)]'
-                  : 'text-gray-400 hover:text-white hover:bg-[#121212] border border-transparent hover:border-gray-900'
+                  : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50 border border-transparent hover:border-gray-200'
               }`}
             >
               <div className="flex items-center gap-3">
                 {item.icon}
                 <span>{item.label}</span>
               </div>
-              <span className={`text-[10px] font-mono opacity-0 group-hover:opacity-60 transition ${
-                activeTab === item.label ? 'text-black' : 'text-gray-500'
+              <span className={`text-xs font-mono opacity-0 group-hover:opacity-60 transition ${
+                activeTab === item.label ? 'text-black' : 'text-gray-400'
               }`}>
                 ●
               </span>
@@ -484,92 +470,38 @@ function App() {
           ))}
         </nav>
 
-        {/* Admin Footer Row */}
-        <div className="pt-4 border-t border-gray-900 flex justify-between items-center text-xs">
-          <div>
-            <span className="text-gray-300 font-bold block">مرحباً {userRoleDisplay}</span>
-            <span className="text-[10px] text-gray-500 block">نظام إدارة الفندق</span>
-          </div>
-          <button
-            onClick={handleLogout}
-            className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-950/20 rounded-lg transition"
-            title="تسجيل الخروج"
-          >
-            <LogOut size={16} />
-          </button>
-        </div>
+        {/* Logout Button */}
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-50 border border-red-200 text-red-600 font-bold text-sm rounded-xl hover:bg-red-100 hover:border-red-300 transition-all"
+        >
+          <LogOut size={18} />
+          <span>تسجيل الخروج</span>
+        </button>
       </aside>
 
       {/* Main Panel Content Wrapper */}
       <div className="flex-1 flex flex-col overflow-hidden relative z-10">
         
         {/* Top Coordinator Navigation Bar */}
-        <header className="h-18 bg-[#060606]/90 border-b border-gray-900 px-6 flex items-center justify-between gap-6 backdrop-blur-md relative z-30 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
+        <header className="h-18 bg-white/90 border-b border-gray-200 px-6 flex items-center justify-between gap-6 backdrop-blur-md relative z-30 shadow-[0_4px_30px_rgba(0,0,0,0.04)]">
           {/* Right Part: Mobile menu triggers, Global Search */}
           <div className="flex items-center gap-4 flex-1">
             <button
               onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
-              className="p-2 bg-gray-900 border border-gray-800 rounded-lg lg:hidden text-white hover:bg-gray-800"
+              className="p-2 bg-gray-100 border border-gray-200 rounded-lg lg:hidden text-gray-700 hover:bg-gray-200"
             >
               <Menu size={18} />
             </button>
-
-            {/* Global Search Interface */}
-            <div className="relative w-full max-w-sm hidden sm:block">
-              <input
-                type="text"
-                className="w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] rounded-xl pr-9 pl-3 py-2 text-xs text-white focus:outline-none placeholder-gray-500"
-                placeholder="البحث الشامل بالنزلاء، الغرف، الفواتير..."
-                value={globalSearchQuery}
-                onChange={(e) => {
-                  setGlobalSearchQuery(e.target.value);
-                  setShowSearchResults(true);
-                }}
-                onFocus={() => setShowSearchResults(true)}
-              />
-              <Search className="absolute right-3 top-2.5 text-gray-500 w-4 h-4" />
-
-              {/* Real-time Search Results overlay */}
-              {showSearchResults && globalSearchQuery && (
-                <div className="absolute top-12 right-0 w-full bg-[#0b0b0b] border border-gray-800 rounded-xl shadow-2xl p-2.5 space-y-1.5 z-50">
-                  <div className="flex justify-between items-center px-1.5 pb-1 border-b border-gray-900 text-[10px] text-gray-500">
-                    <span>نتائج البحث الفورية</span>
-                    <button onClick={() => setShowSearchResults(false)} className="hover:text-white">إغلاق ×</button>
-                  </div>
-                  {searchResults().length > 0 ? (
-                    searchResults().map((res, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => {
-                          handleTabChange(res.actionTab);
-                          setShowSearchResults(false);
-                          setGlobalSearchQuery('');
-                        }}
-                        className="w-full text-right p-2 hover:bg-white/[0.02] rounded-lg flex items-center justify-between text-xs transition duration-150"
-                      >
-                        <div>
-                          <span className="font-bold text-white block">{res.title}</span>
-                          <span className="text-[10px] text-gray-500 block mt-0.5">{res.subtitle}</span>
-                        </div>
-                        <span className="text-[10px] bg-amber-950/20 text-[#D4AF37] px-2 py-0.5 rounded font-bold">{res.type}</span>
-                      </button>
-                    ))
-                  ) : (
-                    <div className="text-center py-4 text-xs text-gray-600 font-bold">لا توجد سجلات مطابقة</div>
-                  )}
-                </div>
-              )}
-            </div>
           </div>
 
           {/* Left Part: Quick Clock */}
           <div className="flex items-center gap-4 relative">
             {/* Clock */}
-            <span className="text-xs font-mono text-gray-400 font-bold hidden md:inline-flex bg-[#121212] border border-gray-850 px-3 py-1.5 rounded-lg select-none">
+            <span className="text-xs font-mono text-gray-500 font-bold hidden md:inline-flex bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-lg select-none">
               {new Date().toLocaleDateString('ar-SA', { weekday: 'long', day: 'numeric', month: 'long', calendar: 'gregory' })}
             </span>
-            {/* Theme Toggle */}
-            <ThemeToggle />
+
           </div>
         </header>
 
@@ -588,24 +520,24 @@ function App() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setMobileSidebarOpen(false)}
-              className="fixed inset-0 bg-black/80 z-[60] lg:hidden"
+              className="fixed inset-0 bg-black/30 z-[60] lg:hidden"
             />
             <motion.aside
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25 }}
-              className="fixed inset-y-0 right-0 w-72 bg-[#060606] border-l border-gray-900 z-[70] p-6 flex flex-col justify-between lg:hidden overflow-y-auto"
+              className="fixed inset-y-0 right-0 w-72 bg-white border-l border-gray-200 z-[70] p-6 flex flex-col justify-between lg:hidden overflow-y-auto"
             >
               <div className="space-y-6">
-                <div className="flex justify-between items-center pb-4 border-b border-gray-900">
+                <div className="flex justify-between items-center pb-4 border-b border-gray-200">
                   <div className="flex items-center gap-2">
                     <img src="/logo.jpg" alt="LYTC Logo" className="w-8 h-8 rounded-lg object-cover" />
-                    <span className="text-sm font-black text-[#E6C587]">ليتك للضيافة</span>
+                    <span className="text-sm font-black text-[#AA7B30]">ليتك للضيافة</span>
                   </div>
                   <button
                     onClick={() => setMobileSidebarOpen(false)}
-                    className="p-1.5 bg-gray-900 rounded-lg text-white"
+                    className="p-1.5 bg-gray-100 rounded-lg text-gray-700"
                   >
                     <X size={16} />
                   </button>
@@ -622,7 +554,7 @@ function App() {
                       className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                         activeTab === item.label
                           ? 'bg-[#D4AF37] text-black shadow-lg'
-                          : 'text-gray-400 hover:bg-gray-900 hover:text-white'
+                          : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
                       }`}
                     >
                       {item.icon}
@@ -632,16 +564,13 @@ function App() {
                 </nav>
               </div>
 
-              <div className="pt-4 border-t border-gray-900 flex justify-between items-center">
-                <span className="text-xs text-gray-400 font-bold">مرحباً {userRoleDisplay}</span>
-                <button
-                  onClick={handleLogout}
-                  className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-950/20 rounded-lg transition"
-                  title="تسجيل الخروج"
-                >
-                  <LogOut size={16} />
-                </button>
-              </div>
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-50 border border-red-200 text-red-600 font-bold text-sm rounded-xl hover:bg-red-100 hover:border-red-300 transition-all"
+              >
+                <LogOut size={18} />
+                <span>تسجيل الخروج</span>
+              </button>
             </motion.aside>
           </>
         )}
@@ -650,55 +579,55 @@ function App() {
       {/* QUICK GLOBAL MODALS (CALLED FROM DASHBOARD CARD CLICKS) */}
       {/* 1. Quick Reservation Modal */}
       {quickBookOpen && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0b0b0b] border border-[#D4AF37]/30 rounded-2xl p-6 max-w-md w-full relative space-y-4 text-xs font-bold">
-            <h3 className="text-base font-bold text-[#E6C587]">حجز سريع فوري</h3>
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-gray-200 rounded-2xl p-6 max-w-md w-full relative space-y-4 shadow-xl">
+            <h3 className="text-lg font-black text-[#AA7B30]">حجز سريع فوري</h3>
             <div className="space-y-3 text-right">
-              <label className="text-gray-400 block">اسم النزيل الثلاثي:</label>
+              <label className="text-sm font-bold text-gray-600 block">اسم النزيل:</label>
               <input
                 type="text"
-                id="qb-name"
-                className="w-full bg-[#121212] border border-gray-800 rounded-xl px-3 py-2 text-white focus:outline-none"
+                value={quickBookName}
+                onChange={(e) => setQuickBookName(e.target.value)}
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#D4AF37] transition"
                 placeholder="مثال: الشيخ سليمان آل سعود"
               />
-              <label className="text-gray-400 block">رقم الغرفة:</label>
+              <label className="text-sm font-bold text-gray-600 block">رقم الغرفة:</label>
               <input
                 type="text"
-                id="qb-room"
-                className="w-full bg-[#121212] border border-gray-800 rounded-xl px-3 py-2 text-white focus:outline-none"
+                value={quickBookRoom}
+                onChange={(e) => setQuickBookRoom(e.target.value)}
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#D4AF37] transition"
                 placeholder="مثال: 101"
               />
               <div className="flex gap-3 pt-2">
                 <button
-                  onClick={() => setQuickBookOpen(false)}
-                  className="w-1/3 py-2 bg-gray-900 border border-gray-800 rounded-xl text-gray-400"
+                  onClick={() => { setQuickBookOpen(false); setQuickBookName(''); setQuickBookRoom(''); }}
+                  className="w-1/3 py-3 bg-gray-100 border border-gray-200 rounded-xl text-gray-500 font-bold text-sm"
                 >
                   إلغاء
                 </button>
                 <button
-                  onClick={() => {
-                    const elName = document.getElementById('qb-name') as HTMLInputElement;
-                    const elRoom = document.getElementById('qb-room') as HTMLSelectElement;
-                    if (elName && elName.value && elRoom && elRoom.value) {
-                      handleAddReservation({
-                        id: `res-${Date.now().toString().slice(-3)}`,
-                        guestName: elName.value,
-                        roomNumber: elRoom.value,
-                        checkIn: '2026-07-05',
-                        checkOut: '2026-07-12',
-                        status: 'upcoming',
-                        amount: 15400,
-                        guestId: 'g-quick',
-                        adultCount: 2,
-                        childrenCount: 0
+                  onClick={async () => {
+                    if (!quickBookName || !quickBookRoom) { alert('الرجاء تعبئة الاسم ورقم الغرفة'); return; }
+                    try {
+                      await apiService.createStay({
+                        guestName: quickBookName,
+                        phone: '0500000000',
+                        roomNumber: quickBookRoom,
+                        numAdults: 2,
+                        numKids: 0,
+                        expectedCheckInDate: new Date().toISOString().split('T')[0],
+                        expectedCheckOutDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
                       });
                       setQuickBookOpen(false);
-                      alert('تم إنشاء وتسجيل الحجز السريع بنجاح!');
-                    } else {
-                      alert('الرجاء تعبئة الاسم واختيار الغرفة');
+                      setQuickBookName('');
+                      setQuickBookRoom('');
+                      alert('تم إنشاء الحجز بنجاح!');
+                    } catch (error) {
+                      alert('فشل إنشاء الحجز. تأكد من صحة البيانات.');
                     }
                   }}
-                  className="w-2/3 py-2 bg-gradient-to-r from-[#AA7B30] to-[#D4AF37] text-black font-extrabold rounded-xl"
+                  className="w-2/3 py-3 bg-gradient-to-r from-[#AA7B30] to-[#D4AF37] text-white font-extrabold text-sm rounded-xl"
                 >
                   تأكيد الحجز
                 </button>
@@ -710,21 +639,23 @@ function App() {
 
       {/* 2. Quick Guest Request Modal */}
       {quickRequestOpen && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0b0b0b] border border-[#D4AF37]/30 rounded-2xl p-6 max-w-md w-full relative space-y-4 text-xs font-bold">
-            <h3 className="text-base font-bold text-[#E6C587]">تسجيل طلب خدمة نزيل</h3>
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-gray-200 rounded-2xl p-6 max-w-md w-full relative space-y-4 shadow-xl">
+            <h3 className="text-lg font-black text-[#AA7B30]">تسجيل طلب خدمة نزيل</h3>
             <div className="space-y-3 text-right">
-              <label className="text-gray-400 block">رقم الغرفة:</label>
+              <label className="text-sm font-bold text-gray-600 block">رقم الغرفة:</label>
               <input
                 type="text"
-                id="qr-room"
-                className="w-full bg-[#121212] border border-gray-800 rounded-xl px-3 py-2 text-white focus:outline-none"
+                value={quickReqRoom}
+                onChange={(e) => setQuickReqRoom(e.target.value)}
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#D4AF37] transition"
                 placeholder="مثال: 501"
               />
-              <label className="text-gray-400 block">تصنيف الخدمة:</label>
+              <label className="text-sm font-bold text-gray-600 block">تصنيف الخدمة:</label>
               <select
-                id="qr-type"
-                className="w-full bg-[#121212] border border-gray-800 rounded-xl px-3 py-2 text-white focus:outline-none"
+                value={quickReqType}
+                onChange={(e) => setQuickReqType(e.target.value)}
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#D4AF37] transition"
               >
                 <option value="room_service">خدمة غرف وطعام</option>
                 <option value="laundry">مغسلة وكي ملابس</option>
@@ -732,42 +663,38 @@ function App() {
                 <option value="spa">حجز سبا ومساج</option>
                 <option value="taxi">ليموزين ونقل</option>
               </select>
-              <label className="text-gray-400 block">تفاصيل الطلب الدقيقة:</label>
+              <label className="text-sm font-bold text-gray-600 block">تفاصيل الطلب:</label>
               <textarea
-                id="qr-details"
-                className="w-full h-20 bg-[#121212] border border-gray-800 rounded-xl p-3 text-white focus:outline-none"
-                placeholder="توصيل قهوة عربية بالزعفران وحلويات تمور فاخرة للجناح..."
+                value={quickReqDetails}
+                onChange={(e) => setQuickReqDetails(e.target.value)}
+                className="w-full h-20 bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm text-gray-800 focus:outline-none focus:border-[#D4AF37] transition resize-none"
+                placeholder="توصيل قهوة عربية بالزعفران..."
               />
               <div className="flex gap-3 pt-2">
                 <button
-                  onClick={() => setQuickRequestOpen(false)}
-                  className="w-1/3 py-2 bg-gray-900 border border-gray-800 rounded-xl text-gray-400"
+                  onClick={() => { setQuickRequestOpen(false); setQuickReqRoom(''); setQuickReqDetails(''); }}
+                  className="w-1/3 py-3 bg-gray-100 border border-gray-200 rounded-xl text-gray-500 font-bold text-sm"
                 >
                   إلغاء
                 </button>
                 <button
                   onClick={() => {
-                    const elRoom = document.getElementById('qr-room') as HTMLInputElement;
-                    const elType = document.getElementById('qr-type') as HTMLSelectElement;
-                    const elDetails = document.getElementById('qr-details') as HTMLTextAreaElement;
-                    if (elRoom && elRoom.value && elDetails && elDetails.value) {
-                      const newReq: ServiceRequest = {
-                        id: `req-${Date.now().toString().slice(-3)}`,
-                        roomNumber: elRoom.value,
-                        type: elType.value as any,
-                        details: elDetails.value,
-                        status: 'pending',
-                        priority: 'medium',
-                        timestamp: new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })
-                      };
-                      setRequests(prev => [newReq, ...prev]);
-                      setQuickRequestOpen(false);
-                      alert('تم تسجيل طلب الخدمة للنزيل بنجاح وجاري إعلام الموظف المسؤول!');
-                    } else {
-                      alert('الرجاء تعبئة رقم الغرفة وتفاصيل الطلب');
-                    }
+                    if (!quickReqRoom || !quickReqDetails) { alert('الرجاء تعبئة رقم الغرفة وتفاصيل الطلب'); return; }
+                    const newReq: ServiceRequest = {
+                      id: `req-${Date.now().toString().slice(-3)}`,
+                      roomNumber: quickReqRoom,
+                      type: quickReqType as any,
+                      details: quickReqDetails,
+                      status: 'pending',
+                      priority: 'medium',
+                      timestamp: new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })
+                    };
+                    setRequests(prev => [newReq, ...prev]);
+                    setQuickRequestOpen(false);
+                    setQuickReqRoom('');
+                    setQuickReqDetails('');
                   }}
-                  className="w-2/3 py-2 bg-gradient-to-r from-[#AA7B30] to-[#D4AF37] text-black font-extrabold rounded-xl"
+                  className="w-2/3 py-3 bg-gradient-to-r from-[#AA7B30] to-[#D4AF37] text-white font-extrabold text-sm rounded-xl"
                 >
                   تسجيل وإرسال الطلب
                 </button>

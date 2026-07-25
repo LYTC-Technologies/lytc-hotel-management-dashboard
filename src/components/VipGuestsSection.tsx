@@ -70,9 +70,9 @@ export default function VipGuestsSection() {
   return (
     <div className="space-y-6 pb-12">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-900 pb-5">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-200 pb-5">
         <div>
-          <h1 className="text-2xl font-black text-[#E6C587]">النزلاء VIP</h1>
+          <h1 className="text-2xl font-black text-[#AA7B30]">النزلاء VIP</h1>
           <p className="text-gray-500 text-xs mt-1">عرض وإدارة النزلاء المميزين في الفندق</p>
         </div>
         <button
@@ -85,7 +85,7 @@ export default function VipGuestsSection() {
       </div>
 
       {/* Search Bar */}
-      <div className="flex items-center gap-3 bg-[#0b0b0b] border border-gray-900 p-4 rounded-xl">
+      <div className="flex items-center gap-3 bg-white border border-gray-200 p-4 rounded-xl">
         <div className="relative">
           <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" />
           <input
@@ -93,7 +93,7 @@ export default function VipGuestsSection() {
             placeholder="بحث بالاسم أو الهاتف أو الجنسية..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="bg-[#121212] border border-gray-800 focus:border-[#D4AF37] rounded-lg px-4 py-2 pr-10 text-xs text-white focus:outline-none w-48"
+            className="bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-lg px-4 py-2 pr-10 text-xs text-gray-800 focus:outline-none w-48"
           />
         </div>
       </div>
@@ -104,7 +104,7 @@ export default function VipGuestsSection() {
           <Loader2 size={24} className="text-[#D4AF37] animate-spin" />
         </div>
       ) : error ? (
-        <div className="text-center py-16 bg-[#0b0b0b] border border-gray-900 rounded-2xl">
+        <div className="text-center py-16 bg-white border border-gray-200 rounded-2xl">
           <XCircle size={48} className="text-red-500 mx-auto mb-4" />
           <h3 className="text-sm font-bold text-gray-400 mb-2">فشل تحميل النزلاء VIP</h3>
           <p className="text-xs text-gray-600 mb-4">{error}</p>
@@ -116,7 +116,7 @@ export default function VipGuestsSection() {
           </button>
         </div>
       ) : filteredVips.length === 0 ? (
-        <div className="text-center py-16 bg-[#0b0b0b] border border-gray-900 rounded-2xl">
+        <div className="text-center py-16 bg-white border border-gray-200 rounded-2xl">
           <AlertCircle size={48} className="text-gray-500 mx-auto mb-4" />
           <h3 className="text-sm font-bold text-gray-400 mb-2">لا يوجد نزلاء VIP</h3>
           <p className="text-xs text-gray-600 mb-4">لا يوجد حالياً نزلاء مميزين في النظام</p>
@@ -124,14 +124,14 @@ export default function VipGuestsSection() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredVips.map((vip) => (
-            <div key={vip.id} className="bg-[#0b0b0b] border border-gray-900 rounded-xl p-6 hover:border-[#D4AF37]/35 transition duration-300">
+            <div key={vip.id} className="bg-white border border-gray-200 rounded-xl p-6 hover:border-[#D4AF37]/35 transition duration-300">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-[#D4AF37]/20 border border-[#D4AF37]/30 rounded-xl flex items-center justify-center">
-                    <Crown size={24} className="text-[#E6C587]" />
+                    <Crown size={24} className="text-[#AA7B30]" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-white">{vip.fullName}</h3>
+                    <h3 className="text-lg font-bold text-gray-800">{vip.fullName}</h3>
                     <span className="text-xs text-gray-500 font-mono">ID: {vip.id}</span>
                   </div>
                 </div>
@@ -169,7 +169,7 @@ export default function VipGuestsSection() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4"
             onClick={() => setIsCreateModalOpen(false)}
           >
             <motion.div
@@ -177,26 +177,26 @@ export default function VipGuestsSection() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="bg-[#0b0b0b] border border-[#D4AF37]/30 rounded-2xl p-6 max-w-md w-full relative space-y-4"
+              className="bg-white border border-[#D4AF37]/30 rounded-2xl p-6 max-w-md w-full relative space-y-4"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent" />
               
-              <div className="flex justify-between items-start border-b border-gray-800 pb-4">
+              <div className="flex justify-between items-start border-b border-gray-200 pb-4">
                 <div>
-                  <h3 className="text-xl font-bold text-[#E6C587]">إضافة VIP جديد</h3>
+                  <h3 className="text-xl font-bold text-[#AA7B30]">إضافة VIP جديد</h3>
                   <p className="text-sm text-gray-500 mt-1">أدخل بيانات النزيل المميز</p>
                 </div>
                 <button
                   onClick={() => setIsCreateModalOpen(false)}
-                  className="p-2 bg-gray-900 border border-gray-800 hover:bg-gray-800 rounded-lg"
+                  className="p-2 bg-gray-100 border border-gray-200 hover:bg-gray-200 rounded-lg"
                 >
                   <X size={18} />
                 </button>
               </div>
 
               {createError && (
-                <div className="p-3 bg-red-950/20 border border-red-500/20 rounded-lg text-xs text-red-400">
+                <div className="p-3 bg-red-50/20 border border-red-500/20 rounded-lg text-xs text-red-600">
                   {createError}
                 </div>
               )}
@@ -208,7 +208,7 @@ export default function VipGuestsSection() {
                     type="text"
                     value={newVip.fullName}
                     onChange={(e) => setNewVip({ ...newVip, fullName: e.target.value })}
-                    className="w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] rounded-lg px-4 py-2 text-xs text-white focus:outline-none"
+                    className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-lg px-4 py-2 text-xs text-gray-800 focus:outline-none"
                     placeholder="أدخل الاسم الكامل"
                   />
                 </div>
@@ -218,7 +218,7 @@ export default function VipGuestsSection() {
                     type="text"
                     value={newVip.phone}
                     onChange={(e) => setNewVip({ ...newVip, phone: e.target.value })}
-                    className="w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] rounded-lg px-4 py-2 text-xs text-white focus:outline-none"
+                    className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-lg px-4 py-2 text-xs text-gray-800 focus:outline-none"
                     placeholder="أدخل رقم الهاتف"
                   />
                 </div>
@@ -228,7 +228,7 @@ export default function VipGuestsSection() {
                     type="text"
                     value={newVip.nationality}
                     onChange={(e) => setNewVip({ ...newVip, nationality: e.target.value })}
-                    className="w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] rounded-lg px-4 py-2 text-xs text-white focus:outline-none"
+                    className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-lg px-4 py-2 text-xs text-gray-800 focus:outline-none"
                     placeholder="أدخل الجنسية"
                   />
                 </div>
@@ -237,14 +237,14 @@ export default function VipGuestsSection() {
                   <textarea
                     value={newVip.notes}
                     onChange={(e) => setNewVip({ ...newVip, notes: e.target.value })}
-                    className="w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] rounded-lg px-4 py-2 text-xs text-white focus:outline-none resize-none"
+                    className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-lg px-4 py-2 text-xs text-gray-800 focus:outline-none resize-none"
                     placeholder="أدخل أي ملاحظات"
                     rows={3}
                   />
                 </div>
               </div>
 
-              <div className="flex gap-3 pt-4 border-t border-gray-800">
+              <div className="flex gap-3 pt-4 border-t border-gray-200">
                 <button
                   onClick={handleCreateVip}
                   disabled={isCreating}
@@ -256,7 +256,7 @@ export default function VipGuestsSection() {
                 <button
                   onClick={() => setIsCreateModalOpen(false)}
                   disabled={isCreating}
-                  className="flex-1 px-4 py-2 bg-[#121212] border border-gray-800 text-gray-400 font-bold text-xs rounded-xl hover:text-white disabled:opacity-50"
+                  className="flex-1 px-4 py-2 bg-gray-50 border border-gray-200 text-gray-400 font-bold text-xs rounded-xl hover:text-gray-800 disabled:opacity-50"
                 >
                   إلغاء
                 </button>

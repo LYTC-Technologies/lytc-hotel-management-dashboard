@@ -31,7 +31,6 @@ export default function SpecialOrdersManagementSection() {
     setError(null);
     try {
       const response = await apiService.getManagerSpecialOrders(0, 50);
-      console.log('Special orders response:', response);
       // According to Swagger, this returns PageSpecialOrderResponse
       if (Array.isArray(response)) {
         setSpecialOrders(response);
@@ -62,7 +61,6 @@ export default function SpecialOrdersManagementSection() {
         specialOfferId,
         agreedPrice
       });
-      console.log('Special order created:', response);
       setSpecialOrders([...specialOrders, response]);
       setViewMode('list');
       // Reset form

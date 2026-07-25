@@ -65,7 +65,7 @@ export default function SpecialOffersModal({ isOpen, onClose, onSuccess }: Speci
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4"
         >
           <motion.div
             initial={{ scale: 0.95, opacity: 0 }}
@@ -73,14 +73,14 @@ export default function SpecialOffersModal({ isOpen, onClose, onSuccess }: Speci
             exit={{ scale: 0.95, opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={(e) => e.stopPropagation()}
-            className="bg-[#0b0b0b] border border-[#D4AF37]/30 rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto relative"
+            className="bg-white border border-[#D4AF37]/30 rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto relative"
           >
             <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent" />
             
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
               <div>
-                <h2 className="text-xl font-bold text-[#E6C587] flex items-center gap-2">
+                <h2 className="text-xl font-bold text-[#AA7B30] flex items-center gap-2">
                   <Tag size={20} className="text-[#D4AF37]" />
                   إنشاء عرض خاص جديد
                 </h2>
@@ -88,7 +88,7 @@ export default function SpecialOffersModal({ isOpen, onClose, onSuccess }: Speci
               </div>
               <button
                 onClick={onClose}
-                className="p-2 bg-gray-900 border border-gray-800 hover:bg-gray-800 rounded-lg transition"
+                className="p-2 bg-gray-100 border border-gray-200 hover:bg-gray-200 rounded-lg transition"
               >
                 <X size={18} />
               </button>
@@ -97,7 +97,7 @@ export default function SpecialOffersModal({ isOpen, onClose, onSuccess }: Speci
             {/* Form */}
             <div className="space-y-5">
               {errorMessage && (
-                <div className="p-3 bg-red-950/20 border border-red-500/20 rounded-lg text-red-400 text-xs">
+                <div className="p-3 bg-red-50/20 border border-red-500/20 rounded-lg text-red-600 text-xs">
                   {errorMessage}
                 </div>
               )}
@@ -105,14 +105,14 @@ export default function SpecialOffersModal({ isOpen, onClose, onSuccess }: Speci
               {/* Offer Title */}
               <div>
                 <label className="block text-xs font-bold text-gray-400 mb-2">
-                  عنوان العرض <span className="text-red-400">*</span>
+                  عنوان العرض <span className="text-red-600">*</span>
                 </label>
                 <input
                   type="text"
                   name="title"
                   value={formData.title}
                   onChange={handleInputChange}
-                  className="w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-white focus:outline-none transition"
+                  className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-white focus:outline-none transition"
                   placeholder="مثال: عرض الصيف الفاخر"
                   required
                 />
@@ -121,13 +121,13 @@ export default function SpecialOffersModal({ isOpen, onClose, onSuccess }: Speci
               {/* Description */}
               <div>
                 <label className="block text-xs font-bold text-gray-400 mb-2">
-                  وصف العرض <span className="text-red-400">*</span>
+                  وصف العرض <span className="text-red-600">*</span>
                 </label>
                 <textarea
                   name="description"
                   value={formData.description}
                   onChange={handleInputChange}
-                  className="w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-white focus:outline-none transition resize-none"
+                  className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-white focus:outline-none transition resize-none"
                   rows={4}
                   placeholder="وصف تفصيلي للعرض..."
                   required
@@ -135,11 +135,11 @@ export default function SpecialOffersModal({ isOpen, onClose, onSuccess }: Speci
               </div>
 
               {/* Submit Button */}
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-800">
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 bg-[#121212] border border-gray-800 text-gray-400 rounded-xl text-xs font-bold hover:text-white transition"
+                  className="px-4 py-2 bg-gray-50 border border-gray-200 text-gray-400 rounded-xl text-xs font-bold hover:text-gray-800 transition"
                 >
                   إلغاء
                 </button>

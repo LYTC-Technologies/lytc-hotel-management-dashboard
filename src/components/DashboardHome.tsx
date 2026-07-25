@@ -70,15 +70,6 @@ export default function DashboardHome({
           apiService.getCafeStats()
         ]);
 
-        console.log('API Responses:', {
-          roomsData,
-          staysData,
-          vipsData,
-          specialOrdersData,
-          restaurantStatsData,
-          cafeStatsData
-        });
-
         // Transform rooms data
         const transformedRooms = (roomsData.content || []).map((room: any) => ({
           id: room.id.toString(),
@@ -206,7 +197,7 @@ export default function DashboardHome({
             <div className="text-2xl font-black font-mono tracking-widest mt-1" style={{ color: colors.primary.goldLight }}>
               {time}
             </div>
-            <div className="text-[10px] mt-0.5" style={{ color: colors.text.disabled }}>{new Date().toLocaleDateString('ar-SA', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', calendar: 'gregory' })}</div>
+            <div className="text-xs mt-0.5" style={{ color: colors.text.disabled }}>{new Date().toLocaleDateString('ar-SA', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', calendar: 'gregory' })}</div>
           </div>
         </div>
       </div>
@@ -218,7 +209,7 @@ export default function DashboardHome({
           <div className="absolute top-0 left-0 w-1.5 h-full bg-[#D4AF37]" />
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-[10px] sm:text-xs font-bold" style={{ color: colors.text.muted }}>إجمالي الحجوزات النشطة</p>
+              <p className="text-xs sm:text-xs font-bold" style={{ color: colors.text.muted }}>إجمالي الحجوزات النشطة</p>
               <h3 className="text-2xl sm:text-3xl font-black mt-1 sm:mt-2 font-mono" style={{ color: colors.text.primary }}>{totalBookings}</h3>
             </div>
             <div className="p-3 rounded-xl border" style={{ background: isDark ? 'rgba(245, 158, 11, 0.2)' : 'rgba(245, 158, 11, 0.1)', color: colors.primary.gold, borderColor: `${colors.primary.gold}10` }}>
@@ -235,16 +226,16 @@ export default function DashboardHome({
           <div className="absolute top-0 left-0 w-1.5 h-full bg-blue-500" />
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-[10px] sm:text-xs font-bold" style={{ color: colors.text.muted }}>الغرف المشغولة الآن</p>
+              <p className="text-xs sm:text-xs font-bold" style={{ color: colors.text.muted }}>الغرف المشغولة الآن</p>
               <h3 className="text-2xl sm:text-3xl font-black mt-1 sm:mt-2 font-mono" style={{ color: colors.text.primary }}>
-                {occupiedRoomsCount} <span className="text-[10px] sm:text-xs font-sans" style={{ color: colors.text.muted }}>/ {rooms.length}</span>
+                {occupiedRoomsCount} <span className="text-xs sm:text-xs font-sans" style={{ color: colors.text.muted }}>/ {rooms.length}</span>
               </h3>
             </div>
             <div className={`p-2 sm:p-3 rounded-xl border ${isDark ? 'bg-blue-950/20 text-blue-400 border-blue-500/10' : 'bg-blue-50 text-blue-600 border-blue-200'}`}>
               <BedDouble size={18} sm:size={22} />
             </div>
           </div>
-          <div className="flex items-center gap-1.5 mt-3 sm:mt-4 text-[10px] sm:text-xs" style={{ color: colors.text.muted }}>
+          <div className="flex items-center gap-1.5 mt-3 sm:mt-4 text-xs sm:text-xs" style={{ color: colors.text.muted }}>
             <span className="font-bold" style={{ color: colors.primary.gold }}>
               {Math.round((occupiedRoomsCount / rooms.length) * 100)}%
             </span>
@@ -257,7 +248,7 @@ export default function DashboardHome({
           <div className="absolute top-0 left-0 w-1.5 h-full bg-emerald-500" />
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-[10px] sm:text-xs font-bold" style={{ color: colors.text.muted }}>الغرف المتاحة للحجز</p>
+              <p className="text-xs sm:text-xs font-bold" style={{ color: colors.text.muted }}>الغرف المتاحة للحجز</p>
               <h3 className="text-2xl sm:text-3xl font-black mt-1 sm:mt-2 font-mono" style={{ color: isDark ? '#34D399' : '#059669' }}>
                 {availableRoomsCount}
               </h3>
@@ -266,7 +257,7 @@ export default function DashboardHome({
               <UserCheck size={18} sm:size={22} />
             </div>
           </div>
-          <div className="flex items-center gap-1.5 mt-3 sm:mt-4 text-[10px] sm:text-xs" style={{ color: colors.text.muted }}>
+          <div className="flex items-center gap-1.5 mt-3 sm:mt-4 text-xs sm:text-xs" style={{ color: colors.text.muted }}>
             <span className="font-bold" style={{ color: isDark ? '#34D399' : '#059669' }}>
               {(rooms || []).filter(r => r.status === 'cleaning').length} غرف
             </span>
@@ -279,7 +270,7 @@ export default function DashboardHome({
           <div className="absolute top-0 left-0 w-1.5 h-full bg-purple-500" />
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-[10px] sm:text-xs font-bold" style={{ color: colors.text.muted }}>النزلاء المقيمين الآن</p>
+              <p className="text-xs sm:text-xs font-bold" style={{ color: colors.text.muted }}>النزلاء المقيمين الآن</p>
               <h3 className="text-2xl sm:text-3xl font-black mt-1 sm:mt-2 font-mono" style={{ color: colors.text.primary }}>
                 {activeGuestsCount}
               </h3>
@@ -288,7 +279,7 @@ export default function DashboardHome({
               <Users size={18} sm:size={22} />
             </div>
           </div>
-          <div className="flex items-center gap-1.5 mt-3 sm:mt-4 text-[10px] sm:text-xs" style={{ color: colors.text.muted }}>
+          <div className="flex items-center gap-1.5 mt-3 sm:mt-4 text-xs sm:text-xs" style={{ color: colors.text.muted }}>
             <span style={{ color: colors.text.disabled }}>نزيل نشط حالياً</span>
           </div>
         </div>
@@ -299,7 +290,7 @@ export default function DashboardHome({
         {/* Average Room Rate */}
         <div className={`p-4 border rounded-xl flex items-center justify-between hover:border-purple-500/35 transition duration-200 ${isDark ? 'bg-[#090909] border-gray-900' : 'bg-white border-gray-200'}`}>
           <div className="space-y-1">
-            <span className="text-[10px]" style={{ color: colors.text.muted }}>متوسط سعر الغرفة</span>
+            <span className="text-xs" style={{ color: colors.text.muted }}>متوسط سعر الغرفة</span>
             <div className="text-lg font-bold font-mono" style={{ color: colors.text.primary }}>{Math.round(averageRoomRate)} ريال</div>
           </div>
           <div className={`p-2 rounded-lg ${isDark ? 'bg-purple-950/20 text-purple-400' : 'bg-purple-50 text-purple-600'}`}>
@@ -310,7 +301,7 @@ export default function DashboardHome({
         {/* Direct Bookings */}
         <div className={`p-4 border rounded-xl flex items-center justify-between hover:border-emerald-500/35 transition duration-200 ${isDark ? 'bg-[#090909] border-gray-900' : 'bg-white border-gray-200'}`}>
           <div className="space-y-1">
-            <span className="text-[10px]" style={{ color: colors.text.muted }}>الحجوزات المباشرة</span>
+            <span className="text-xs" style={{ color: colors.text.muted }}>الحجوزات المباشرة</span>
             <div className="text-lg font-bold font-mono" style={{ color: colors.text.primary }}>{directBookings}</div>
           </div>
           <div className={`p-2 rounded-lg ${isDark ? 'bg-emerald-950/20 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
@@ -321,7 +312,7 @@ export default function DashboardHome({
         {/* Platform Bookings */}
         <div className={`p-4 border rounded-xl flex items-center justify-between hover:border-blue-500/35 transition duration-200 ${isDark ? 'bg-[#090909] border-gray-900' : 'bg-white border-gray-200'}`}>
           <div className="space-y-1">
-            <span className="text-[10px]" style={{ color: colors.text.muted }}>حجوزات المنصات</span>
+            <span className="text-xs" style={{ color: colors.text.muted }}>حجوزات المنصات</span>
             <div className="text-lg font-bold font-mono" style={{ color: colors.text.primary }}>{platformBookings}</div>
           </div>
           <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-950/20 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
@@ -332,7 +323,7 @@ export default function DashboardHome({
         {/* Cancellation Rate */}
         <div className={`p-4 border rounded-xl flex items-center justify-between hover:border-red-500/35 transition duration-200 ${isDark ? 'bg-[#090909] border-gray-900' : 'bg-white border-gray-200'}`}>
           <div className="space-y-1">
-            <span className="text-[10px]" style={{ color: colors.text.muted }}>معدل الإلغاء</span>
+            <span className="text-xs" style={{ color: colors.text.muted }}>معدل الإلغاء</span>
             <div className="text-lg font-bold font-mono" style={{ color: colors.text.primary }}>{cancellationRate.toFixed(1)}%</div>
           </div>
           <div className={`p-2 rounded-lg ${isDark ? 'bg-red-950/20 text-red-400' : 'bg-red-50 text-red-600'}`}>
@@ -349,7 +340,7 @@ export default function DashboardHome({
           className={`p-4 border rounded-xl flex items-center justify-between hover:border-teal-500/35 transition duration-200 w-full ${isDark ? 'bg-[#090909] border-gray-900' : 'bg-white border-gray-200'}`}
         >
           <div className="space-y-1 text-right">
-            <span className="text-[10px]" style={{ color: colors.text.muted }}>غرف تحت التنظيف</span>
+            <span className="text-xs" style={{ color: colors.text.muted }}>غرف تحت التنظيف</span>
             <div className="text-lg font-bold font-mono" style={{ color: colors.text.primary }}>{pendingHousekeeping}</div>
           </div>
           <div className={`p-2 rounded-lg ${isDark ? 'bg-teal-950/20 text-teal-400' : 'bg-teal-50 text-teal-600'}`}>
@@ -363,7 +354,7 @@ export default function DashboardHome({
           className={`p-4 border rounded-xl flex items-center justify-between hover:border-rose-500/35 transition duration-200 w-full ${isDark ? 'bg-[#090909] border-gray-900' : 'bg-white border-gray-200'}`}
         >
           <div className="space-y-1 text-right">
-            <span className="text-[10px]" style={{ color: colors.text.muted }}>الضيوف المهمون القادمين</span>
+            <span className="text-xs" style={{ color: colors.text.muted }}>الضيوف المهمون القادمين</span>
             <div className="text-lg font-bold font-mono" style={{ color: colors.text.primary }}>{vipGuestsArriving}</div>
           </div>
           <div className={`p-2 rounded-lg ${isDark ? 'bg-rose-950/20 text-rose-400' : 'bg-rose-50 text-rose-600'}`}>
@@ -377,7 +368,7 @@ export default function DashboardHome({
           className={`p-4 border rounded-xl flex items-center justify-between hover:border-amber-500/35 transition duration-200 w-full ${isDark ? 'bg-[#090909] border-gray-900' : 'bg-white border-gray-200'}`}
         >
           <div className="space-y-1">
-            <span className="text-[10px]" style={{ color: colors.text.muted }}>الطلبات الخاصة المعلقة</span>
+            <span className="text-xs" style={{ color: colors.text.muted }}>الطلبات الخاصة المعلقة</span>
             <div className="text-lg font-bold font-mono" style={{ color: colors.text.primary }}>{pendingRequestsCount}</div>
           </div>
           <div className={`p-2 rounded-lg ${isDark ? 'bg-amber-950/20 text-amber-400' : 'bg-amber-50 text-amber-600'}`}>
@@ -518,10 +509,10 @@ export default function DashboardHome({
                       </span>
                       <div>
                         <span className="text-xs font-bold" style={{ color: colors.text.muted }}>طلب #{req.id}</span>
-                        <div className="text-[10px] font-mono" style={{ color: colors.text.disabled }}>{new Date(req.createdAt).toLocaleDateString('ar-SA')}</div>
+                        <div className="text-xs font-mono" style={{ color: colors.text.disabled }}>{new Date(req.createdAt).toLocaleDateString('ar-SA')}</div>
                       </div>
                     </div>
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-bold border ${
                       req.status === 'PENDING' ? (isDark ? 'bg-amber-950/40 text-amber-500 border-amber-500/20' : 'bg-amber-50 text-amber-700 border-amber-200') :
                       req.status === 'IN_PROGRESS' ? (isDark ? 'bg-blue-950/40 text-blue-400 border-blue-500/20' : 'bg-blue-50 text-blue-700 border-blue-200') :
                       (isDark ? 'bg-gray-900 text-gray-400 border-gray-800' : 'bg-gray-100 text-gray-600 border-gray-300')
@@ -531,7 +522,7 @@ export default function DashboardHome({
                        'مكتمل'}
                     </span>
                   </div>
-                  <p className="text-xs leading-relaxed font-medium line-clamp-2" style={{ color: colors.text.secondary }}>
+                  <p className="text-xs leading-relaxed font-bold line-clamp-2" style={{ color: colors.text.secondary }}>
                     {req.description || 'طلب خاص'}
                   </p>
                 </div>
@@ -561,7 +552,7 @@ export default function DashboardHome({
                   <Calendar size={16} />
                 </div>
                 <h4 className="text-xs font-bold" style={{ color: colors.text.primary }}>تسجيل حجز جديد</h4>
-                <p className="text-[10px]" style={{ color: colors.text.muted }}>إدخال نزيل جديد للجناح</p>
+                <p className="text-xs" style={{ color: colors.text.muted }}>إدخال نزيل جديد للجناح</p>
               </button>
 
               <button 
@@ -572,7 +563,7 @@ export default function DashboardHome({
                   <ConciergeBell size={16} />
                 </div>
                 <h4 className="text-xs font-bold" style={{ color: colors.text.primary }}>تسجيل طلب خدمة</h4>
-                <p className="text-[10px]" style={{ color: colors.text.muted }}>خدمة غرف ومغسلة ونقل</p>
+                <p className="text-xs" style={{ color: colors.text.muted }}>خدمة غرف ومغسلة ونقل</p>
               </button>
 
               <button 
@@ -583,7 +574,7 @@ export default function DashboardHome({
                   <BedDouble size={16} />
                 </div>
                 <h4 className="text-xs font-bold" style={{ color: colors.text.primary }}>حالة الغرف</h4>
-                <p className="text-[10px]" style={{ color: colors.text.muted }}>تعديل حالة تنظيف وصيانة</p>
+                <p className="text-xs" style={{ color: colors.text.muted }}>تعديل حالة تنظيف وصيانة</p>
               </button>
 
               <button 
@@ -594,7 +585,7 @@ export default function DashboardHome({
                   <CreditCard size={16} />
                 </div>
                 <h4 className="text-xs font-bold" style={{ color: colors.text.primary }}>الفواتير والمالية</h4>
-                <p className="text-[10px]" style={{ color: colors.text.muted }}>عرض العمليات والمستحقات</p>
+                <p className="text-xs" style={{ color: colors.text.muted }}>عرض العمليات والمستحقات</p>
               </button>
             </div>
           </div>

@@ -17,13 +17,13 @@ export default function NotificationToast({ notification, onClose }: Notificatio
   const getIcon = () => {
     switch (notification.type) {
       case 'success':
-        return <CheckCircle className="w-5 h-5 text-emerald-400" />;
+        return <CheckCircle className="w-5 h-5 text-emerald-600" />;
       case 'error':
-        return <AlertCircle className="w-5 h-5 text-red-400" />;
+        return <AlertCircle className="w-5 h-5 text-red-600" />;
       case 'warning':
-        return <AlertCircle className="w-5 h-5 text-amber-400" />;
+        return <AlertCircle className="w-5 h-5 text-amber-600" />;
       case 'info':
-        return <Info className="w-5 h-5 text-blue-400" />;
+        return <Info className="w-5 h-5 text-blue-600" />;
     }
   };
 
@@ -47,17 +47,17 @@ export default function NotificationToast({ notification, onClose }: Notificatio
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: 100 }}
         transition={{ duration: 0.3 }}
-        className={`p-4 bg-[#090909] border ${getBorderColor()} rounded-xl shadow-lg`}
+        className={`p-4 bg-white border ${getBorderColor()} rounded-xl shadow-lg`}
       >
         <div className="flex items-start gap-3">
           <div className="flex-shrink-0">{getIcon()}</div>
           <div className="flex-1">
-            <p className="text-sm text-gray-300">{notification.message}</p>
+            <p className="text-sm text-gray-600">{notification.message}</p>
             <p className="text-xs text-gray-500 mt-1">{notification.timestamp}</p>
           </div>
           <button
             onClick={onClose}
-            className="flex-shrink-0 text-gray-500 hover:text-white transition"
+            className="flex-shrink-0 text-gray-500 hover:text-gray-800 transition"
           >
             <X className="w-4 h-4" />
           </button>

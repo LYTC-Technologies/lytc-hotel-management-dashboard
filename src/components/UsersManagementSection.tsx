@@ -188,9 +188,9 @@ export default function UsersManagementSection() {
   return (
     <div className="space-y-6 pb-12">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-900 pb-5">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-200 pb-5">
         <div>
-          <h1 className="text-2xl font-black text-[#E6C587]">إدارة المستخدمين</h1>
+          <h1 className="text-2xl font-black text-[#AA7B30]">إدارة المستخدمين</h1>
           <p className="text-gray-500 text-xs mt-1">عرض وإدارة حسابات المستخدمين في النظام</p>
         </div>
 
@@ -204,7 +204,7 @@ export default function UsersManagementSection() {
       </div>
 
       {/* Search Bar */}
-      <div className="flex items-center gap-3 bg-[#0b0b0b] border border-gray-900 p-4 rounded-xl">
+      <div className="flex items-center gap-3 bg-white border border-gray-200 p-4 rounded-xl">
         <div className="relative">
           <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" />
           <input
@@ -212,7 +212,7 @@ export default function UsersManagementSection() {
             placeholder="بحث بالاسم أو الدور..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="bg-[#121212] border border-gray-800 focus:border-[#D4AF37] rounded-lg px-4 py-2 pr-10 text-xs text-white focus:outline-none w-48"
+            className="bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-lg px-4 py-2 pr-10 text-xs text-gray-800 focus:outline-none w-48"
           />
         </div>
       </div>
@@ -223,7 +223,7 @@ export default function UsersManagementSection() {
           <Loader2 size={24} className="text-[#D4AF37] animate-spin" />
         </div>
       ) : error ? (
-        <div className="text-center py-16 bg-[#0b0b0b] border border-gray-900 rounded-2xl">
+        <div className="text-center py-16 bg-white border border-gray-200 rounded-2xl">
           <XCircle size={48} className="text-red-500 mx-auto mb-4" />
           <h3 className="text-sm font-bold text-gray-400 mb-2">فشل تحميل المستخدمين</h3>
           <p className="text-xs text-gray-600 mb-4">{error}</p>
@@ -235,7 +235,7 @@ export default function UsersManagementSection() {
           </button>
         </div>
       ) : filteredUsers.length === 0 ? (
-        <div className="text-center py-16 bg-[#0b0b0b] border border-gray-900 rounded-2xl">
+        <div className="text-center py-16 bg-white border border-gray-200 rounded-2xl">
           <AlertCircle size={48} className="text-gray-500 mx-auto mb-4" />
           <h3 className="text-sm font-bold text-gray-400 mb-2">لا يوجد مستخدمين</h3>
           <p className="text-xs text-gray-600 mb-4">ابدأ بإضافة مستخدم جديد</p>
@@ -244,7 +244,7 @@ export default function UsersManagementSection() {
         <div className="overflow-x-auto pb-2">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-800">
+              <tr className="border-b border-gray-200">
                 <th className="text-xs text-gray-500 font-bold text-right pb-3">المعرف</th>
                 <th className="text-xs text-gray-500 font-bold text-right pb-3">اسم المستخدم</th>
                 <th className="text-xs text-gray-500 font-bold text-right pb-3">الدور</th>
@@ -253,23 +253,23 @@ export default function UsersManagementSection() {
             </thead>
             <tbody>
               {filteredUsers.map((user) => (
-                <tr key={user.id} className="border-b border-gray-800/50 hover:bg-[#121212]/50 transition-colors">
-                  <td className="py-3 text-sm text-white">{user.id}</td>
+                <tr key={user.id} className="border-b border-gray-200/50 hover:bg-gray-50/50 transition-colors">
+                  <td className="py-3 text-sm text-gray-800">{user.id}</td>
                   <td className="py-3">
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 bg-[#D4AF37]/20 border border-[#D4AF37]/30 rounded-lg flex items-center justify-center">
-                        <User size={14} className="text-[#E6C587]" />
+                        <User size={14} className="text-[#AA7B30]" />
                       </div>
-                      <span className="text-sm text-white font-bold">{user.username}</span>
+                      <span className="text-sm text-gray-800 font-bold">{user.username}</span>
                     </div>
                   </td>
                   <td className="py-3">
-                    <span className={`px-2 py-1 rounded-lg text-[10px] font-bold ${
-                      user.role === 'MANAGER' ? 'bg-blue-950/20 text-blue-400 border border-blue-500/30' :
-                      user.role === 'STAFF' ? 'bg-emerald-950/20 text-emerald-400 border border-emerald-500/30' :
+                    <span className={`px-2 py-1 rounded-lg text-xs font-bold ${
+                      user.role === 'MANAGER' ? 'bg-blue-50/20 text-blue-600 border border-blue-500/30' :
+                      user.role === 'STAFF' ? 'bg-emerald-50/20 text-emerald-600 border border-emerald-500/30' :
                       user.role === 'CHEF' ? 'bg-orange-950/20 text-orange-400 border border-orange-500/30' :
-                      user.role === 'BARISTA' ? 'bg-amber-950/20 text-amber-400 border border-amber-500/30' :
-                      user.role === 'ROOM_SERVICE' ? 'bg-purple-950/20 text-purple-400 border border-purple-500/30' :
+                      user.role === 'BARISTA' ? 'bg-amber-50/20 text-amber-600 border border-amber-500/30' :
+                      user.role === 'ROOM_SERVICE' ? 'bg-purple-50/20 text-purple-600 border border-purple-500/30' :
                       'bg-gray-800 text-gray-400 border border-gray-700'
                     }`}>
                       {getRoleLabel(user.role)}
@@ -279,10 +279,10 @@ export default function UsersManagementSection() {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleDeleteUser(user.id)}
-                        className="p-1.5 bg-[#121212] border border-gray-800 rounded-lg hover:border-red-500/30 transition"
+                        className="p-1.5 bg-gray-50 border border-gray-200 rounded-lg hover:border-red-500/30 transition"
                         title="حذف"
                       >
-                        <Trash2 size={14} className="text-gray-400 hover:text-red-400" />
+                        <Trash2 size={14} className="text-gray-400 hover:text-red-600" />
                       </button>
                     </div>
                   </td>
@@ -295,17 +295,17 @@ export default function UsersManagementSection() {
 
       {/* New User Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0b0b0b] border border-[#D4AF37]/30 rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-[#D4AF37]/30 rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-[#E6C587]">إضافة مستخدم جديد</h3>
-              <button onClick={() => setIsModalOpen(false)} className="p-2 bg-gray-900 border border-gray-800 rounded-lg">
+              <h3 className="text-xl font-bold text-[#AA7B30]">إضافة مستخدم جديد</h3>
+              <button onClick={() => setIsModalOpen(false)} className="p-2 bg-gray-100 border border-gray-200 rounded-lg">
                 <X size={18} />
               </button>
             </div>
 
             {createUserError && (
-              <div className="bg-red-950/40 border border-red-500/30 text-red-200 text-sm p-3 rounded-lg mb-4">
+              <div className="bg-red-50/40 border border-red-500/30 text-red-200 text-sm p-3 rounded-lg mb-4">
                 {createUserError}
               </div>
             )}
@@ -317,7 +317,7 @@ export default function UsersManagementSection() {
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-white focus:outline-none"
+                  className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
                 />
               </div>
 
@@ -327,7 +327,7 @@ export default function UsersManagementSection() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-white focus:outline-none"
+                  className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
                 />
               </div>
 
@@ -336,7 +336,7 @@ export default function UsersManagementSection() {
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value as any)}
-                  className="w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-white focus:outline-none"
+                  className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
                 >
                   <option value="MANAGER">مدير</option>
                   <option value="STAFF">موظف</option>
@@ -346,11 +346,11 @@ export default function UsersManagementSection() {
                 </select>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-800">
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 bg-[#121212] border border-gray-800 text-gray-400 rounded-xl text-xs font-bold hover:text-white transition"
+                  className="px-4 py-2 bg-gray-50 border border-gray-200 text-gray-400 rounded-xl text-xs font-bold hover:text-gray-800 transition"
                 >
                   إلغاء
                 </button>
@@ -380,17 +380,17 @@ export default function UsersManagementSection() {
 
       {/* Edit User Modal */}
       {isEditModalOpen && selectedUser && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0b0b0b] border border-[#D4AF37]/30 rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-[#D4AF37]/30 rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-[#E6C587]">تعديل المستخدم</h3>
-              <button onClick={() => setIsEditModalOpen(false)} className="p-2 bg-gray-900 border border-gray-800 rounded-lg">
+              <h3 className="text-xl font-bold text-[#AA7B30]">تعديل المستخدم</h3>
+              <button onClick={() => setIsEditModalOpen(false)} className="p-2 bg-gray-100 border border-gray-200 rounded-lg">
                 <X size={18} />
               </button>
             </div>
 
             {updateUserError && (
-              <div className="bg-red-950/40 border border-red-500/30 text-red-200 text-sm p-3 rounded-lg mb-4">
+              <div className="bg-red-50/40 border border-red-500/30 text-red-200 text-sm p-3 rounded-lg mb-4">
                 {updateUserError}
               </div>
             )}
@@ -402,7 +402,7 @@ export default function UsersManagementSection() {
                   type="text"
                   value={editUsername}
                   onChange={(e) => setEditUsername(e.target.value)}
-                  className="w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-white focus:outline-none"
+                  className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
                 />
               </div>
 
@@ -413,7 +413,7 @@ export default function UsersManagementSection() {
                   value={editPassword}
                   onChange={(e) => setEditPassword(e.target.value)}
                   placeholder="اتركه فارغاً إذا لم تريد تغييره"
-                  className="w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-white focus:outline-none"
+                  className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
                 />
               </div>
 
@@ -422,7 +422,7 @@ export default function UsersManagementSection() {
                 <select
                   value={editRole}
                   onChange={(e) => setEditRole(e.target.value as any)}
-                  className="w-full bg-[#121212] border border-gray-800 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-white focus:outline-none"
+                  className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
                 >
                   <option value="MANAGER">مدير</option>
                   <option value="STAFF">موظف</option>
@@ -432,11 +432,11 @@ export default function UsersManagementSection() {
                 </select>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-800">
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
                 <button
                   type="button"
                   onClick={() => setIsEditModalOpen(false)}
-                  className="px-4 py-2 bg-[#121212] border border-gray-800 text-gray-400 rounded-xl text-xs font-bold hover:text-white transition"
+                  className="px-4 py-2 bg-gray-50 border border-gray-200 text-gray-400 rounded-xl text-xs font-bold hover:text-gray-800 transition"
                 >
                   إلغاء
                 </button>

@@ -24,11 +24,11 @@ export default function PlatformCard({
   const getStatusIcon = () => {
     switch (status) {
       case 'connected':
-        return <CheckCircle2 className="w-5 h-5 text-emerald-400" />;
+        return <CheckCircle2 className="w-5 h-5 text-emerald-600" />;
       case 'not_connected':
         return <XCircle className="w-5 h-5 text-gray-400" />;
       case 'error':
-        return <AlertCircle className="w-5 h-5 text-red-400" />;
+        return <AlertCircle className="w-5 h-5 text-red-600" />;
     }
   };
 
@@ -46,11 +46,11 @@ export default function PlatformCard({
   const getStatusColor = () => {
     switch (status) {
       case 'connected':
-        return 'bg-emerald-950/20 text-emerald-400 border-emerald-500/30';
+        return 'bg-emerald-50/20 text-emerald-600 border-emerald-500/30';
       case 'not_connected':
-        return 'bg-gray-900 text-gray-400 border-gray-700';
+        return 'bg-gray-100 text-gray-500 border-gray-200';
       case 'error':
-        return 'bg-red-950/20 text-red-400 border-red-500/30';
+        return 'bg-red-50/20 text-red-600 border-red-500/30';
     }
   };
 
@@ -61,11 +61,11 @@ export default function PlatformCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="p-6 bg-[#090909] border border-gray-900 rounded-xl hover:border-[#D4AF37]/30 transition duration-200"
+      className="p-6 bg-white border border-gray-200 rounded-xl hover:border-[#D4AF37]/30 transition duration-200"
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="p-3 bg-[#121212] rounded-lg">
+          <div className="p-3 bg-gray-50 rounded-lg">
             {logo}
           </div>
           <div>

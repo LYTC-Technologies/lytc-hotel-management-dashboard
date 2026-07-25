@@ -21,8 +21,11 @@ export default function RatingsSection() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await apiService.getRatedStays();
-      setRatedStays(response.content || []);
+      const response = await apiService.getRatedStays(0, 200);
+      const allStays = response.content || [];
+      // Sort newest first
+      allStays.sort((a: any, b: any) => (b.stayId || 0) - (a.stayId || 0));
+      setRatedStays(allStays);
     } catch (error: any) {
       console.error('Failed to load rated stays:', error);
       setRatedStays([]);
@@ -113,7 +116,7 @@ export default function RatingsSection() {
                     </div>
                     <div>
                       <h3 className="text-sm font-bold" style={{ color: colors.text.primary }}>{stay.guestName}</h3>
-                      <span className="text-[10px] font-mono" style={{ color: colors.text.muted }}>#{stay.stayId}</span>
+                      <span className="text-xs font-mono" style={{ color: colors.text.muted }}>#{stay.stayId}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
@@ -152,7 +155,7 @@ export default function RatingsSection() {
               {/* Footer */}
               <div className={`px-4 py-3 border-t ${isDark ? 'bg-[#121212]/50 border-gray-900' : 'bg-gray-50 border-gray-200'}`}>
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px]" style={{ color: colors.text.muted }}>التقييم</span>
+                  <span className="text-xs" style={{ color: colors.text.muted }}>التقييم</span>
                   <span className="text-sm font-bold" style={{ color: colors.primary.goldLight }}>{stay.stars || 0}/5</span>
                 </div>
               </div>

@@ -24,8 +24,8 @@ export default function ErrorState({
     >
       <div className="relative mb-6">
         <div className="absolute inset-0 bg-red-500/20 rounded-full blur-3xl" />
-        <div className="relative p-8 bg-[#090909] border border-red-500/30 rounded-full">
-          <AlertCircle className="w-16 h-16 text-red-400" />
+        <div className="relative p-8 bg-white border border-red-500/30 rounded-full">
+          <AlertCircle className="w-16 h-16 text-red-600" />
         </div>
       </div>
       
@@ -50,7 +50,7 @@ export default function ErrorState({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={onContactSupport}
-            className="flex items-center gap-2 px-6 py-3 bg-[#121212] border border-gray-800 hover:border-gray-700 text-white font-extrabold text-sm rounded-xl transition duration-200"
+            className="flex items-center gap-2 px-6 py-3 bg-gray-50 border border-gray-200 hover:border-gray-700 text-white font-extrabold text-sm rounded-xl transition duration-200"
           >
             <MessageSquare className="w-5 h-5" />
             <span>تواصل مع الدعم</span>
