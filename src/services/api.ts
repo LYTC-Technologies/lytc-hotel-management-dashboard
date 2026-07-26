@@ -263,12 +263,32 @@ interface PendingOrdersResponse {
 class APIService {
   private baseURL: string;
   private token: string | null = null;
+  private hotelId: string | null = null;
   private isRefreshing: boolean = false;
 
   constructor(baseURL: string) {
     this.baseURL = baseURL;
     // Load token from localStorage on initialization
     this.token = localStorage.getItem('auth_token');
+    // Load hotel ID from localStorage on initialization
+    this.hotelId = localStorage.getItem('hotel_id');
+  }
+
+  // Set hotel ID
+  setHotelId(hotelId: string): void {
+    this.hotelId = hotelId;
+    localStorage.setItem('hotel_id', hotelId);
+  }
+
+  // Get hotel ID
+  getHotelId(): string | null {
+    return this.hotelId;
+  }
+
+  // Clear hotel ID
+  clearHotelId(): void {
+    this.hotelId = null;
+    localStorage.removeItem('hotel_id');
   }
 
   // Helper method to get headers
@@ -280,6 +300,11 @@ class APIService {
     // Always try to send token if available
     if (this.token) {
       headers['Authorization'] = `Bearer ${this.token}`;
+    }
+
+    // Always try to send hotel ID if available
+    if (this.hotelId) {
+      headers['X-Hotel-Id'] = this.hotelId;
     }
 
     return headers;

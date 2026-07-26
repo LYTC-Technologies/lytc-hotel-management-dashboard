@@ -10,6 +10,7 @@ interface LoginProps {
 export default function Login({ onLoginSuccess }: LoginProps) {
   const [username, setUsername] = useState('admin');
   const [password, setPassword] = useState('password');
+  const [hotelId, setHotelId] = useState(() => localStorage.getItem('login_hotel_id') || '12');
   const [rememberMe, setRememberMe] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [step, setStep] = useState<'credentials' | '2fa'>('credentials');
@@ -18,8 +19,8 @@ export default function Login({ onLoginSuccess }: LoginProps) {
   const [errorMessage, setErrorMessage] = useState('');
 
   const handleCredentialsSubmit = async () => {
-    if (!username || !password) {
-      setErrorMessage('الرجاء إدخال اسم المستخدم وكلمة المرور');
+    if (!username || !password || !hotelId) {
+      setErrorMessage('الرجاء إدخال اسم المستخدم وكلمة المرور ورقم الفندق');
       return;
     }
     setIsLoading(true);
@@ -31,9 +32,13 @@ export default function Login({ onLoginSuccess }: LoginProps) {
         password: password
       };
       
+      // Set hotel ID before login request
+      apiService.setHotelId(hotelId);
+      
       // Save login request to localStorage
       localStorage.setItem('login_username', username);
       localStorage.setItem('login_password', password);
+      localStorage.setItem('login_hotel_id', hotelId);
       
       const response = await apiService.login(credentials);
       
@@ -201,6 +206,24 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                       >
                         {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                       </button>
+                    </div>
+                  </div>
+
+                  {/* Hotel ID Input */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-400 block mr-1">رقم الفندق</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-500">
+                        <Building className="h-5 w-5 text-gray-500" />
+                      </div>
+                      <input
+                        type="text"
+                        required
+                        className="block w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] rounded-xl pr-10 pl-4 py-3 text-sm text-gray-700 focus:outline-none transition-all duration-300"
+                        value={hotelId}
+                        onChange={(e) => setHotelId(e.target.value)}
+                        placeholder="مثال: 12"
+                      />
                     </div>
                   </div>
 
