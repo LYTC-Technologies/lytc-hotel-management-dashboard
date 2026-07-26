@@ -73,8 +73,15 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
   const loadAvailableRooms = async () => {
     try {
       const response = await apiService.getRooms(undefined, undefined, 0, 50);
-      setAvailableRooms((response.content || []).filter((r: any) => (r.status || '').toUpperCase() === 'AVAILABLE'));
-    } catch { setAvailableRooms([]); }
+      console.log('Available rooms response:', response);
+      console.log('Hotel ID:', apiService.getHotelId());
+      const filteredRooms = (response.content || []).filter((r: any) => (r.status || '').toUpperCase() === 'AVAILABLE');
+      console.log('Filtered available rooms:', filteredRooms);
+      setAvailableRooms(filteredRooms);
+    } catch (e) {
+      console.error('Failed to load available rooms:', e);
+      setAvailableRooms([]);
+    }
   };
 
   const handleCreate = async () => {
