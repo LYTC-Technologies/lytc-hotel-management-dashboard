@@ -82,11 +82,24 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
     setIsCreating(true);
     setCreateError(null);
     try {
-      await apiService.createStay({ guestName, phone: '0550000000', roomNumber: selectedRoomNumber, numAdults: adults, numKids: children, expectedCheckInDate: checkIn, expectedCheckOutDate: checkOut });
+      const stayData = { 
+        guestName, 
+        phone: '0550000000', 
+        roomNumber: selectedRoomNumber, 
+        numAdults: adults, 
+        numKids: children, 
+        expectedCheckInDate: checkIn, 
+        expectedCheckOutDate: checkOut 
+      };
+      console.log('Creating stay with data:', stayData);
+      console.log('Hotel ID:', apiService.getHotelId());
+      
+      await apiService.createStay(stayData);
       setIsCreateOpen(false);
       setGuestName(''); setSelectedRoomNumber(''); setCheckIn(''); setCheckOut(''); setAdults(2); setChildren(0);
       loadStays();
     } catch (e: any) {
+      console.error('Failed to create stay:', e);
       setCreateError(e.message || 'فشل إنشاء الحجز');
     }
     finally { setIsCreating(false); }
