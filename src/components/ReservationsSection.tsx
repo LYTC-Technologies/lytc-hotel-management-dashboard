@@ -77,6 +77,7 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
       console.log('Hotel ID:', apiService.getHotelId());
       const filteredRooms = (response.content || []).filter((r: any) => (r.status || '').toUpperCase() === 'AVAILABLE');
       console.log('Filtered available rooms:', filteredRooms);
+      console.log('Available room numbers:', filteredRooms.map((r: any) => r.roomNumber));
       setAvailableRooms(filteredRooms);
     } catch (e) {
       console.error('Failed to load available rooms:', e);
