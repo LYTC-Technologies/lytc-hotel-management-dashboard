@@ -314,6 +314,11 @@ class APIService {
   private async handleResponse<T>(response: Response): Promise<T> {
     if (!response.ok) {
       const errorBody = await response.text().catch(() => '');
+      console.error('API Error Response:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorBody
+      });
       let errorMsg = `خطأ في الخادم (${response.status})`;
       try {
         const errorJson = JSON.parse(errorBody);
