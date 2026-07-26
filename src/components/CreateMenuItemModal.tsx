@@ -38,7 +38,7 @@ export default function CreateMenuItemModal({ isOpen, onClose, onSuccess }: Crea
         available
       };
 
-      await apiService.createRestaurantMenuItem(menuItemRequest);
+      await apiService.createMenuItemByCategory(menuItemRequest, category);
       
       setIsLoading(false);
       onSuccess();
@@ -53,7 +53,6 @@ export default function CreateMenuItemModal({ isOpen, onClose, onSuccess }: Crea
     } catch (error) {
       setIsLoading(false);
       setErrorMessage('فشل إنشاء العنصر. الرجاء المحاولة مرة أخرى.');
-      console.error('Create menu item error:', error);
     }
   };
 
@@ -136,9 +135,9 @@ export default function CreateMenuItemModal({ isOpen, onClose, onSuccess }: Crea
                   onChange={(e) => setCategory(e.target.value)}
                   className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none ${isDark ? 'bg-gray-50 border-gray-200 focus:border-[#D4AF37] text-white' : 'bg-white border-gray-300 focus:border-[#D4AF37] text-gray-900'}`}
                 >
-                  <option value="FOOD">Food</option>
-                  <option value="DRINK">Drink</option>
-                  <option value="SERVICE">Service</option>
+                  <option value="FOOD">طعام (Food)</option>
+                  <option value="DRINK">مشروبات (Drink)</option>
+                  <option value="ROOM_SERVICE">خدمة الغرف (Room Service)</option>
                 </select>
               </div>
 

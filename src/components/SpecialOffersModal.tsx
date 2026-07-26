@@ -53,7 +53,6 @@ export default function SpecialOffersModal({ isOpen, onClose, onSuccess }: Speci
       } else {
         setErrorMessage('فشل إنشاء العرض الخاص. الرجاء المحاولة مرة أخرى.');
       }
-      console.error('Create special offer error:', error);
     }
   };
 

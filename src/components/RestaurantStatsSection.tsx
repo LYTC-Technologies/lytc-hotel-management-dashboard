@@ -23,7 +23,6 @@ export default function RestaurantStatsSection() {
       const response = await apiService.getRestaurantStats();
       setStats(response);
     } catch (error: any) {
-      console.error('Failed to load restaurant stats:', error);
       setError('فشل تحميل الإحصائيات من الخادم');
       setStats(null);
     } finally {

@@ -23,7 +23,6 @@ export default function CafeStatsSection() {
       const response = await apiService.getCafeStats();
       setStats(response);
     } catch (error: any) {
-      console.error('Failed to load cafe stats:', error);
       setError('فشل تحميل الإحصائيات من الخادم');
       setStats(null);
     } finally {

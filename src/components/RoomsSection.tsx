@@ -122,7 +122,6 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
       // Reload rooms
       loadRooms();
     } catch (error: any) {
-      console.error('Failed to create room:', error);
       setCreateRoomError('فشل إنشاء الغرفة. الرجاء المحاولة مرة أخرى.');
     } finally {
       setIsCreatingRoom(false);
@@ -195,16 +194,15 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
   const handleUpdateRoomStatus = async (roomId: string, status: Room['status']) => {
     try {
       const backendStatus = status.toUpperCase() as 'AVAILABLE' | 'OCCUPIED' | 'CLEANING' | 'MAINTENANCE';
-      
       await apiService.patchRoom(parseInt(roomId), { status: backendStatus });
-      
-      // Instant local update without page refresh
+      // Instant local update
       setRooms(prev => prev.map(r => r.id === roomId ? { ...r, status } : r));
       if (selectedRoom && selectedRoom.id === roomId) {
         setSelectedRoom(prev => prev ? { ...prev, status } : null);
       }
     } catch (error) {
-      console.error('Failed to update room status:', error);
+      // Reload from backend on error to sync state
+      loadRooms();
     }
   };
 
@@ -216,7 +214,7 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
         setSelectedRoom(null);
       }
     } catch (error) {
-      console.error('Failed to delete room:', error);
+      loadRooms();
     }
   };
 

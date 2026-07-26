@@ -40,7 +40,6 @@ export default function SpecialOrdersManagementSection() {
         setSpecialOrders([]);
       }
     } catch (error: any) {
-      console.error('Failed to load special orders:', error);
       setError('فشل تحميل الطلبات الخاصة. الرجاء المحاولة مرة أخرى.');
       setSpecialOrders([]);
     } finally {
@@ -69,7 +68,6 @@ export default function SpecialOrdersManagementSection() {
       setSpecialOfferId(0);
       setAgreedPrice(0);
     } catch (error: any) {
-      console.error('Failed to create special order:', error);
       setCreateError('فشل إنشاء الطلب الخاص. الرجاء المحاولة مرة أخرى.');
     } finally {
       setIsCreating(false);

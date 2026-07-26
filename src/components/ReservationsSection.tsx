@@ -1,480 +1,566 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
-  Calendar, User, Plus, Search, CheckCircle2, XCircle, ArrowRightLeft, DollarSign, Users, AlertCircle, Trash2,
-  Clock, CreditCard, FileText, Tag, Building, Plane, Car, Filter, Grid3X3, List, ChevronLeft, ChevronRight,
-  Download, Printer, Eye, Edit, X, Save, Star, MessageSquare, Phone, Mail as MailIcon, MapPin, Briefcase, Loader2
+  Calendar, User, Plus, Search, XCircle, ChevronLeft, ChevronRight,
+  Eye, X, Loader2, CheckCircle2, AlertCircle, Phone, Mail, Building, Clock, DollarSign, Save
 } from 'lucide-react';
 import { apiService, StayDetailsResponse, CreateStayRequest } from '../services/api';
-import { useThemeColors } from '../hooks/useThemeColors';
 
-export default function ReservationsSection() {
-  const { colors, isDark } = useThemeColors();
+type ViewMode = 'month' | 'week' | 'day';
+
+const STATUS_COLORS: Record<string, { bg: string; text: string; border: string; dot: string }> = {
+  'CHECKED_IN': { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', dot: 'bg-blue-500' },
+  'ACTIVE': { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', dot: 'bg-blue-500' },
+  'active': { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', dot: 'bg-blue-500' },
+  'RESERVED': { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200', dot: 'bg-green-500' },
+  'BOOKED': { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200', dot: 'bg-green-500' },
+  'booked': { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200', dot: 'bg-green-500' },
+  'CHECKED_OUT': { bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-200', dot: 'bg-gray-400' },
+  'CLOSED': { bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-200', dot: 'bg-gray-400' },
+  'closed': { bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-200', dot: 'bg-gray-400' },
+  'CANCELLED': { bg: 'bg-red-50', text: 'text-red-600', border: 'border-red-200', dot: 'bg-red-500' },
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  'CHECKED_IN': 'نشط', 'ACTIVE': 'نشط', 'active': 'نشط',
+  'RESERVED': 'محجوز', 'BOOKED': 'محجوز', 'booked': 'محجوز',
+  'CHECKED_OUT': 'مغلق', 'CLOSED': 'مغلق', 'closed': 'مغلق',
+  'CANCELLED': 'ملغي',
+};
+
+const DAY_NAMES = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+const MONTH_NAMES = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+
+export default function ReservationsSection({ onCheckout }: { onCheckout?: () => void }) {
   const [stays, setStays] = useState<StayDetailsResponse[]>([]);
-  const [todayArrivals, setTodayArrivals] = useState<StayDetailsResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'all' | 'active' | 'closed' | 'booked'>('all');
-  const [viewMode, setViewMode] = useState<'list' | 'calendar' | 'timeline'>('list');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>('month');
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedStay, setSelectedStay] = useState<StayDetailsResponse | null>(null);
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
 
-  useEffect(() => {
-    loadStays();
-    loadTodayArrivals();
-  }, []);
+  // New reservation modal
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [guestName, setGuestName] = useState('');
+  const [selectedRoomNumber, setSelectedRoomNumber] = useState('');
+  const [availableRooms, setAvailableRooms] = useState<any[]>([]);
+  const [checkIn, setCheckIn] = useState('');
+  const [checkOut, setCheckOut] = useState('');
+  const [adults, setAdults] = useState(2);
+  const [children, setChildren] = useState(0);
+  const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+
+  useEffect(() => { loadStays(); }, []);
 
   const loadStays = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await apiService.getStays(0, 50);
+      const response = await apiService.getStays(0, 200);
       setStays(response.content || []);
-    } catch (error: any) {
-      if (error.message && error.message.includes('Authentication')) {
-        setError('فشل المصادقة. يرجى تسجيل الدخول مرة أخرى.');
-      } else if (error.message && error.message.includes('NetworkError')) {
-        setError('فشل الاتصال بالخادم. يرجى التحقق من اتصال الإنترنت.');
-      } else {
-        setError('فشل تحميل البيانات. الرجاء المحاولة مرة أخرى.');
-      }
+    } catch (e: any) {
+      setError('فشل تحميل الحجوزات');
       setStays([]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const loadTodayArrivals = async () => {
-    try {
-      const response = await apiService.getCheckinTodayStays();
-      setTodayArrivals(response.content || []);
-    } catch (error: any) {
-      if (error.message && error.message.includes('NetworkError')) {
-        // Silently handle network error for arrivals
-        setTodayArrivals([]);
-      } else {
-        setTodayArrivals([]);
-      }
-    }
-  };
-
-  // New Reservation Form States
-  const [guestName, setGuestName] = useState('');
-  const [selectedRoomNumber, setSelectedRoomNumber] = useState('');
-  const [availableRooms, setAvailableRooms] = useState<any[]>([]);
-  const [checkIn, setCheckIn] = useState('2026-07-19');
-  const [checkOut, setCheckOut] = useState('2026-07-26');
-  const [adults, setAdults] = useState(2);
-  const [children, setChildren] = useState(0);
-  const [isCreatingStay, setIsCreatingStay] = useState(false);
-  const [createStayError, setCreateStayError] = useState<string | null>(null);
-
-  // Filter stays based on active tab and search
-  const filteredStays = stays.filter(stay => {
-    const matchesSearch = stay.guestName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          stay.roomNumber.toLowerCase().includes(searchQuery.toLowerCase());
-
-    if (!matchesSearch) return false;
-    if (activeTab === 'all') return true;
-    if (activeTab === 'active') return stay.status === 'CHECKED_IN' || stay.status === 'ACTIVE' || stay.status === 'active';
-    if (activeTab === 'closed') return stay.status === 'CHECKED_OUT' || stay.status === 'CLOSED' || stay.status === 'closed';
-    if (activeTab === 'booked') return stay.status === 'RESERVED' || stay.status === 'BOOKED' || stay.status === 'booked';
-    return true;
-  });
-
   const loadAvailableRooms = async () => {
     try {
-      const response = await apiService.getRooms();
-      const available = response.content.filter((room: any) => 
-        room.status === 'available' || room.status === 'AVAILABLE'
-      );
-      setAvailableRooms(available);
-    } catch (error) {
-      console.error('Failed to load available rooms:', error);
-      setAvailableRooms([]);
-    }
+      const response = await apiService.getRooms(undefined, undefined, 0, 50);
+      setAvailableRooms((response.content || []).filter((r: any) => (r.status || '').toUpperCase() === 'AVAILABLE'));
+    } catch { setAvailableRooms([]); }
   };
 
-  const handleOpenModal = () => {
-    loadAvailableRooms();
-    setIsModalOpen(true);
-  };
-
-  const handleCreateReservation = async () => {
-    if (!guestName || !selectedRoomNumber) {
-      alert('الرجاء تعبئة اسم النزيل واختيار الغرفة المناسبة');
-      return;
-    }
-
-    setIsCreatingStay(true);
-    setCreateStayError(null);
-
+  const handleCreate = async () => {
+    if (!guestName || !selectedRoomNumber || !checkIn || !checkOut) { setCreateError('يرجى تعبئة جميع الحقول'); return; }
+    setIsCreating(true);
+    setCreateError(null);
     try {
-      const newStay: CreateStayRequest = {
-        guestName,
-        phone: '0500000000',
-        roomNumber: selectedRoomNumber,
-        numAdults: adults,
-        numKids: children,
-        expectedCheckInDate: checkIn,
-        expectedCheckOutDate: checkOut,
-      };
-
-      await apiService.createStay(newStay);
-
-      // Reset form
-      setGuestName('');
-      setSelectedRoomNumber('');
-      setCheckIn('2026-07-19');
-      setCheckOut('2026-07-26');
-      setAdults(2);
-      setChildren(0);
-      setIsModalOpen(false);
-
-      // Reload stays
+      await apiService.createStay({ guestName, phone: '0550000000', roomNumber: selectedRoomNumber, numAdults: adults, numKids: children, expectedCheckInDate: checkIn, expectedCheckOutDate: checkOut });
+      setIsCreateOpen(false);
+      setGuestName(''); setSelectedRoomNumber(''); setCheckIn(''); setCheckOut(''); setAdults(2); setChildren(0);
       loadStays();
-    } catch (error: any) {
-      console.error('Failed to create stay:', error);
-      if (error.message) {
-        setCreateStayError(`فشل إنشاء الحجز: ${error.message}`);
-      } else {
-        setCreateStayError('فشل إنشاء الحجز. الرجاء المحاولة مرة أخرى.');
-      }
-    } finally {
-      setIsCreatingStay(false);
+    } catch (e: any) {
+      setCreateError(e.message || 'فشل إنشاء الحجز');
     }
+    finally { setIsCreating(false); }
   };
 
   const handleCheckIn = async (stayId: number) => {
     try {
-      // First check if the room is available
-      const stay = stays.find(s => s.stayId === stayId);
-      if (!stay) {
-        alert('لم يتم العثور على الحجز');
-        return;
-      }
-
-      // Get rooms to check availability
-      const roomsResponse = await apiService.getRooms(undefined, undefined, 0, 100);
-      
-      const room = roomsResponse.content?.find(r => {
-        return r.roomNumber === stay.roomNumber;
-      });
-
-      if (!room) {
-        console.error('Room not found. Available room numbers:', roomsResponse.content?.map(r => r.roomNumber));
-        alert(`لم يتم العثور على الغرفة رقم ${stay.roomNumber}`);
-        return;
-      }
-
-      if (room.status !== 'AVAILABLE') {
-        alert(`الغرفة غير متاحة حالياً. حالتها: ${room.status}`);
-        return;
-      }
-
       await apiService.checkInStay(stayId);
-      loadStays();
-    } catch (error) {
-      console.error('Failed to check-in:', error);
-      alert('فشل تسجيل الدخول. الرجاء المحاولة مرة أخرى.');
-    }
+    } catch {}
+    // Always reload to sync with backend state
+    loadStays();
   };
-
   const handleCheckOut = async (stayId: number) => {
     try {
       await apiService.checkOutStay(stayId);
-      loadStays();
-    } catch (error) {
-      console.error('Failed to check-out:', error);
-      alert('فشل تسجيل المغادرة. الرجاء المحاولة مرة أخرى.');
-    }
+    } catch {}
+    // Always reload to sync with backend state, even on 409
+    loadStays();
+    if (onCheckout) onCheckout();
   };
+
+  // Filter stays
+  const filteredStays = useMemo(() => stays.filter(s => {
+    const matchSearch = !searchQuery || s.guestName.toLowerCase().includes(searchQuery.toLowerCase()) || s.roomNumber?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchStatus = filterStatus === 'all' ||
+      (filterStatus === 'active' && (s.status === 'CHECKED_IN' || s.status === 'ACTIVE' || s.status === 'active')) ||
+      (filterStatus === 'reserved' && (s.status === 'RESERVED' || s.status === 'BOOKED' || s.status === 'booked')) ||
+      (filterStatus === 'closed' && (s.status === 'CHECKED_OUT' || s.status === 'CLOSED' || s.status === 'closed'));
+    return matchSearch && matchStatus;
+  }), [stays, searchQuery, filterStatus]);
+
+  // Calendar helpers
+  const getDaysInMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  const getFirstDayOfMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+
+  const monthDays = useMemo(() => {
+    const daysInMonth = getDaysInMonth(currentDate);
+    const firstDay = getFirstDayOfMonth(currentDate);
+    const days: (number | null)[] = [];
+    for (let i = 0; i < firstDay; i++) days.push(null);
+    for (let i = 1; i <= daysInMonth; i++) days.push(i);
+    return days;
+  }, [currentDate]);
+
+  const weekDays = useMemo(() => {
+    const startOfWeek = new Date(currentDate);
+    startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
+    const days: Date[] = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(startOfWeek);
+      d.setDate(startOfWeek.getDate() + i);
+      days.push(d);
+    }
+    return days;
+  }, [currentDate]);
+
+  const getStaysForDate = (date: Date) => {
+    const dateStr = date.toISOString().split('T')[0];
+    return filteredStays.filter(s => {
+      const checkIn = s.checkInTime ? new Date(s.checkInTime).toISOString().split('T')[0] : '';
+      const checkOut = s.expectedCheckOutDate ? new Date(s.expectedCheckOutDate).toISOString().split('T')[0] : '';
+      return dateStr >= checkIn && dateStr <= checkOut;
+    });
+  };
+
+  const navigate = (direction: number) => {
+    const newDate = new Date(currentDate);
+    if (viewMode === 'month') newDate.setMonth(newDate.getMonth() + direction);
+    else if (viewMode === 'week') newDate.setDate(newDate.getDate() + (direction * 7));
+    else newDate.setDate(newDate.getDate() + direction);
+    setCurrentDate(newDate);
+  };
+
+  const goToToday = () => setCurrentDate(new Date());
+
+  const isToday = (date: Date) => {
+    const today = new Date();
+    return date.getDate() === today.getDate() && date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear();
+  };
+
+  const getStatusColor = (status: string) => STATUS_COLORS[status] || { bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-200', dot: 'bg-gray-400' };
+  const getStatusLabel = (status: string) => STATUS_LABELS[status] || '—';
 
   return (
     <div className="space-y-6 pb-12">
-      {/* Page Header */}
-      <div className={`flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b pb-5 ${isDark ? 'border-gray-900' : 'border-gray-200'}`}>
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-200 pb-5">
         <div>
-          <h1 className="text-2xl font-black" style={{ color: colors.primary.goldLight }}>جدول وإدارة الحجوزات</h1>
-          <p className="text-xs mt-1" style={{ color: colors.text.muted }}>عرض وتنسيق ملفات الحجوزات، والتحكم في إجراءات الدخول والمغادرة والفوترة.</p>
+          <h1 className="text-3xl font-black text-gray-900">الحجوزات</h1>
+          <p className="text-sm mt-1 text-gray-500">عرض وإدارة حجوزات الفندق على التقويم.</p>
         </div>
-
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 text-black font-extrabold text-xs rounded-xl shadow-lg transition duration-200"
-          style={{ background: colors.primary.goldGradient }}
-        >
-          <Plus size={15} />
-          <span>حجز جناح جديد</span>
+        <button onClick={() => { loadAvailableRooms(); setIsCreateOpen(true); }} className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#AA7B30] to-[#D4AF37] text-white font-bold text-sm rounded-xl shadow-lg hover:shadow-xl transition">
+          <Plus size={18} /><span>حجز جديد</span>
         </button>
       </div>
 
-      {/* Tabs and Search Bar */}
-      <div className={`flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 border p-4 rounded-xl ${isDark ? 'bg-[#0b0b0b] border-gray-900' : 'bg-white border-gray-200'}`}>
-        <div className="flex items-center gap-2 overflow-x-auto">
-          <button
-            onClick={() => setActiveTab('all')}
-            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap ${
-              activeTab === 'all' ? 'bg-[#D4AF37] text-black' : (isDark ? 'bg-[#121212] text-gray-400 border border-gray-800' : 'bg-gray-100 text-gray-600 border border-gray-300')
-            }`}
-          >
-            كافة الحجوزات ({stays.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('active')}
-            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap ${
-              activeTab === 'active' ? 'bg-[#D4AF37] text-black' : (isDark ? 'bg-[#121212] text-gray-400 border border-gray-800' : 'bg-gray-100 text-gray-600 border border-gray-300')
-            }`}
-          >
-            نشط
-          </button>
-          <button
-            onClick={() => setActiveTab('closed')}
-            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap ${
-              activeTab === 'closed' ? 'bg-[#D4AF37] text-black' : (isDark ? 'bg-[#121212] text-gray-400 border border-gray-800' : 'bg-gray-100 text-gray-600 border border-gray-300')
-            }`}
-          >
-            مغلق
-          </button>
-          <button
-            onClick={() => setActiveTab('booked')}
-            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap ${
-              activeTab === 'booked' ? 'bg-[#D4AF37] text-black' : (isDark ? 'bg-[#121212] text-gray-400 border border-gray-800' : 'bg-gray-100 text-gray-600 border border-gray-300')
-            }`}
-          >
-            محجوز
-          </button>
+      {/* Calendar Controls */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        {/* Navigation */}
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigate(-1)} className="p-2 border border-gray-200 rounded-xl bg-white hover:bg-gray-50 transition"><ChevronRight size={18} className="text-gray-600" /></button>
+          <button onClick={goToToday} className="px-4 py-2 border border-[#D4AF37] text-[#AA7B37] bg-white rounded-xl text-sm font-bold hover:bg-amber-50 transition">اليوم</button>
+          <button onClick={() => navigate(1)} className="p-2 border border-gray-200 rounded-xl bg-white hover:bg-gray-50 transition"><ChevronLeft size={18} className="text-gray-600" /></button>
+          <h2 className="text-lg font-black text-gray-900 mr-2">
+            {MONTH_NAMES[currentDate.getMonth()]} {currentDate.getFullYear()}
+          </h2>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: colors.text.muted }} />
-            <input
-              type="text"
-              placeholder="بحث بالاسم أو الغرفة..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className={`rounded-lg px-4 py-2 pr-10 text-xs focus:outline-none w-48 ${isDark ? 'bg-[#121212] border-gray-800 focus:border-[#D4AF37] text-white' : 'bg-white border-gray-300 focus:border-[#D4AF37] text-gray-900'}`}
-            />
+        {/* View Mode + Search + Filter */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex border border-gray-200 rounded-xl bg-white overflow-hidden">
+            {(['month', 'week', 'day'] as ViewMode[]).map(v => (
+              <button key={v} onClick={() => setViewMode(v)} className={`px-4 py-2 text-sm font-bold transition ${viewMode === v ? 'bg-[#D4AF37] text-white' : 'text-gray-600 hover:bg-gray-50'}`}>
+                {v === 'month' ? 'شهر' : v === 'week' ? 'أسبوع' : 'يوم'}
+              </button>
+            ))}
           </div>
+          <div className="relative">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <input type="text" placeholder="بحث..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="bg-white border border-gray-200 focus:border-[#D4AF37] rounded-xl pr-10 pl-4 py-2 text-sm text-gray-800 placeholder-gray-400 focus:outline-none w-40 transition" />
+          </div>
+          <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-600 focus:outline-none focus:border-[#D4AF37]">
+            <option value="all">الكل</option>
+            <option value="active">نشط</option>
+            <option value="reserved">محجوز</option>
+            <option value="closed">مغلق</option>
+          </select>
         </div>
       </div>
 
-      {/* Loading State */}
+      {/* Loading / Error */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 size={24} className="text-[#D4AF37] animate-spin" />
-        </div>
+        <div className="flex items-center justify-center py-20"><Loader2 size={32} className="text-[#D4AF37] animate-spin" /></div>
       ) : error ? (
-        <div className={`text-center py-16 border rounded-2xl ${isDark ? 'bg-[#0b0b0b] border-gray-900' : 'bg-white border-gray-200'}`}>
-          <XCircle size={48} className="text-red-500 mx-auto mb-4" />
-          <h3 className="text-sm font-bold mb-2" style={{ color: colors.text.muted }}>فشل تحميل الحجوزات</h3>
-          <p className="text-xs mb-4" style={{ color: colors.text.disabled }}>{error}</p>
-          <button
-            onClick={loadStays}
-            className="px-4 py-2 text-black font-extrabold text-xs rounded-xl"
-            style={{ background: colors.primary.gold }}
-          >
-            إعادة المحاولة
-          </button>
-        </div>
-      ) : filteredStays.length === 0 ? (
-        <div className={`text-center py-16 border rounded-2xl ${isDark ? 'bg-[#0b0b0b] border-gray-900' : 'bg-white border-gray-200'}`}>
-          <AlertCircle size={48} className="mx-auto mb-4" style={{ color: colors.text.muted }} />
-          <h3 className="text-sm font-bold mb-2" style={{ color: colors.text.muted }}>لا توجد حجوزات</h3>
-          <p className="text-xs mb-4" style={{ color: colors.text.disabled }}>ابدأ بإضافة حجز جديد</p>
+        <div className="text-center py-20 bg-white border border-gray-200 rounded-2xl">
+          <XCircle size={48} className="text-red-400 mx-auto mb-4" /><p className="text-gray-500 text-sm font-bold mb-4">{error}</p>
+          <button onClick={loadStays} className="px-5 py-2 bg-[#D4AF37] text-white font-bold text-sm rounded-xl">إعادة المحاولة</button>
         </div>
       ) : (
-        <div className="overflow-x-auto pb-2">
-          <table className="w-full">
-            <thead>
-              <tr className={`border-b ${isDark ? 'border-gray-800' : 'border-gray-200'}`}>
-                <th className={`text-xs font-bold text-right pb-3 ${isDark ? 'text-gray-500' : 'text-gray-600'}`}>الضيف</th>
-                <th className={`text-xs font-bold text-right pb-3 ${isDark ? 'text-gray-500' : 'text-gray-600'}`}>الغرفة</th>
-                <th className={`text-xs font-bold text-right pb-3 ${isDark ? 'text-gray-500' : 'text-gray-600'}`}>تسجيل الدخول</th>
-                <th className={`text-xs font-bold text-right pb-3 ${isDark ? 'text-gray-500' : 'text-gray-600'}`}>تسجيل المغادرة</th>
-                <th className={`text-xs font-bold text-right pb-3 ${isDark ? 'text-gray-500' : 'text-gray-600'}`}>الحالة</th>
-                <th className={`text-xs font-bold text-right pb-3 ${isDark ? 'text-gray-500' : 'text-gray-600'}`}>المبلغ</th>
-                <th className={`text-xs font-bold text-right pb-3 ${isDark ? 'text-gray-500' : 'text-gray-600'}`}>الإجراءات</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredStays.map((stay) => (
-                <tr key={stay.stayId} className={`border-b transition-colors ${isDark ? 'border-gray-800/50 hover:bg-[#121212]/50' : 'border-gray-200 hover:bg-gray-50'}`}>
-                  <td className="py-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${colors.primary.gold}20`, borderColor: `${colors.primary.gold}30`, border: '1px solid' }}>
-                        <User size={14} style={{ color: colors.primary.goldLight }} />
+        <>
+          {/* Month View */}
+          {viewMode === 'month' && (
+            <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+              {/* Day Headers */}
+              <div className="grid grid-cols-7 border-b border-gray-200">
+                {DAY_NAMES.map(d => <div key={d} className="p-3 text-center text-sm font-bold text-gray-500">{d}</div>)}
+              </div>
+              {/* Calendar Grid */}
+              <div className="grid grid-cols-7">
+                {monthDays.map((day, idx) => {
+                  if (day === null) return <div key={`empty-${idx}`} className="min-h-[100px] border-b border-r border-gray-100 bg-gray-50/50" />;
+                  const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+                  const dayStays = getStaysForDate(date);
+                  return (
+                    <div key={day} className={`min-h-[100px] border-b border-r border-gray-100 p-1.5 hover:bg-gray-50 transition cursor-pointer ${isToday(date) ? 'bg-amber-50/50' : ''}`} onClick={() => { setCurrentDate(date); setViewMode('day'); }}>
+                      <div className={`text-xs font-bold mb-1 ${isToday(date) ? 'text-[#AA7B30] bg-[#D4AF37]/10 w-6 h-6 rounded-full flex items-center justify-center' : 'text-gray-600'}`}>{day}</div>
+                      <div className="space-y-0.5">
+                        {dayStays.slice(0, 3).map(s => {
+                          const sc = getStatusColor(s.status);
+                          return (
+                            <div key={s.stayId} onClick={e => { e.stopPropagation(); setSelectedStay(s); setIsModalOpen(true); }} className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${sc.bg} ${sc.text} border ${sc.border} cursor-pointer hover:opacity-80 truncate`}>
+                              {s.roomNumber} - {s.guestName}
+                            </div>
+                          );
+                        })}
+                        {dayStays.length > 3 && <div className="text-[10px] text-gray-400 text-center">+{dayStays.length - 3}</div>}
                       </div>
-                      <span className="text-sm font-bold" style={{ color: colors.text.primary }}>{stay.guestName}</span>
                     </div>
-                  </td>
-                  <td className="py-3 text-sm" style={{ color: colors.text.primary }}>{stay.roomNumber}</td>
-                  <td className="py-3 text-sm" style={{ color: colors.text.muted }}>{stay.checkInTime ? new Date(stay.checkInTime).toLocaleDateString('ar-SA', { calendar: 'gregory' }) : '-'}</td>
-                  <td className="py-3 text-sm" style={{ color: colors.text.muted }}>{stay.expectedCheckOutDate ? new Date(stay.expectedCheckOutDate).toLocaleDateString('ar-SA', { calendar: 'gregory' }) : '-'}</td>
-                  <td className="py-3">
-                    <span className={`px-2 py-1 rounded-lg text-xs font-bold border ${
-                      stay.status === 'CHECKED_IN' || stay.status === 'ACTIVE' || stay.status === 'active' ? (isDark ? 'bg-emerald-950/40 text-emerald-400 border-emerald-500/20' : 'bg-emerald-50 text-emerald-700 border-emerald-200') :
-                      stay.status === 'CHECKED_OUT' || stay.status === 'CLOSED' || stay.status === 'closed' ? (isDark ? 'bg-red-950/40 text-red-400 border-red-500/20' : 'bg-red-50 text-red-700 border-red-200') :
-                      stay.status === 'RESERVED' || stay.status === 'BOOKED' || stay.status === 'booked' ? (isDark ? 'bg-blue-950/40 text-blue-400 border-blue-500/20' : 'bg-blue-50 text-blue-700 border-blue-200') :
-                      (isDark ? 'bg-gray-950/40 text-gray-400 border-gray-800' : 'bg-gray-50 text-gray-600 border-gray-300')
-                    }`}>
-                      {stay.status === 'CHECKED_IN' || stay.status === 'ACTIVE' || stay.status === 'active' ? 'نشط' :
-                       stay.status === 'CHECKED_OUT' || stay.status === 'CLOSED' || stay.status === 'closed' ? 'مغلق' :
-                       stay.status === 'RESERVED' || stay.status === 'BOOKED' || stay.status === 'booked' ? 'محجوز' :
-                       stay.status === 'AVAILABLE' ? 'متاح' :
-                       stay.status === 'OCCUPIED' ? 'مشغول' :
-                       '—'}
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Week View */}
+          {viewMode === 'week' && (
+            <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+              <div className="grid grid-cols-7 border-b border-gray-200">
+                {weekDays.map((d, i) => (
+                  <div key={i} className={`p-3 text-center ${isToday(d) ? 'bg-amber-50' : ''}`}>
+                    <div className="text-xs font-bold text-gray-500">{DAY_NAMES[d.getDay()]}</div>
+                    <div className={`text-lg font-black mt-1 ${isToday(d) ? 'text-[#AA7B30]' : 'text-gray-800'}`}>{d.getDate()}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="grid grid-cols-7 min-h-[400px]">
+                {weekDays.map((d, i) => {
+                  const dayStays = getStaysForDate(d);
+                  return (
+                    <div key={i} className={`border-r border-gray-100 p-2 space-y-1 ${isToday(d) ? 'bg-amber-50/30' : ''}`}>
+                      {dayStays.map(s => {
+                        const sc = getStatusColor(s.status);
+                        return (
+                          <div key={s.stayId} onClick={() => { setSelectedStay(s); setIsModalOpen(true); }} className={`p-2 rounded-lg border cursor-pointer hover:shadow-md transition ${sc.bg} ${sc.border}`}>
+                            <div className={`text-xs font-bold ${sc.text}`}>{s.roomNumber}</div>
+                            <div className="text-[11px] text-gray-600 truncate">{s.guestName}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Day View */}
+          {viewMode === 'day' && (
+            <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+              <div className={`p-4 border-b border-gray-200 ${isToday(currentDate) ? 'bg-amber-50' : ''}`}>
+                <div className="text-lg font-black text-gray-900">{DAY_NAMES[currentDate.getDay()]} {currentDate.getDate()} {MONTH_NAMES[currentDate.getMonth()]}</div>
+              </div>
+              <div className="p-4 space-y-3">
+                {getStaysForDate(currentDate).length === 0 ? (
+                  <div className="text-center py-12 text-gray-400 text-sm font-bold">لا توجد حجوزات في هذا اليوم</div>
+                ) : (
+                  getStaysForDate(currentDate).map(s => {
+                    const sc = getStatusColor(s.status);
+                    return (
+                      <div key={s.stayId} onClick={() => { setSelectedStay(s); setIsModalOpen(true); }} className={`flex items-center justify-between p-4 rounded-xl border cursor-pointer hover:shadow-md transition ${sc.bg} ${sc.border}`}>
+                        <div className="flex items-center gap-4">
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${sc.bg} border ${sc.border}`}><User size={18} className={sc.text} /></div>
+                          <div>
+                            <div className="text-base font-bold text-gray-900">{s.guestName}</div>
+                            <div className="text-sm text-gray-500">غرفة {s.roomNumber} • {s.checkInTime ? new Date(s.checkInTime).toLocaleDateString('ar-SA') : ''} → {s.expectedCheckOutDate ? new Date(s.expectedCheckOutDate).toLocaleDateString('ar-SA') : ''}</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${sc.bg} ${sc.text} ${sc.border}`}>
+                            <span className={`w-2 h-2 rounded-full ${sc.dot}`}></span>
+                            {getStatusLabel(s.status)}
+                          </span>
+                          <div className="flex gap-1">
+                            <button onClick={e => { e.stopPropagation(); handleCheckIn(s.stayId); }} disabled={s.status === 'CHECKED_IN' || s.status === 'ACTIVE' || s.status === 'active' || s.status === 'CHECKED_OUT' || s.status === 'CLOSED'} className="px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-gray-50 disabled:opacity-40 transition">دخول</button>
+                            <button onClick={e => { e.stopPropagation(); handleCheckOut(s.stayId); }} disabled={s.status !== 'CHECKED_IN' && s.status !== 'ACTIVE'} className="px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-gray-50 disabled:opacity-40 transition">مغادرة</button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Reservation Details Modal */}
+      <AnimatePresence>
+        {selectedStay && isModalOpen && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setIsModalOpen(false)}>
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} onClick={e => e.stopPropagation()} className="bg-white border border-gray-200 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+              {/* Header */}
+              <div className="flex justify-between items-center p-6 border-b border-gray-100">
+                <div>
+                  <h2 className="text-xl font-black text-gray-900">تفاصيل الحجز</h2>
+                  <p className="text-sm text-gray-400 mt-0.5">رقم الحجز: #{selectedStay.stayId}</p>
+                </div>
+                <button onClick={() => setIsModalOpen(false)} className="p-2 border border-gray-200 rounded-xl hover:bg-gray-50 transition"><X size={18} className="text-gray-500" /></button>
+              </div>
+
+              <div className="p-6 space-y-5">
+                {/* Status */}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-bold text-gray-500">الحالة الحالية</span>
+                  {(() => { const sc = getStatusColor(selectedStay.status); return (
+                    <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-bold border ${sc.bg} ${sc.text} ${sc.border}`}>
+                      <span className={`w-2.5 h-2.5 rounded-full ${sc.dot}`}></span>
+                      {getStatusLabel(selectedStay.status)}
                     </span>
-                  </td>
-                  <td className="py-3 text-sm font-bold" style={{ color: colors.primary.goldLight }}>{stay.totalCharge ? stay.totalCharge.toLocaleString('ar-SA', { maximumFractionDigits: 0 }) : '0'} ريال</td>
-                  <td className="py-3">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleCheckIn(stay.stayId)}
-                        disabled={stay.status === 'CHECKED_IN' || stay.status === 'ACTIVE' || stay.status === 'active' || stay.status === 'CHECKED_OUT' || stay.status === 'CLOSED' || stay.status === 'closed'}
-                        className={`px-3 py-1.5 border rounded-lg hover:border-[#D4AF37]/30 transition disabled:opacity-50 text-xs font-bold ${isDark ? 'bg-[#121212] border-gray-800 text-gray-400 hover:text-white' : 'bg-gray-100 border-gray-300 text-gray-600 hover:text-gray-900'}`}
-                      >
-                        تسجيل دخول
-                      </button>
-                      <button
-                        onClick={() => handleCheckOut(stay.stayId)}
-                        disabled={stay.status !== 'CHECKED_IN' && stay.status !== 'ACTIVE'}
-                        className={`px-3 py-1.5 border rounded-lg hover:border-[#D4AF37]/30 transition disabled:opacity-50 text-xs font-bold ${isDark ? 'bg-[#121212] border-gray-800 text-gray-400 hover:text-white' : 'bg-gray-100 border-gray-300 text-gray-600 hover:text-gray-900'}`}
-                      >
-                        تسجيل مغادرة
-                      </button>
+                  ); })()}
+                </div>
+
+                {/* Guest Info */}
+                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
+                  <h4 className="text-sm font-bold text-gray-700">بيانات الضيف</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <InfoItem icon={<User size={16} />} label="اسم الضيف" value={selectedStay.guestName} />
+                    <InfoItem icon={<Phone size={16} />} label="رقم الهاتف" value={selectedStay.guestPhone || 'غير متاح'} />
+                    <InfoItem icon={<Building size={16} />} label="رقم الغرفة" value={selectedStay.roomNumber} />
+                    <InfoItem icon={<Building size={16} />} label="الطابق" value={selectedStay.floor ? `الطابق ${selectedStay.floor}` : 'غير متاح'} />
+                  </div>
+                </div>
+
+                {/* Stay Info */}
+                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
+                  <h4 className="text-sm font-bold text-gray-700">بيانات الإقامة</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <InfoItem icon={<Calendar size={16} />} label="تاريخ الدخول" value={selectedStay.checkInTime ? new Date(selectedStay.checkInTime).toLocaleDateString('ar-SA', { calendar: 'gregory' }) : 'غير متاح'} />
+                    <InfoItem icon={<Calendar size={16} />} label="تاريخ المغادرة المتوقع" value={selectedStay.expectedCheckOutDate ? new Date(selectedStay.expectedCheckOutDate).toLocaleDateString('ar-SA', { calendar: 'gregory' }) : 'غير متاح'} />
+                    <InfoItem icon={<Calendar size={16} />} label="وقت تسجيل الدخول" value={selectedStay.checkInTime ? new Date(selectedStay.checkInTime).toLocaleTimeString('ar-SA') : 'غير متاح'} />
+                    <InfoItem icon={<Calendar size={16} />} label="وقت تسجيل المغادرة" value={selectedStay.checkOutTime ? new Date(selectedStay.checkOutTime).toLocaleTimeString('ar-SA') : 'لم يتم بعد'} />
+                  </div>
+                </div>
+
+                {/* Guests Info */}
+                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
+                  <h4 className="text-sm font-bold text-gray-700">عدد الضيوف</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <InfoItem icon={<User size={16} />} label="البالغين" value={selectedStay.numAdults ? `${selectedStay.numAdults} أشخاص` : 'غير متاح'} />
+                    <InfoItem icon={<User size={16} />} label="الأطفال" value={selectedStay.numKids ? `${selectedStay.numKids} أطفال` : '0 أطفال'} />
+                  </div>
+                </div>
+
+                {/* Charges */}
+                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
+                  <h4 className="text-sm font-bold text-gray-700">المبالغ المالية</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <InfoItem icon={<DollarSign size={16} />} label="رسوم الغرفة" value={selectedStay.roomCharge ? `${selectedStay.roomCharge.toLocaleString('ar-SA')} ريال` : 'غير متاح'} />
+                    <InfoItem icon={<DollarSign size={16} />} label="الإجمالي" value={selectedStay.totalCharge ? `${selectedStay.totalCharge.toLocaleString('ar-SA')} ريال` : 'غير متاح'} highlight />
+                  </div>
+                </div>
+
+                {/* Rating */}
+                {selectedStay.stars && (
+                  <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-bold text-gray-700">تقييم الضيف</span>
+                      <div className="flex items-center gap-1">
+                        {[1,2,3,4,5].map(s => (
+                          <span key={s} className={`text-lg ${s <= selectedStay.stars ? 'text-[#D4AF37]' : 'text-gray-300'}`}>★</span>
+                        ))}
+                        <span className="text-sm font-bold text-gray-600 mr-2">{selectedStay.stars}/5</span>
+                      </div>
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+                  </div>
+                )}
 
-      {/* New Reservation Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 backdrop-blur-sm z-50 flex items-center justify-center p-4" style={{ background: isDark ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.5)' }}>
-          <div className={`border rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto ${isDark ? 'bg-[#0b0b0b] border-[#D4AF37]/30' : 'bg-white border-gray-200'}`}>
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold" style={{ color: colors.primary.goldLight }}>حجز جناح جديد</h3>
-              <button onClick={() => setIsModalOpen(false)} className={`p-2 border rounded-lg ${isDark ? 'bg-gray-900 border-gray-800' : 'bg-gray-100 border-gray-300'}`}>
-                <X size={18} />
-              </button>
-            </div>
+                {/* Notes */}
+                {selectedStay.notes && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                    <div className="flex items-center gap-2 mb-2"><span className="text-sm font-bold text-amber-700">ملاحظات الضيف</span></div>
+                    <p className="text-sm text-amber-800 leading-relaxed">{selectedStay.notes}</p>
+                  </div>
+                )}
 
-            {createStayError && (
-              <div className={`border text-sm p-3 rounded-lg mb-4 ${isDark ? 'bg-red-950/40 border-red-500/30 text-red-200' : 'bg-red-50 border-red-200 text-red-700'}`}>
-                {createStayError}
-              </div>
-            )}
-
-            <div className="space-y-4">
-              <div>
-                <label className="text-xs block mb-2" style={{ color: colors.text.muted }}>اسم الضيف</label>
-                <input
-                  type="text"
-                  value={guestName}
-                  onChange={(e) => setGuestName(e.target.value)}
-                  className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none ${isDark ? 'bg-[#121212] border-gray-800 focus:border-[#D4AF37] text-white' : 'bg-white border-gray-300 focus:border-[#D4AF37] text-gray-900'}`}
-                />
-              </div>
-
-              <div>
-                <label className="text-xs block mb-2" style={{ color: colors.text.muted }}>رقم الغرفة</label>
-                <select
-                  value={selectedRoomNumber}
-                  onChange={(e) => setSelectedRoomNumber(e.target.value)}
-                  className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none ${isDark ? 'bg-[#121212] border-gray-800 focus:border-[#D4AF37] text-white' : 'bg-white border-gray-300 focus:border-[#D4AF37] text-gray-900'}`}
-                >
-                  <option value="">اختر غرفة متاحة</option>
-                  {availableRooms.map((room) => (
-                    <option key={room.id} value={room.number}>
-                      {room.number} - {room.type} ({room.pricePerNight} ريال/ليلة)
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs block mb-2" style={{ color: colors.text.muted }}>تسجيل الدخول</label>
-                  <input
-                    type="date"
-                    value={checkIn}
-                    onChange={(e) => setCheckIn(e.target.value)}
-                    className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none ${isDark ? 'bg-[#121212] border-gray-800 focus:border-[#D4AF37] text-white' : 'bg-white border-gray-300 focus:border-[#D4AF37] text-gray-900'}`}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs block mb-2" style={{ color: colors.text.muted }}>تسجيل المغادرة</label>
-                  <input
-                    type="date"
-                    value={checkOut}
-                    onChange={(e) => setCheckOut(e.target.value)}
-                    className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none ${isDark ? 'bg-[#121212] border-gray-800 focus:border-[#D4AF37] text-white' : 'bg-white border-gray-300 focus:border-[#D4AF37] text-gray-900'}`}
-                  />
+                {/* Actions */}
+                <div className="flex gap-3 pt-4 border-t border-gray-100">
+                  <button onClick={() => { handleCheckIn(selectedStay.stayId); setIsModalOpen(false); }} disabled={selectedStay.status === 'CHECKED_IN' || selectedStay.status === 'ACTIVE' || selectedStay.status === 'CHECKED_OUT' || selectedStay.status === 'CLOSED'} className="flex-1 py-3 bg-blue-50 border border-blue-200 text-blue-700 font-bold text-sm rounded-xl hover:bg-blue-100 transition disabled:opacity-40 disabled:cursor-not-allowed">تسجيل الدخول</button>
+                  <button onClick={() => { handleCheckOut(selectedStay.stayId); setIsModalOpen(false); }} disabled={selectedStay.status !== 'CHECKED_IN' && selectedStay.status !== 'ACTIVE'} className="flex-1 py-3 bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold text-sm rounded-xl hover:bg-emerald-100 transition disabled:opacity-40 disabled:cursor-not-allowed">تسجيل المغادرة</button>
                 </div>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs block mb-2" style={{ color: colors.text.muted }}>عدد البالغين</label>
-                  <input
-                    type="number"
-                    value={adults}
-                    onChange={(e) => setAdults(parseInt(e.target.value))}
-                    min="1"
-                    className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none ${isDark ? 'bg-[#121212] border-gray-800 focus:border-[#D4AF37] text-white' : 'bg-white border-gray-300 focus:border-[#D4AF37] text-gray-900'}`}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs block mb-2" style={{ color: colors.text.muted }}>عدد الأطفال</label>
-                  <input
-                    type="number"
-                    value={children}
-                    onChange={(e) => setChildren(parseInt(e.target.value))}
-                    min="0"
-                    className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none ${isDark ? 'bg-[#121212] border-gray-800 focus:border-[#D4AF37] text-white' : 'bg-white border-gray-300 focus:border-[#D4AF37] text-gray-900'}`}
-                  />
-                </div>
-              </div>
-
-              <div className={`flex justify-end gap-3 pt-4 border-t ${isDark ? 'border-gray-800' : 'border-gray-200'}`}>
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className={`px-4 py-2 border rounded-xl text-xs font-bold transition ${isDark ? 'bg-[#121212] border-gray-800 text-gray-400 hover:text-white' : 'bg-gray-100 border-gray-300 text-gray-600 hover:text-gray-900'}`}
-                >
-                  إلغاء
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCreateReservation}
-                  disabled={isCreatingStay}
-                  className="px-6 py-2 text-black font-extrabold text-xs rounded-xl shadow hover:shadow-lg transition duration-200 flex items-center gap-2 disabled:opacity-50"
-                  style={{ background: colors.primary.goldGradient }}
-                >
-                  {isCreatingStay ? (
-                    <>
-                      <Loader2 size={14} className="animate-spin" />
-                      جاري الحفظ...
-                    </>
-                  ) : (
-                    <>
-                      <Save size={14} />
-                      حفظ الحجز
-                    </>
-                  )}
+      {/* Create Reservation Modal */}
+      <AnimatePresence>
+        {isCreateOpen && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setIsCreateOpen(false)}>
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} onClick={e => e.stopPropagation()} className="bg-white border border-gray-200 rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold text-[#AA7B30]">حجز جناح جديد</h3>
+                <button onClick={() => setIsCreateOpen(false)} className="p-2 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 transition">
+                  <X size={18} />
                 </button>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
+
+              {createError && (
+                <div className="border text-sm p-3 rounded-lg mb-4 bg-red-50 border-red-200 text-red-700">
+                  {createError}
+                </div>
+              )}
+
+              <div className="space-y-4">
+                <Field label="اسم الضيف" value={guestName} onChange={setGuestName} placeholder="الاسم الكامل" />
+                <div>
+                  <label className="text-xs block mb-2 text-gray-500 font-bold">رقم الغرفة *</label>
+                  <select
+                    value={selectedRoomNumber}
+                    onChange={(e) => setSelectedRoomNumber(e.target.value)}
+                    className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#D4AF37] text-gray-900 bg-white"
+                  >
+                    <option value="">اختر غرفة متاحة</option>
+                    {availableRooms.map((room: any) => (
+                      <option key={room.id} value={room.roomNumber}>
+                        {room.roomNumber} - {room.description || 'غرفة'}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs block mb-2 text-gray-500 font-bold">تسجيل الدخول</label>
+                    <input
+                      type="date"
+                      value={checkIn}
+                      onChange={(e) => setCheckIn(e.target.value)}
+                      className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#D4AF37] text-gray-900 bg-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs block mb-2 text-gray-500 font-bold">تسجيل المغادرة</label>
+                    <input
+                      type="date"
+                      value={checkOut}
+                      onChange={(e) => setCheckOut(e.target.value)}
+                      className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#D4AF37] text-gray-900 bg-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs block mb-2 text-gray-500 font-bold">عدد البالغين</label>
+                    <input
+                      type="number"
+                      value={adults}
+                      onChange={(e) => setAdults(parseInt(e.target.value))}
+                      min="1"
+                      className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#D4AF37] text-gray-900 bg-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs block mb-2 text-gray-500 font-bold">عدد الأطفال</label>
+                    <input
+                      type="number"
+                      value={children}
+                      onChange={(e) => setChildren(parseInt(e.target.value))}
+                      min="0"
+                      className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#D4AF37] text-gray-900 bg-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                  <button
+                    type="button"
+                    onClick={() => setIsCreateOpen(false)}
+                    className="px-4 py-2 border border-gray-300 rounded-xl text-sm font-bold transition bg-gray-100 text-gray-600 hover:text-gray-900"
+                  >
+                    إلغاء
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCreate}
+                    disabled={isCreating}
+                    className="px-6 py-2 bg-gradient-to-r from-[#AA7B30] to-[#D4AF37] text-black font-extrabold text-sm rounded-xl shadow hover:shadow-lg transition duration-200 flex items-center gap-2 disabled:opacity-50"
+                  >
+                    {isCreating ? (
+                      <>
+                        <Loader2 size={14} className="animate-spin" />
+                        جاري الحفظ...
+                      </>
+                    ) : (
+                      <>
+                        <Save size={14} />
+                        حفظ الحجز
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
+  );
+}
+
+function InfoItem({ icon, label, value, highlight }: { icon: React.ReactNode; label: string; value: string; highlight?: boolean }) {
+  return (
+    <div className="bg-gray-50 border border-gray-200 rounded-xl p-3">
+      <div className="flex items-center gap-2 mb-1"><span className="text-gray-400">{icon}</span><span className="text-xs font-bold text-gray-400">{label}</span></div>
+      <p className={`text-sm font-bold ${highlight ? 'text-[#AA7B30]' : 'text-gray-900'}`}>{value || 'غير متاح'}</p>
+    </div>
+  );
+}
+
+function Field({ label, type = 'text', value, onChange, placeholder }: { label: string; type?: string; value: string; onChange: (v: string) => void; placeholder?: string }) {
+  return (
+    <div><label className="text-sm font-bold text-gray-700 block mb-2">{label}</label>
+    <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none transition" /></div>
   );
 }

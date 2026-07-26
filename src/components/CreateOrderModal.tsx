@@ -7,7 +7,7 @@ interface CreateOrderModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (newOrder?: any) => void;
-  roomNumber: string;
+  roomNumber?: string;
 }
 
 interface OrderItem {
@@ -31,19 +31,19 @@ interface MenuItem {
 const CATEGORY_LABELS: Record<string, string> = {
   'FOOD': 'طعام',
   'DRINK': 'مشروبات',
-  'SERVICE': 'خدمات',
+  'ROOM_SERVICE': 'خدمة الغرف',
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
   'FOOD': 'bg-amber-100 text-amber-700 border-amber-200',
   'DRINK': 'bg-blue-100 text-blue-700 border-blue-200',
-  'SERVICE': 'bg-purple-100 text-purple-700 border-purple-200',
+  'ROOM_SERVICE': 'bg-purple-100 text-purple-700 border-purple-200',
 };
 
 const CATEGORY_ICONS: Record<string, string> = {
   'FOOD': '🍽️',
   'DRINK': '🥤',
-  'SERVICE': '⭐',
+  'ROOM_SERVICE': '⭐',
 };
 
 export default function CreateOrderModal({ isOpen, onClose, onSuccess, roomNumber }: CreateOrderModalProps) {
@@ -55,23 +55,27 @@ export default function CreateOrderModal({ isOpen, onClose, onSuccess, roomNumbe
   const [isLoadingMenu, setIsLoadingMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showItemPicker, setShowItemPicker] = useState<number | null>(null);
+  const [activeRooms, setActiveRooms] = useState<any[]>([]);
+  const [selectedRoom, setSelectedRoom] = useState('');
   const searchRef = useRef<HTMLInputElement>(null);
 
   const categories = [
     { value: 'FOOD', label: 'طعام', icon: Utensils },
     { value: 'DRINK', label: 'مشروبات', icon: Coffee },
-    { value: 'SERVICE', label: 'خدمات', icon: Sparkles },
+    { value: 'ROOM_SERVICE', label: 'خدمة الغرف', icon: Sparkles },
   ];
 
-  // Load menu items ONCE when modal opens
+  // Load menu items and active rooms when modal opens
   useEffect(() => {
     if (isOpen) {
       loadAllMenuItems();
+      loadActiveRooms();
       setItems([]);
       setOrderCategory('FOOD');
       setErrorMessage('');
       setShowItemPicker(null);
       setSearchQuery('');
+      setSelectedRoom(roomNumber || '');
     }
   }, [isOpen]);
 
@@ -84,35 +88,41 @@ export default function CreateOrderModal({ isOpen, onClose, onSuccess, roomNumbe
   const loadAllMenuItems = async () => {
     setIsLoadingMenu(true);
     try {
-      // Load from restaurant menu endpoint
-      const response = await apiService.getRestaurantMenu(0, 100);
-      const rawItems = response.content || [];
-      const normalizedItems = rawItems.map((item: any) => ({
-        id: item.id,
-        name: item.name || '',
-        description: item.description || '',
-        price: typeof item.price === 'string' ? parseFloat(item.price) : (item.price || 0),
-        category: normalizeCategory(item.category),
-        available: item.available !== false,
-      }));
-      setAllMenuItems(normalizedItems);
+      const items = await apiService.getAllMenuItems();
+      setAllMenuItems(items);
     } catch (error) {
-      console.error('Failed to load menu items:', error);
       setAllMenuItems([]);
     } finally {
       setIsLoadingMenu(false);
     }
   };
 
-  const normalizeCategory = (cat: any): string => {
-    if (!cat || cat === '' || cat === null || cat === undefined) return 'FOOD';
-    const normalized = cat.toString().trim().toUpperCase();
-    if (['FOOD', 'DRINK', 'SERVICE'].includes(normalized)) return normalized;
-    // Map Arabic or other formats
-    if (normalized.includes('طعام') || normalized.includes('FOOD')) return 'FOOD';
-    if (normalized.includes('شرب') || normalized.includes('مشروب') || normalized.includes('DRINK')) return 'DRINK';
-    if (normalized.includes('خدم') || normalized.includes('SERVICE')) return 'SERVICE';
-    return 'FOOD';
+  const loadActiveRooms = async () => {
+    try {
+      // Fetch stays that are ACTIVE or CHECKED_IN (rooms with active orders)
+      const [activeResponse, checkedInResponse] = await Promise.allSettled([
+        apiService.getStays(0, 50),
+        apiService.getStays(0, 50),
+      ]);
+
+      const rooms: any[] = [];
+      const seen = new Set<string>();
+
+      // From ACTIVE stays
+      if (activeResponse.status === 'fulfilled') {
+        const stays = activeResponse.value?.content || [];
+        stays.filter((s: any) => s.status === 'ACTIVE' || s.status === 'CHECKED_IN').forEach((stay: any) => {
+          if (!seen.has(stay.roomNumber)) {
+            seen.add(stay.roomNumber);
+            rooms.push({ roomNumber: stay.roomNumber, guestName: stay.guestName || '', stayId: stay.stayId });
+          }
+        });
+      }
+
+      setActiveRooms(rooms);
+    } catch (error) {
+      setActiveRooms([]);
+    }
   };
 
   // Filter by selected order category + search
@@ -177,8 +187,11 @@ export default function CreateOrderModal({ isOpen, onClose, onSuccess, roomNumbe
     setErrorMessage('');
 
     try {
+      // Map ROOM_SERVICE → SERVICE for backend (backend only accepts FOOD, DRINK, SERVICE)
+      const backendCategory = orderCategory === 'ROOM_SERVICE' ? 'SERVICE' : orderCategory;
+
       const orderRequest: CreateOrderRequest = {
-        category: orderCategory,
+        category: backendCategory as any,
         items: validItems.map(item => ({
           menuItemId: item.menuItemId,
           quantity: item.quantity,
@@ -186,12 +199,13 @@ export default function CreateOrderModal({ isOpen, onClose, onSuccess, roomNumbe
         }))
       };
 
-      const response = await apiService.createGuestOrder(roomNumber, orderRequest);
+      const orderRoom = selectedRoom || roomNumber || '101';
+      const response = await apiService.createGuestOrder(orderRoom, orderRequest);
       
       // Build the new order object for immediate display
       const newOrder = {
         id: String(response?.orderId || Date.now()),
-        roomNumber: roomNumber,
+        roomNumber: orderRoom,
         guestName: response?.guestName || '',
         category: orderCategory,
         items: validItems.map(item => ({
@@ -201,7 +215,7 @@ export default function CreateOrderModal({ isOpen, onClose, onSuccess, roomNumbe
           category: orderCategory,
           menuItemId: item.menuItemId,
         })),
-        status: response?.status || 'PENDING',
+        status: 'PENDING',
         total: validItems.reduce((sum, i) => sum + (i.price || 0) * i.quantity, 0),
         createdAt: response?.createdAt || new Date().toISOString(),
       };
@@ -244,7 +258,7 @@ export default function CreateOrderModal({ isOpen, onClose, onSuccess, roomNumbe
                   <Utensils size={22} className="text-[#D4AF37]" />
                   إنشاء طلب جديد
                 </h2>
-                <p className="text-sm mt-1 text-gray-500 font-bold">رقم الغرفة: {roomNumber}</p>
+                <p className="text-sm mt-1 text-gray-500 font-bold">اختر الغرفة والعنصر</p>
               </div>
               <button onClick={onClose} className="p-2 border border-gray-200 rounded-xl hover:bg-gray-50 transition">
                 <X size={18} className="text-gray-500" />
@@ -257,6 +271,30 @@ export default function CreateOrderModal({ isOpen, onClose, onSuccess, roomNumbe
                   {errorMessage}
                 </div>
               )}
+
+              {/* Room Selector */}
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">رقم الغرفة *</label>
+                <select
+                  value={selectedRoom}
+                  onChange={(e) => setSelectedRoom(e.target.value)}
+                  className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none transition"
+                >
+                  <option value="">اختر غرفة نشطة...</option>
+                  {activeRooms.length > 0 ? (
+                    activeRooms.map((room) => (
+                      <option key={room.roomNumber} value={room.roomNumber}>
+                        {room.roomNumber} - {room.guestName || 'بدون ضيف'}
+                      </option>
+                    ))
+                  ) : (
+                    <option value="" disabled>لا توجد غرف نشطة</option>
+                  )}
+                </select>
+                {activeRooms.length > 0 && (
+                  <p className="text-xs text-gray-400 mt-1">{activeRooms.length} غرف نشطة متاحة</p>
+                )}
+              </div>
 
               {/* Category Selection */}
               <div>

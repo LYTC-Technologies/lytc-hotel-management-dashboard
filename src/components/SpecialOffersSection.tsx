@@ -27,7 +27,6 @@ export default function SpecialOffersSection() {
       const response = await apiService.getSpecialOffers(0, 50);
       setOffers(response.content || []);
     } catch (error: any) {
-      console.error('Failed to load offers:', error);
       if (error.message && error.message.includes('Authentication')) {
         setError('فشل المصادقة. يرجى تسجيل الدخول مرة أخرى.');
       } else {
@@ -53,7 +52,6 @@ export default function SpecialOffersSection() {
       loadOffers();
       setEditingOffer(null);
     } catch (error) {
-      console.error('Failed to update offer:', error);
       alert('فشل تحديث العرض. الرجاء المحاولة مرة أخرى.');
     }
   };

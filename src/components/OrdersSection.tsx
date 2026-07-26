@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'motion/react';
 import { 
-  Coffee, DollarSign, CheckCircle2, Utensils, Filter, Plus, X, 
+  Coffee, DollarSign, CheckCircle2, Utensils, Filter, Plus, X, Search,
   Loader2, ChefHat, Clock, AlertCircle, Package
 } from 'lucide-react';
 import { RestaurantOrder } from '../types';
@@ -30,18 +30,21 @@ const STATUS_COLORS: Record<string, string> = {
 const CATEGORY_LABELS: Record<string, string> = {
   'FOOD': 'طعام',
   'DRINK': 'مشروبات',
-  'SERVICE': 'خدمات',
+  'ROOM_SERVICE': 'خدمة الغرف',
 };
 
 const CATEGORY_ICONS: Record<string, string> = {
   'FOOD': '🍽️',
   'DRINK': '🥤',
-  'SERVICE': '⭐',
+  'ROOM_SERVICE': '⭐',
 };
 
 export default function OrdersSection({ orders: initialOrders = [] }: OrdersSectionProps) {
   const [viewMode, setViewMode] = useState<'orders' | 'menu'>('orders');
   const [filter, setFilter] = useState<string>('all');
+  const [roomFilter, setRoomFilter] = useState('');
+  const [debouncedRoom, setDebouncedRoom] = useState('');
+  const debounceTimer = useRef<NodeJS.Timeout>();
   const [isCreateOrderModalOpen, setIsCreateOrderModalOpen] = useState(false);
   const [isCreateMenuItemModalOpen, setIsCreateMenuItemModalOpen] = useState(false);
   const [orders, setOrders] = useState<any[]>([]);
@@ -61,14 +64,13 @@ export default function OrdersSection({ orders: initialOrders = [] }: OrdersSect
       const response = await apiService.getRestaurantStats();
       setStats(response);
     } catch (error) {
-      console.error('Failed to load stats:', error);
     }
   };
 
   const loadMenu = async () => {
     try {
-      const response = await apiService.getRestaurantMenu(0, 100);
-      setMenuItems(response.content || []);
+      const items = await apiService.getAllMenuItems();
+      setMenuItems(items);
     } catch (error) {
       setMenuItems([]);
     }
@@ -98,7 +100,6 @@ export default function OrdersSection({ orders: initialOrders = [] }: OrdersSect
       }));
       setOrders(transformedOrders);
     } catch (error: any) {
-      console.error('Failed to load orders:', error);
       setOrders([]);
     } finally {
       setIsLoading(false);
@@ -107,14 +108,14 @@ export default function OrdersSection({ orders: initialOrders = [] }: OrdersSect
 
   const handleCreateOrderSuccess = (newOrder?: any) => {
     if (newOrder) {
-      // Add new order to local state immediately
-      setOrders(prev => [newOrder, ...prev]);
+      // Add new order to local state immediately — do NOT clear existing orders
+      setOrders(prev => {
+        // Avoid duplicates
+        const exists = prev.some(o => o.id === newOrder.id);
+        if (exists) return prev;
+        return [newOrder, ...prev];
+      });
     }
-    // Reload from backend in background
-    setTimeout(() => {
-      loadOrders();
-      loadStats();
-    }, 500);
   };
 
   const handleUpdateOrderStatus = async (orderId: string, newStatus: string) => {
@@ -125,11 +126,22 @@ export default function OrdersSection({ orders: initialOrders = [] }: OrdersSect
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: backendStatus } : o));
       loadStats();
     } catch (error) {
-      console.error('Failed to update order status:', error);
     }
   };
 
-  const filteredOrders = filter === 'all' ? orders : orders.filter(o => o.status === filter);
+  const handleRoomFilterChange = useCallback((value: string) => {
+    setRoomFilter(value);
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => {
+      setDebouncedRoom(value);
+    }, 300);
+  }, []);
+
+  const filteredOrders = orders.filter(o => {
+    const matchesStatus = filter === 'all' || o.status === filter;
+    const matchesRoom = debouncedRoom === '' || o.roomNumber?.toString().includes(debouncedRoom);
+    return matchesStatus && matchesRoom;
+  });
 
   // Use local order counts as primary (stats API may return zeros)
   const totalOrdersCount = orders.length;
@@ -255,6 +267,28 @@ export default function OrdersSection({ orders: initialOrders = [] }: OrdersSect
         </div>
       )}
 
+      {/* Room Number Filter */}
+      {viewMode === 'orders' && (
+        <div className="relative max-w-xs">
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <input
+            type="text"
+            placeholder="بحث برقم الغرفة..."
+            value={roomFilter}
+            onChange={(e) => handleRoomFilterChange(e.target.value)}
+            className="w-full bg-white border border-gray-200 focus:border-[#D4AF37] rounded-xl pr-10 pl-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none transition"
+          />
+          {roomFilter && (
+            <button
+              onClick={() => { setRoomFilter(''); setDebouncedRoom(''); }}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Orders View */}
       {viewMode === 'orders' && (
         <>
@@ -265,13 +299,17 @@ export default function OrdersSection({ orders: initialOrders = [] }: OrdersSect
           ) : filteredOrders.length === 0 ? (
             <div className="text-center py-16 bg-white border border-gray-200 rounded-2xl">
               <Utensils size={48} className="text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 text-sm font-bold mb-4">لا توجد طلبات حالياً</p>
-              <button
-                onClick={() => setIsCreateOrderModalOpen(true)}
-                className="px-5 py-2 bg-[#D4AF37] text-white font-bold text-sm rounded-xl"
-              >
-                إنشاء طلب
-              </button>
+              <p className="text-gray-500 text-sm font-bold mb-4">
+                {debouncedRoom ? `لا توجد طلبات للغرفة ${debouncedRoom}` : 'لا توجد طلبات حالياً'}
+              </p>
+              {!debouncedRoom && (
+                <button
+                  onClick={() => setIsCreateOrderModalOpen(true)}
+                  className="px-5 py-2 bg-[#D4AF37] text-white font-bold text-sm rounded-xl"
+                >
+                  إنشاء طلب
+                </button>
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

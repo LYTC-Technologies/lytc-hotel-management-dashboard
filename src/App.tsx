@@ -174,6 +174,7 @@ function App() {
   // Quick Modal Triggers
   const [quickBookOpen, setQuickBookOpen] = useState(false);
   const [quickRequestOpen, setQuickRequestOpen] = useState(false);
+  const [paymentsRefreshKey, setPaymentsRefreshKey] = useState(0);
   const [quickBookName, setQuickBookName] = useState('');
   const [quickBookRoom, setQuickBookRoom] = useState('');
   const [quickReqRoom, setQuickReqRoom] = useState('');
@@ -359,13 +360,13 @@ function App() {
       case 'الغرف':
         return <RoomsSection />;
       case 'الحجوزات':
-        return <ReservationsSection />;
+        return <ReservationsSection onCheckout={() => setPaymentsRefreshKey(prev => prev + 1)} />;
       case 'النزلاء':
         return <GuestsSection guests={guests} reservations={reservations} />;
       case 'الطلبات':
         return <OrdersSection />;
       case 'المدفوعات':
-        return <PaymentsSection />;
+        return <PaymentsSection refreshKey={paymentsRefreshKey} />;
       case 'التحليلات الذكية':
         return <AnalyticsPage />;
       case 'إدارة المستخدمين':

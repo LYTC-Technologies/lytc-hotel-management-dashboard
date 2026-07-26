@@ -288,10 +288,14 @@ class APIService {
   // Helper method to handle response with automatic token refresh
   private async handleResponse<T>(response: Response): Promise<T> {
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'An error occurred' }));
-      throw new Error(error.message || `HTTP error! status: ${response.status}`);
+      const errorBody = await response.text().catch(() => '');
+      let errorMsg = `خطأ في الخادم (${response.status})`;
+      try {
+        const errorJson = JSON.parse(errorBody);
+        errorMsg = errorJson.message || errorJson.error || errorJson.detail || errorMsg;
+      } catch {}
+      throw new Error(errorMsg);
     }
-    // Handle 204 No Content responses
     if (response.status === 204) {
       return undefined as T;
     }
@@ -773,13 +777,13 @@ class APIService {
 
   /**
    * Create Stay
-   * POST /api/dashboard/front-desk/stays
+   * PUT /api/dashboard/front-desk/stays
    */
   async createStay(stay: CreateStayRequest): Promise<StayDetailsResponse> {
     return this.authenticatedFetch<StayDetailsResponse>(
       `${this.baseURL}/api/dashboard/front-desk/stays`,
       {
-        method: 'POST',
+        method: 'PUT',
         body: JSON.stringify(stay),
         headers: {
           'Content-Type': 'application/json',
@@ -1340,36 +1344,152 @@ class APIService {
 
   /**
    * Get Restaurant Menu
-   * GET /api/dashboard/restaurant/menu
-   * Note: This endpoint doesn't exist in Swagger as GET, using guest menu instead
+   * GET /api/dashboard/restaurant/menu (may not exist, fallback to guest menu)
    */
   async getRestaurantMenu(
     page: number = 0,
-    size: number = 10
+    size: number = 100
   ): Promise<any> {
-    // Use guest menu endpoint as dashboard restaurant menu GET doesn't exist
-    return this.getGuestMenu(undefined, page, size);
+    try {
+      const params = new URLSearchParams({ page: page.toString(), size: size.toString() });
+      return await this.authenticatedFetch<any>(
+        `${this.baseURL}/api/dashboard/restaurant/menu?${params.toString()}`,
+        { method: 'GET' }
+      );
+    } catch (error) {
+      // Fallback to guest menu with FOOD category
+      return this.getGuestMenu('FOOD', page, size);
+    }
   }
 
   /**
    * Get Cafe Menu
-   * GET /api/dashboard/cafe/menu
+   * GET /api/dashboard/cafe/menu (may not exist, fallback to guest menu)
    */
   async getCafeMenu(
     page: number = 0,
-    size: number = 10
+    size: number = 100
   ): Promise<any> {
-    const params = new URLSearchParams({
-      page: page.toString(),
-      size: size.toString(),
-    });
+    try {
+      const params = new URLSearchParams({ page: page.toString(), size: size.toString() });
+      return await this.authenticatedFetch<any>(
+        `${this.baseURL}/api/dashboard/cafe/menu?${params.toString()}`,
+        { method: 'GET' }
+      );
+    } catch (error) {
+      // Fallback to guest menu with DRINK category
+      return this.getGuestMenu('DRINK', page, size);
+    }
+  }
 
-    return this.authenticatedFetch<any>(
-      `${this.baseURL}/api/dashboard/cafe/menu?${params.toString()}`,
-      {
-        method: 'GET',
+  /**
+   * Get all menu items from all 3 endpoints, merge and normalize
+   * Uses guest menu as primary source (dashboard GET endpoints may not exist)
+   * Falls back gracefully if any endpoint fails
+   */
+  async getAllMenuItems(): Promise<any[]> {
+    // Primary: use guest menu which supports category filter
+    const results = await Promise.allSettled([
+      this.getGuestMenu('FOOD', 0, 100),
+      this.getGuestMenu('DRINK', 0, 100),
+      this.getGuestMenu('SERVICE', 0, 100),
+    ]);
+
+    const allItems: any[] = [];
+
+    // FOOD items
+    if (results[0].status === 'fulfilled') {
+      const items = results[0].value?.content || [];
+      items.forEach((item: any) => {
+        allItems.push({
+          id: item.id,
+          name: item.name || '',
+          description: item.description || '',
+          price: typeof item.price === 'string' ? parseFloat(item.price) : (item.price || 0),
+          category: 'FOOD',
+          available: item.available !== false,
+          source: 'restaurant',
+        });
+      });
+    }
+
+    // DRINK items
+    if (results[1].status === 'fulfilled') {
+      const items = results[1].value?.content || [];
+      items.forEach((item: any) => {
+        allItems.push({
+          id: item.id,
+          name: item.name || '',
+          description: item.description || '',
+          price: typeof item.price === 'string' ? parseFloat(item.price) : (item.price || 0),
+          category: 'DRINK',
+          available: item.available !== false,
+          source: 'cafe',
+        });
+      });
+    }
+
+    // ROOM_SERVICE items
+    if (results[2].status === 'fulfilled') {
+      const items = results[2].value?.content || [];
+      items.forEach((item: any) => {
+        allItems.push({
+          id: item.id,
+          name: item.name || '',
+          description: item.description || '',
+          price: typeof item.price === 'string' ? parseFloat(item.price) : (item.price || 0),
+          category: 'ROOM_SERVICE',
+          available: item.available !== false,
+          source: 'room-service',
+        });
+      });
+    }
+
+    // If all 3 category-specific calls returned empty, try loading all items without category filter
+    if (allItems.length === 0) {
+      try {
+        const allResponse = await this.getGuestMenu(undefined, 0, 300);
+        const allRaw = allResponse?.content || [];
+        allRaw.forEach((item: any) => {
+          const cat = (item.category || 'FOOD').toString().trim().toUpperCase();
+          let derivedCategory = 'FOOD';
+          if (cat === 'DRINK' || cat.includes('شرب')) derivedCategory = 'DRINK';
+          else if (cat === 'SERVICE' || cat === 'ROOM_SERVICE' || cat.includes('خدم')) derivedCategory = 'ROOM_SERVICE';
+          allItems.push({
+            id: item.id,
+            name: item.name || '',
+            description: item.description || '',
+            price: typeof item.price === 'string' ? parseFloat(item.price) : (item.price || 0),
+            category: derivedCategory,
+            available: item.available !== false,
+            source: derivedCategory === 'FOOD' ? 'restaurant' : derivedCategory === 'DRINK' ? 'cafe' : 'room-service',
+          });
+        });
+      } catch (error) {
+        // All endpoints failed
       }
-    );
+    }
+
+    return allItems;
+  }
+
+  /**
+   * Create menu item routed to the correct endpoint based on category
+   * FOOD → /api/dashboard/restaurant/menu
+   * DRINK → /api/dashboard/cafe/menu
+   * ROOM_SERVICE → /api/dashboard/room-service/menu
+   */
+  async createMenuItemByCategory(item: CreateMenuItemRequest, category: string): Promise<MenuItemResponse> {
+    switch (category) {
+      case 'FOOD':
+        return this.createRestaurantMenuItem(item);
+      case 'DRINK':
+        return this.createCafeMenuItem(item);
+      case 'ROOM_SERVICE':
+        return this.createRoomServiceMenuItem(item);
+      default:
+        return this.createRestaurantMenuItem(item);
+    }
   }
 }
 

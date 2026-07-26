@@ -101,7 +101,6 @@ export default function DashboardHome({
         setRestaurantStats(restaurantStatsData);
         setCafeStats(cafeStatsData);
       } catch (error) {
-        console.error('Failed to load dashboard data:', error);
         // Set empty arrays on error to prevent filter errors
         setRooms([]);
         setStays([]);

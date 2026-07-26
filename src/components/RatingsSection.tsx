@@ -27,7 +27,6 @@ export default function RatingsSection() {
       allStays.sort((a: any, b: any) => (b.stayId || 0) - (a.stayId || 0));
       setRatedStays(allStays);
     } catch (error: any) {
-      console.error('Failed to load rated stays:', error);
       setRatedStays([]);
     } finally {
       setIsLoading(false);

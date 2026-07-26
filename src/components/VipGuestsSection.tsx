@@ -31,7 +31,6 @@ export default function VipGuestsSection() {
       const response = await apiService.getVips(0, 50);
       setVips(response.content || []);
     } catch (error: any) {
-      console.error('Failed to load vips:', error);
       setVips([]);
     } finally {
       setIsLoading(false);
@@ -52,7 +51,6 @@ export default function VipGuestsSection() {
       setIsCreateModalOpen(false);
       loadVips();
     } catch (error: any) {
-      console.error('Failed to create VIP:', error);
       setCreateError('فشل إنشاء VIP. الرجاء المحاولة مرة أخرى.');
     } finally {
       setIsCreating(false);

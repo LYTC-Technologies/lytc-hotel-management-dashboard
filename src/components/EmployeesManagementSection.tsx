@@ -41,7 +41,6 @@ export default function EmployeesManagementSection() {
       const response = await apiService.getEmployees(0, 50);
       setEmployees(response.content || []);
     } catch (error: any) {
-      console.error('Failed to load employees:', error);
       setEmployees([]);
     } finally {
       setIsLoading(false);
@@ -77,7 +76,6 @@ export default function EmployeesManagementSection() {
       // Reload employees
       loadEmployees();
     } catch (error: any) {
-      console.error('Failed to create employee:', error);
       setCreateEmployeeError('فشل إنشاء الموظف. الرجاء المحاولة مرة أخرى.');
     } finally {
       setIsCreatingEmployee(false);
@@ -92,7 +90,6 @@ export default function EmployeesManagementSection() {
       loadEmployees();
       setIsDetailsOverlayOpen(false);
     } catch (error: any) {
-      console.error('Failed to delete employee:', error);
       alert(`فشل حذف الموظف: ${error.message || 'الرجاء المحاولة مرة أخرى.'}`);
     }
   };
@@ -125,7 +122,6 @@ export default function EmployeesManagementSection() {
       setEditJob('');
       setEditDepartment('');
     } catch (error: any) {
-      console.error('Failed to update employee:', error);
       alert(`فشل تحديث الموظف: ${error.message || 'الرجاء المحاولة مرة أخرى.'}`);
     } finally {
       setIsUpdatingEmployee(false);
