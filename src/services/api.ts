@@ -810,9 +810,6 @@ class APIService {
       {
         method: 'PUT',
         body: JSON.stringify(stay),
-        headers: {
-          'Content-Type': 'application/json',
-        },
       }
     );
   }
@@ -1032,9 +1029,6 @@ class APIService {
       {
         method: 'PUT',
         body: JSON.stringify(employee),
-        headers: {
-          'Content-Type': 'application/json',
-        },
       }
     );
   }
