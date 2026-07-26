@@ -802,13 +802,13 @@ class APIService {
 
   /**
    * Create Stay
-   * PUT /api/dashboard/front-desk/stays
+   * POST /api/dashboard/front-desk/stays
    */
   async createStay(stay: CreateStayRequest): Promise<StayDetailsResponse> {
     return this.authenticatedFetch<StayDetailsResponse>(
       `${this.baseURL}/api/dashboard/front-desk/stays`,
       {
-        method: 'PUT',
+        method: 'POST',
         body: JSON.stringify(stay),
       }
     );
