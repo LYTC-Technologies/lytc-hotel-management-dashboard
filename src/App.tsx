@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Building, Bell, User, LogOut, Sparkles, Clock, Menu, X, Check, CheckCircle2,
-  Calendar, BedDouble, Users, MessageSquare, Wrench, Coffee, CreditCard, BarChart3, Globe, Settings, Award, TrendingUp, Brain, Star, FileText, Shield, Crown, ShoppingBag, ShoppingBag as ShoppingBagIcon
+  Calendar, BedDouble, Users, MessageSquare, Wrench, Coffee, CreditCard, BarChart3, Globe, Settings, Award, TrendingUp, Brain, Star, FileText, Shield, Crown, ShoppingBag, ShoppingBag as ShoppingBagIcon, Bot
 } from 'lucide-react';
 
 import Login from './components/Login';
@@ -23,6 +23,7 @@ import RestaurantStatsSection from './components/RestaurantStatsSection';
 import CafeStatsSection from './components/CafeStatsSection';
 import SpecialOffersSection from './components/SpecialOffersSection';
 import AnalyticsPage from './analytics/AnalyticsPage';
+import AIAssistantSection from './components/AIAssistantSection';
 import { ThemeProvider } from './contexts/ThemeContext';
 
 
@@ -64,7 +65,7 @@ function App() {
   }, []);
 
   // Active view tab state with # routing
-  const [activeTab, setActiveTab] = useState<'لوحة التحكم' | 'الحجوزات' | 'الغرف' | 'النزلاء' | 'الطلبات' | 'المدفوعات' | 'إدارة المستخدمين' | 'إدارة الموظفين' | 'النزلاء VIP' | 'التقييمات' | 'الطلبات الخاصة' | 'إحصائيات المطعم' | 'إحصائيات المقهى' | 'العروض والمزايا' | 'الموظفين' | 'إدارة الضيوف' | 'التحليلات الذكية'>(() => {
+  const [activeTab, setActiveTab] = useState<'لوحة التحكم' | 'الحجوزات' | 'الغرف' | 'النزلاء' | 'الطلبات' | 'المدفوعات' | 'إدارة المستخدمين' | 'إدارة الموظفين' | 'النزلاء VIP' | 'التقييمات' | 'الطلبات الخاصة' | 'إحصائيات المطعم' | 'إحصائيات المقهى' | 'العروض والمزايا' | 'الموظفين' | 'إدارة الضيوف' | 'التحليلات الذكية' | 'المساعد الذكي'>(() => {
     const hash = window.location.hash.replace('#', '');
     if (hash) {
       try {
@@ -84,6 +85,7 @@ function App() {
       { label: 'الغرف', icon: <BedDouble size={16} />, roles: ['MANAGER', 'STAFF', 'ROOM_SERVICE'] },
       { label: 'الطلبات', icon: <Coffee size={16} />, roles: ['MANAGER', 'STAFF', 'CHEF'] },
       { label: 'المدفوعات', icon: <CreditCard size={16} />, roles: ['MANAGER', 'STAFF'] },
+      { label: 'المساعد الذكي', icon: <Bot size={16} />, roles: ['MANAGER', 'STAFF', 'CHEF', 'BARISTA', 'ROOM_SERVICE'] },
       { label: 'التحليلات الذكية', icon: <Brain size={16} />, roles: ['MANAGER'] },
       { label: 'العروض والمزايا', icon: <Sparkles size={16} />, roles: ['MANAGER', 'STAFF'] },
       { label: 'إدارة المستخدمين', icon: <User size={16} />, roles: ['MANAGER'] },
@@ -367,6 +369,8 @@ function App() {
         return <OrdersSection />;
       case 'المدفوعات':
         return <PaymentsSection refreshKey={paymentsRefreshKey} />;
+      case 'المساعد الذكي':
+        return <AIAssistantSection />;
       case 'التحليلات الذكية':
         return <AnalyticsPage />;
       case 'إدارة المستخدمين':
