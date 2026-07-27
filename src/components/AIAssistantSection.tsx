@@ -366,14 +366,14 @@ export default function AIAssistantSection() {
                       </div>
                     ) : (
                       <>
-                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                         {message.graph && (
-                          <div className="mt-4 p-4 rounded-lg" style={{ background: isDark ? '#0a0a0a' : '#f9fafb' }}>
+                          <div className="mb-4 p-4 rounded-lg" style={{ background: isDark ? '#0a0a0a' : '#f9fafb' }}>
                             <div className="h-64">
                               {renderGraph(message.graph)}
                             </div>
                           </div>
                         )}
+                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                       </>
                     )}
                   </div>
