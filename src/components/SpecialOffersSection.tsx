@@ -158,12 +158,6 @@ export default function SpecialOffersSection() {
                         >
                           <Edit size={12} />
                         </button>
-                        <button
-                          onClick={() => alert('Delete functionality not available in backend')}
-                          className="p-1.5 bg-gray-100 hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-lg transition"
-                        >
-                          <Trash2 size={12} />
-                        </button>
                       </div>
                     </div>
                   </div>
