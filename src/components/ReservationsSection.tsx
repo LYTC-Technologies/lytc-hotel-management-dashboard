@@ -526,10 +526,7 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
                   <div className="grid grid-cols-2 gap-3">
                     <InfoItem icon={<User size={16} />} label="اسم الضيف" value={selectedStay.guestName} />
                     <InfoItem icon={<Phone size={16} />} label="رقم الهاتف" value={selectedStay.guestPhone || 'غير متاح'} />
-                    <InfoItem icon={<Mail size={16} />} label="البريد الإلكتروني" value={selectedStay.guestEmail || 'غير متاح'} />
-                    <InfoItem icon={<Building size={16} />} label="الجنسية" value={selectedStay.nationality || 'غير متاح'} />
-                    <InfoItem icon={<User size={16} />} label="رقم الهوية/جواز السفر" value={selectedStay.idNumber || 'غير متاح'} />
-                    <InfoItem icon={<Building size={16} />} label="رقم الغرفة" value={selectedStay.roomNumber} />
+                    <InfoItem icon={<Building size={16} />} label="رقم الضيف" value={selectedStay.guestId ? `#${selectedStay.guestId}` : 'غير متاح'} />
                   </div>
                 </div>
 
@@ -538,9 +535,9 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
                   <h4 className="text-sm font-bold text-gray-700">بيانات الغرفة</h4>
                   <div className="grid grid-cols-2 gap-3">
                     <InfoItem icon={<Building size={16} />} label="رقم الغرفة" value={selectedStay.roomNumber} />
-                    <InfoItem icon={<Building size={16} />} label="نوع الغرفة" value={selectedStay.roomType || 'غير متاح'} />
+                    <InfoItem icon={<Building size={16} />} label="رقم الغرفة (ID)" value={selectedStay.roomId ? `#${selectedStay.roomId}` : 'غير متاح'} />
                     <InfoItem icon={<Building size={16} />} label="الطابق" value={selectedStay.floor ? `الطابق ${selectedStay.floor}` : 'غير متاح'} />
-                    <InfoItem icon={<Building size={16} />} label="السعة" value={selectedStay.capacity ? `${selectedStay.capacity} أشخاص` : 'غير متاح'} />
+                    <InfoItem icon={<Building size={16} />} label="الوصف" value={selectedStay.description || 'غير متاح'} />
                   </div>
                 </div>
 
@@ -562,30 +559,17 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
                   <div className="grid grid-cols-2 gap-3">
                     <InfoItem icon={<User size={16} />} label="البالغين" value={selectedStay.numAdults ? `${selectedStay.numAdults} أشخاص` : 'غير متاح'} />
                     <InfoItem icon={<User size={16} />} label="الأطفال" value={selectedStay.numKids ? `${selectedStay.numKids} أطفال` : '0 أطفال'} />
-                    <InfoItem icon={<User size={16} />} label="إجمالي الضيوف" value={selectedStay.numAdults && selectedStay.numKids ? `${selectedStay.numAdults + selectedStay.numKids} شخص` : 'غير متاح'} />
+                    <InfoItem icon={<User size={16} />} label="السعة القصوى للبالغين" value={selectedStay.maxAdults ? `${selectedStay.maxAdults} أشخاص` : 'غير متاح'} />
+                    <InfoItem icon={<User size={16} />} label="السعة القصوى للأطفال" value={selectedStay.maxKids ? `${selectedStay.maxKids} أطفال` : 'غير متاح'} />
                   </div>
                 </div>
 
-                {/* Payment Info */}
+                {/* Charges */}
                 <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
-                  <h4 className="text-sm font-bold text-gray-700">المعلومات المالية</h4>
+                  <h4 className="text-sm font-bold text-gray-700">المبالغ المالية</h4>
                   <div className="grid grid-cols-2 gap-3">
                     <InfoItem icon={<DollarSign size={16} />} label="رسوم الغرفة" value={selectedStay.roomCharge ? `${selectedStay.roomCharge.toLocaleString('ar-SA')} ريال` : 'غير متاح'} />
                     <InfoItem icon={<DollarSign size={16} />} label="الإجمالي" value={selectedStay.totalCharge ? `${selectedStay.totalCharge.toLocaleString('ar-SA')} ريال` : 'غير متاح'} highlight />
-                    <InfoItem icon={<DollarSign size={16} />} label="المبلغ المدفوع" value={selectedStay.paidAmount ? `${selectedStay.paidAmount.toLocaleString('ar-SA')} ريال` : '0 ريال'} />
-                    <InfoItem icon={<DollarSign size={16} />} label="المبلغ المتبقي" value={selectedStay.totalCharge && selectedStay.paidAmount ? `${(selectedStay.totalCharge - selectedStay.paidAmount).toLocaleString('ar-SA')} ريال` : 'غير متاح'} />
-                    <InfoItem icon={<CheckCircle2 size={16} />} label="حالة الدفع" value={selectedStay.paymentStatus || 'غير متاح'} />
-                    <InfoItem icon={<Building size={16} />} label="مصدر الحجز" value={selectedStay.bookingSource || 'غير متاح'} />
-                  </div>
-                </div>
-
-                {/* Additional Info */}
-                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
-                  <h4 className="text-sm font-bold text-gray-700">معلومات إضافية</h4>
-                  <div className="grid grid-cols-2 gap-3">
-                    <InfoItem icon={<User size={16} />} label="الموظف المسؤول" value={selectedStay.assignedStaff || 'غير متاح'} />
-                    <InfoItem icon={<Calendar size={16} />} label="تاريخ الإنشاء" value={selectedStay.createdAt ? new Date(selectedStay.createdAt).toLocaleDateString('ar-SA') : 'غير متاح'} />
-                    <InfoItem icon={<Calendar size={16} />} label="آخر تحديث" value={selectedStay.updatedAt ? new Date(selectedStay.updatedAt).toLocaleDateString('ar-SA') : 'غير متاح'} />
                   </div>
                 </div>
 
@@ -601,14 +585,6 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
                         <span className="text-sm font-bold text-gray-600 mr-2">{selectedStay.stars}/5</span>
                       </div>
                     </div>
-                  </div>
-                )}
-
-                {/* Special Requests */}
-                {selectedStay.specialRequests && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                    <div className="flex items-center gap-2 mb-2"><span className="text-sm font-bold text-blue-700">طلبات خاصة</span></div>
-                    <p className="text-sm text-blue-800 leading-relaxed">{selectedStay.specialRequests}</p>
                   </div>
                 )}
 
