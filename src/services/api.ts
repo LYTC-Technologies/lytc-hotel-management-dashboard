@@ -264,6 +264,7 @@ class APIService {
   private baseURL: string;
   private token: string | null = null;
   private hotelId: string | null = null;
+  private tenantId: string | null = null;
   private isRefreshing: boolean = false;
 
   constructor(baseURL: string) {
@@ -272,6 +273,8 @@ class APIService {
     this.token = localStorage.getItem('auth_token');
     // Load hotel ID from localStorage on initialization
     this.hotelId = localStorage.getItem('hotel_id');
+    // Load tenant ID from localStorage on initialization
+    this.tenantId = localStorage.getItem('tenant_id');
   }
 
   // Set hotel ID
@@ -289,6 +292,23 @@ class APIService {
   clearHotelId(): void {
     this.hotelId = null;
     localStorage.removeItem('hotel_id');
+  }
+
+  // Set tenant ID
+  setTenantId(tenantId: string): void {
+    this.tenantId = tenantId;
+    localStorage.setItem('tenant_id', tenantId);
+  }
+
+  // Get tenant ID
+  getTenantId(): string | null {
+    return this.tenantId;
+  }
+
+  // Clear tenant ID
+  clearTenantId(): void {
+    this.tenantId = null;
+    localStorage.removeItem('tenant_id');
   }
 
   // Helper method to get headers
@@ -385,9 +405,15 @@ class APIService {
    * POST /api/auth/login
    */
   async login(credentials: LoginRequest): Promise<LoginResponse> {
+    const headers = this.getHeaders(false);
+    // Add X-Tenant-ID header for hotel authentication
+    if (this.tenantId) {
+      headers['X-Tenant-ID'] = this.tenantId;
+    }
+    
     const response = await fetch(`${this.baseURL}/api/auth/login`, {
       method: 'POST',
-      headers: this.getHeaders(false),
+      headers,
       body: JSON.stringify(credentials),
     });
 
