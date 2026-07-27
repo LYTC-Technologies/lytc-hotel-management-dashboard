@@ -36,8 +36,10 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('month');
+  const [displayMode, setDisplayMode] = useState<'calendar' | 'table'>('calendar');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedStay, setSelectedStay] = useState<StayDetailsResponse | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -182,6 +184,10 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
     return date.getDate() === today.getDate() && date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear();
   };
 
+  const isSameDay = (date1: Date, date2: Date) => {
+    return date1.getDate() === date2.getDate() && date1.getMonth() === date2.getMonth() && date1.getFullYear() === date2.getFullYear();
+  };
+
   const getStatusColor = (status: string) => STATUS_COLORS[status] || { bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-200', dot: 'bg-gray-400' };
   const getStatusLabel = (status: string) => STATUS_LABELS[status] || '—';
 
@@ -210,15 +216,29 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
           </h2>
         </div>
 
-        {/* View Mode + Search + Filter */}
+        {/* View Mode + Display Mode + Search + Filter */}
         <div className="flex flex-wrap items-center gap-3">
+          {/* Display Mode Toggle */}
           <div className="flex border border-gray-200 rounded-xl bg-white overflow-hidden">
-            {(['month', 'week', 'day'] as ViewMode[]).map(v => (
-              <button key={v} onClick={() => setViewMode(v)} className={`px-4 py-2 text-sm font-bold transition ${viewMode === v ? 'bg-[#D4AF37] text-white' : 'text-gray-600 hover:bg-gray-50'}`}>
-                {v === 'month' ? 'شهر' : v === 'week' ? 'أسبوع' : 'يوم'}
-              </button>
-            ))}
+            <button onClick={() => setDisplayMode('calendar')} className={`px-4 py-2 text-sm font-bold transition ${displayMode === 'calendar' ? 'bg-[#D4AF37] text-white' : 'text-gray-600 hover:bg-gray-50'}`}>
+              تقويم
+            </button>
+            <button onClick={() => setDisplayMode('table')} className={`px-4 py-2 text-sm font-bold transition ${displayMode === 'table' ? 'bg-[#D4AF37] text-white' : 'text-gray-600 hover:bg-gray-50'}`}>
+              جدول
+            </button>
           </div>
+          
+          {/* Calendar View Mode */}
+          {displayMode === 'calendar' && (
+            <div className="flex border border-gray-200 rounded-xl bg-white overflow-hidden">
+              {(['month', 'week', 'day'] as ViewMode[]).map(v => (
+                <button key={v} onClick={() => setViewMode(v)} className={`px-4 py-2 text-sm font-bold transition ${viewMode === v ? 'bg-[#D4AF37] text-white' : 'text-gray-600 hover:bg-gray-50'}`}>
+                  {v === 'month' ? 'شهر' : v === 'week' ? 'أسبوع' : 'يوم'}
+                </button>
+              ))}
+            </div>
+          )}
+          
           <div className="relative">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input type="text" placeholder="بحث..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="bg-white border border-gray-200 focus:border-[#D4AF37] rounded-xl pr-10 pl-4 py-2 text-sm text-gray-800 placeholder-gray-400 focus:outline-none w-40 transition" />
@@ -242,108 +262,233 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
         </div>
       ) : (
         <>
-          {/* Month View */}
-          {viewMode === 'month' && (
+          {/* Table View (Existing) */}
+          {displayMode === 'table' && (
             <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-              {/* Day Headers */}
-              <div className="grid grid-cols-7 border-b border-gray-200">
-                {DAY_NAMES.map(d => <div key={d} className="p-3 text-center text-sm font-bold text-gray-500">{d}</div>)}
-              </div>
-              {/* Calendar Grid */}
-              <div className="grid grid-cols-7">
-                {monthDays.map((day, idx) => {
-                  if (day === null) return <div key={`empty-${idx}`} className="min-h-[100px] border-b border-r border-gray-100 bg-gray-50/50" />;
-                  const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-                  const dayStays = getStaysForDate(date);
-                  return (
-                    <div key={day} className={`min-h-[100px] border-b border-r border-gray-100 p-1.5 hover:bg-gray-50 transition cursor-pointer ${isToday(date) ? 'bg-amber-50/50' : ''}`} onClick={() => { setCurrentDate(date); setViewMode('day'); }}>
-                      <div className={`text-xs font-bold mb-1 ${isToday(date) ? 'text-[#AA7B30] bg-[#D4AF37]/10 w-6 h-6 rounded-full flex items-center justify-center' : 'text-gray-600'}`}>{day}</div>
-                      <div className="space-y-0.5">
-                        {dayStays.slice(0, 3).map(s => {
-                          const sc = getStatusColor(s.status);
-                          return (
-                            <div key={s.stayId} onClick={e => { e.stopPropagation(); setSelectedStay(s); setIsModalOpen(true); }} className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${sc.bg} ${sc.text} border ${sc.border} cursor-pointer hover:opacity-80 truncate`}>
-                              {s.roomNumber} - {s.guestName}
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                      <th className="px-6 py-4 text-right text-xs font-bold text-gray-500">رقم الحجز</th>
+                      <th className="px-6 py-4 text-right text-xs font-bold text-gray-500">اسم الضيف</th>
+                      <th className="px-6 py-4 text-right text-xs font-bold text-gray-500">رقم الغرفة</th>
+                      <th className="px-6 py-4 text-right text-xs font-bold text-gray-500">تاريخ الدخول</th>
+                      <th className="px-6 py-4 text-right text-xs font-bold text-gray-500">تاريخ المغادرة</th>
+                      <th className="px-6 py-4 text-right text-xs font-bold text-gray-500">الحالة</th>
+                      <th className="px-6 py-4 text-right text-xs font-bold text-gray-500">الإجراءات</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {filteredStays.map(s => {
+                      const sc = getStatusColor(s.status);
+                      return (
+                        <tr key={s.stayId} className="hover:bg-gray-50 transition cursor-pointer" onClick={() => { setSelectedStay(s); setIsModalOpen(true); }}>
+                          <td className="px-6 py-4 text-sm font-bold text-gray-900">#{s.stayId}</td>
+                          <td className="px-6 py-4 text-sm text-gray-800">{s.guestName}</td>
+                          <td className="px-6 py-4 text-sm text-gray-800">{s.roomNumber}</td>
+                          <td className="px-6 py-4 text-sm text-gray-600">{s.checkInTime ? new Date(s.checkInTime).toLocaleDateString('ar-SA') : 'غير متاح'}</td>
+                          <td className="px-6 py-4 text-sm text-gray-600">{s.expectedCheckOutDate ? new Date(s.expectedCheckOutDate).toLocaleDateString('ar-SA') : 'غير متاح'}</td>
+                          <td className="px-6 py-4">
+                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${sc.bg} ${sc.text} ${sc.border}`}>
+                              <span className={`w-2 h-2 rounded-full ${sc.dot}`}></span>
+                              {getStatusLabel(s.status)}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex gap-2">
+                              <button onClick={e => { e.stopPropagation(); handleCheckIn(s.stayId); }} disabled={s.status === 'CHECKED_IN' || s.status === 'ACTIVE' || s.status === 'active' || s.status === 'CHECKED_OUT' || s.status === 'CLOSED'} className="px-3 py-1.5 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg text-xs font-bold hover:bg-blue-100 disabled:opacity-40 transition">دخول</button>
+                              <button onClick={e => { e.stopPropagation(); handleCheckOut(s.stayId); }} disabled={s.status !== 'CHECKED_IN' && s.status !== 'ACTIVE'} className="px-3 py-1.5 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg text-xs font-bold hover:bg-emerald-100 disabled:opacity-40 transition">مغادرة</button>
                             </div>
-                          );
-                        })}
-                        {dayStays.length > 3 && <div className="text-[10px] text-gray-400 text-center">+{dayStays.length - 3}</div>}
-                      </div>
-                    </div>
-                  );
-                })}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
+              {filteredStays.length === 0 && (
+                <div className="text-center py-12 text-gray-400 text-sm font-bold">لا توجد حجوزات</div>
+              )}
             </div>
           )}
 
-          {/* Week View */}
-          {viewMode === 'week' && (
-            <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-              <div className="grid grid-cols-7 border-b border-gray-200">
-                {weekDays.map((d, i) => (
-                  <div key={i} className={`p-3 text-center ${isToday(d) ? 'bg-amber-50' : ''}`}>
-                    <div className="text-xs font-bold text-gray-500">{DAY_NAMES[d.getDay()]}</div>
-                    <div className={`text-lg font-black mt-1 ${isToday(d) ? 'text-[#AA7B30]' : 'text-gray-800'}`}>{d.getDate()}</div>
-                  </div>
-                ))}
-              </div>
-              <div className="grid grid-cols-7 min-h-[400px]">
-                {weekDays.map((d, i) => {
-                  const dayStays = getStaysForDate(d);
-                  return (
-                    <div key={i} className={`border-r border-gray-100 p-2 space-y-1 ${isToday(d) ? 'bg-amber-50/30' : ''}`}>
-                      {dayStays.map(s => {
-                        const sc = getStatusColor(s.status);
+          {/* Calendar View */}
+          {displayMode === 'calendar' && (
+            <div className="flex gap-6">
+              {/* Main Calendar (Center) */}
+              <div className="flex-1">
+                {/* Month View */}
+                {viewMode === 'month' && (
+                  <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+                    {/* Day Headers */}
+                    <div className="grid grid-cols-7 border-b border-gray-200">
+                      {DAY_NAMES.map(d => <div key={d} className="p-4 text-center text-sm font-bold text-gray-500">{d}</div>)}
+                    </div>
+                    {/* Calendar Grid */}
+                    <div className="grid grid-cols-7">
+                      {monthDays.map((day, idx) => {
+                        if (day === null) return <div key={`empty-${idx}`} className="min-h-[120px] border-b border-r border-gray-100 bg-gray-50/50" />;
+                        const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+                        const dayStays = getStaysForDate(date);
+                        const isSelected = selectedDate && isSameDay(date, selectedDate);
                         return (
-                          <div key={s.stayId} onClick={() => { setSelectedStay(s); setIsModalOpen(true); }} className={`p-2 rounded-lg border cursor-pointer hover:shadow-md transition ${sc.bg} ${sc.border}`}>
-                            <div className={`text-xs font-bold ${sc.text}`}>{s.roomNumber}</div>
-                            <div className="text-[11px] text-gray-600 truncate">{s.guestName}</div>
+                          <div 
+                            key={day} 
+                            className={`min-h-[120px] border-b border-r border-gray-100 p-2 hover:bg-gray-50 transition cursor-pointer ${isToday(date) ? 'bg-amber-50/50' : ''} ${isSelected ? 'bg-[#D4AF37]/10 border-[#D4AF37]/30' : ''}`} 
+                            onClick={() => setSelectedDate(date)}
+                          >
+                            <div className={`text-sm font-bold mb-2 ${isToday(date) ? 'text-[#AA7B30] bg-[#D4AF37]/10 w-7 h-7 rounded-full flex items-center justify-center' : 'text-gray-600'}`}>{day}</div>
+                            <div className="space-y-1">
+                              {dayStays.slice(0, 3).map(s => {
+                                const sc = getStatusColor(s.status);
+                                return (
+                                  <div 
+                                    key={s.stayId} 
+                                    onClick={e => { e.stopPropagation(); setSelectedStay(s); setIsModalOpen(true); }} 
+                                    className={`text-xs font-bold px-2 py-1 rounded ${sc.bg} ${sc.text} border ${sc.border} cursor-pointer hover:opacity-80 truncate`}
+                                  >
+                                    {s.roomNumber} - {s.guestName}
+                                  </div>
+                                );
+                              })}
+                              {dayStays.length > 3 && <div className="text-xs text-gray-400 text-center">+{dayStays.length - 3} المزيد</div>}
+                            </div>
                           </div>
                         );
                       })}
                     </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+                  </div>
+                )}
 
-          {/* Day View */}
-          {viewMode === 'day' && (
-            <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-              <div className={`p-4 border-b border-gray-200 ${isToday(currentDate) ? 'bg-amber-50' : ''}`}>
-                <div className="text-lg font-black text-gray-900">{DAY_NAMES[currentDate.getDay()]} {currentDate.getDate()} {MONTH_NAMES[currentDate.getMonth()]}</div>
-              </div>
-              <div className="p-4 space-y-3">
-                {getStaysForDate(currentDate).length === 0 ? (
-                  <div className="text-center py-12 text-gray-400 text-sm font-bold">لا توجد حجوزات في هذا اليوم</div>
-                ) : (
-                  getStaysForDate(currentDate).map(s => {
-                    const sc = getStatusColor(s.status);
-                    return (
-                      <div key={s.stayId} onClick={() => { setSelectedStay(s); setIsModalOpen(true); }} className={`flex items-center justify-between p-4 rounded-xl border cursor-pointer hover:shadow-md transition ${sc.bg} ${sc.border}`}>
-                        <div className="flex items-center gap-4">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${sc.bg} border ${sc.border}`}><User size={18} className={sc.text} /></div>
-                          <div>
-                            <div className="text-base font-bold text-gray-900">{s.guestName}</div>
-                            <div className="text-sm text-gray-500">غرفة {s.roomNumber} • {s.checkInTime ? new Date(s.checkInTime).toLocaleDateString('ar-SA') : ''} → {s.expectedCheckOutDate ? new Date(s.expectedCheckOutDate).toLocaleDateString('ar-SA') : ''}</div>
-                          </div>
+                {/* Week View */}
+                {viewMode === 'week' && (
+                  <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+                    <div className="grid grid-cols-7 border-b border-gray-200">
+                      {weekDays.map((d, i) => (
+                        <div key={i} className={`p-4 text-center ${isToday(d) ? 'bg-amber-50' : ''}`}>
+                          <div className="text-xs font-bold text-gray-500">{DAY_NAMES[d.getDay()]}</div>
+                          <div className={`text-lg font-black mt-1 ${isToday(d) ? 'text-[#AA7B30]' : 'text-gray-800'}`}>{d.getDate()}</div>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${sc.bg} ${sc.text} ${sc.border}`}>
-                            <span className={`w-2 h-2 rounded-full ${sc.dot}`}></span>
-                            {getStatusLabel(s.status)}
-                          </span>
-                          <div className="flex gap-1">
-                            <button onClick={e => { e.stopPropagation(); handleCheckIn(s.stayId); }} disabled={s.status === 'CHECKED_IN' || s.status === 'ACTIVE' || s.status === 'active' || s.status === 'CHECKED_OUT' || s.status === 'CLOSED'} className="px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-gray-50 disabled:opacity-40 transition">دخول</button>
-                            <button onClick={e => { e.stopPropagation(); handleCheckOut(s.stayId); }} disabled={s.status !== 'CHECKED_IN' && s.status !== 'ACTIVE'} className="px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-gray-50 disabled:opacity-40 transition">مغادرة</button>
+                      ))}
+                    </div>
+                    <div className="grid grid-cols-7 min-h-[500px]">
+                      {weekDays.map((d, i) => {
+                        const dayStays = getStaysForDate(d);
+                        const isSelected = selectedDate && isSameDay(d, selectedDate);
+                        return (
+                          <div 
+                            key={i} 
+                            className={`border-r border-gray-100 p-3 space-y-2 ${isToday(d) ? 'bg-amber-50/30' : ''} ${isSelected ? 'bg-[#D4AF37]/10' : ''}`}
+                            onClick={() => setSelectedDate(d)}
+                          >
+                            {dayStays.map(s => {
+                              const sc = getStatusColor(s.status);
+                              return (
+                                <div 
+                                  key={s.stayId} 
+                                  onClick={() => { setSelectedStay(s); setIsModalOpen(true); }} 
+                                  className={`p-3 rounded-lg border cursor-pointer hover:shadow-md transition ${sc.bg} ${sc.border}`}
+                                >
+                                  <div className={`text-xs font-bold ${sc.text}`}>{s.roomNumber}</div>
+                                  <div className="text-xs text-gray-600 truncate">{s.guestName}</div>
+                                </div>
+                              );
+                            })}
                           </div>
-                        </div>
-                      </div>
-                    );
-                  })
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Day View */}
+                {viewMode === 'day' && (
+                  <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+                    <div className={`p-5 border-b border-gray-200 ${isToday(currentDate) ? 'bg-amber-50' : ''}`}>
+                      <div className="text-xl font-black text-gray-900">{DAY_NAMES[currentDate.getDay()]} {currentDate.getDate()} {MONTH_NAMES[currentDate.getMonth()]}</div>
+                    </div>
+                    <div className="p-5 space-y-4">
+                      {getStaysForDate(currentDate).length === 0 ? (
+                        <div className="text-center py-16 text-gray-400 text-sm font-bold">لا توجد حجوزات في هذا اليوم</div>
+                      ) : (
+                        getStaysForDate(currentDate).map(s => {
+                          const sc = getStatusColor(s.status);
+                          return (
+                            <div 
+                              key={s.stayId} 
+                              onClick={() => { setSelectedStay(s); setIsModalOpen(true); }} 
+                              className={`flex items-center justify-between p-5 rounded-xl border cursor-pointer hover:shadow-md transition ${sc.bg} ${sc.border}`}
+                            >
+                              <div className="flex items-center gap-4">
+                                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${sc.bg} border ${sc.border}`}><User size={20} className={sc.text} /></div>
+                                <div>
+                                  <div className="text-base font-bold text-gray-900">{s.guestName}</div>
+                                  <div className="text-sm text-gray-500">غرفة {s.roomNumber} • {s.checkInTime ? new Date(s.checkInTime).toLocaleDateString('ar-SA') : ''} → {s.expectedCheckOutDate ? new Date(s.expectedCheckOutDate).toLocaleDateString('ar-SA') : ''}</div>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border ${sc.bg} ${sc.text} ${sc.border}`}>
+                                  <span className={`w-2 h-2 rounded-full ${sc.dot}`}></span>
+                                  {getStatusLabel(s.status)}
+                                </span>
+                                <div className="flex gap-1">
+                                  <button onClick={e => { e.stopPropagation(); handleCheckIn(s.stayId); }} disabled={s.status === 'CHECKED_IN' || s.status === 'ACTIVE' || s.status === 'active' || s.status === 'CHECKED_OUT' || s.status === 'CLOSED'} className="px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-gray-50 disabled:opacity-40 transition">دخول</button>
+                                  <button onClick={e => { e.stopPropagation(); handleCheckOut(s.stayId); }} disabled={s.status !== 'CHECKED_IN' && s.status !== 'ACTIVE'} className="px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-gray-50 disabled:opacity-40 transition">مغادرة</button>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
                 )}
               </div>
+
+              {/* Reservation Details Panel (Right Side) */}
+              {selectedDate && (
+                <div className="w-96 bg-white border border-gray-200 rounded-2xl p-5 h-fit sticky top-4">
+                  <div className="flex justify-between items-center mb-5">
+                    <h3 className="text-lg font-black text-gray-900">حجوزات اليوم</h3>
+                    <button onClick={() => setSelectedDate(null)} className="p-2 hover:bg-gray-100 rounded-lg transition"><X size={18} className="text-gray-500" /></button>
+                  </div>
+                  
+                  <div className="mb-4 pb-4 border-b border-gray-200">
+                    <div className="text-2xl font-black text-[#AA7B30]">{selectedDate.getDate()}</div>
+                    <div className="text-sm text-gray-600">{DAY_NAMES[selectedDate.getDay()]} {MONTH_NAMES[selectedDate.getMonth()]} {selectedDate.getFullYear()}</div>
+                  </div>
+
+                  {getStaysForDate(selectedDate).length === 0 ? (
+                    <div className="text-center py-8 text-gray-400 text-sm font-bold">لا توجد حجوزات في هذا اليوم</div>
+                  ) : (
+                    <div className="space-y-3">
+                      {getStaysForDate(selectedDate).map(s => {
+                        const sc = getStatusColor(s.status);
+                        return (
+                          <div 
+                            key={s.stayId}
+                            onClick={() => { setSelectedStay(s); setIsModalOpen(true); }}
+                            className={`p-4 rounded-xl border cursor-pointer hover:shadow-md transition ${sc.bg} ${sc.border}`}
+                          >
+                            <div className="flex justify-between items-start mb-2">
+                              <div className="text-sm font-bold text-gray-900">{s.guestName}</div>
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold border ${sc.bg} ${sc.text} ${sc.border}`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`}></span>
+                                {getStatusLabel(s.status)}
+                              </span>
+                            </div>
+                            <div className="space-y-1 text-xs text-gray-600">
+                              <div className="flex items-center gap-2"><Building size={12} />غرفة {s.roomNumber}</div>
+                              <div className="flex items-center gap-2"><Clock size={12} />{s.checkInTime ? new Date(s.checkInTime).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }) : '—'}</div>
+                              <div className="flex items-center gap-2"><User size={12} />{s.numAdults || 0} بالغين</div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </>
@@ -381,8 +526,21 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
                   <div className="grid grid-cols-2 gap-3">
                     <InfoItem icon={<User size={16} />} label="اسم الضيف" value={selectedStay.guestName} />
                     <InfoItem icon={<Phone size={16} />} label="رقم الهاتف" value={selectedStay.guestPhone || 'غير متاح'} />
+                    <InfoItem icon={<Mail size={16} />} label="البريد الإلكتروني" value={selectedStay.guestEmail || 'غير متاح'} />
+                    <InfoItem icon={<Building size={16} />} label="الجنسية" value={selectedStay.nationality || 'غير متاح'} />
+                    <InfoItem icon={<User size={16} />} label="رقم الهوية/جواز السفر" value={selectedStay.idNumber || 'غير متاح'} />
                     <InfoItem icon={<Building size={16} />} label="رقم الغرفة" value={selectedStay.roomNumber} />
+                  </div>
+                </div>
+
+                {/* Room Info */}
+                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
+                  <h4 className="text-sm font-bold text-gray-700">بيانات الغرفة</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <InfoItem icon={<Building size={16} />} label="رقم الغرفة" value={selectedStay.roomNumber} />
+                    <InfoItem icon={<Building size={16} />} label="نوع الغرفة" value={selectedStay.roomType || 'غير متاح'} />
                     <InfoItem icon={<Building size={16} />} label="الطابق" value={selectedStay.floor ? `الطابق ${selectedStay.floor}` : 'غير متاح'} />
+                    <InfoItem icon={<Building size={16} />} label="السعة" value={selectedStay.capacity ? `${selectedStay.capacity} أشخاص` : 'غير متاح'} />
                   </div>
                 </div>
 
@@ -392,8 +550,9 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
                   <div className="grid grid-cols-2 gap-3">
                     <InfoItem icon={<Calendar size={16} />} label="تاريخ الدخول" value={selectedStay.checkInTime ? new Date(selectedStay.checkInTime).toLocaleDateString('ar-SA', { calendar: 'gregory' }) : 'غير متاح'} />
                     <InfoItem icon={<Calendar size={16} />} label="تاريخ المغادرة المتوقع" value={selectedStay.expectedCheckOutDate ? new Date(selectedStay.expectedCheckOutDate).toLocaleDateString('ar-SA', { calendar: 'gregory' }) : 'غير متاح'} />
-                    <InfoItem icon={<Calendar size={16} />} label="وقت تسجيل الدخول" value={selectedStay.checkInTime ? new Date(selectedStay.checkInTime).toLocaleTimeString('ar-SA') : 'غير متاح'} />
-                    <InfoItem icon={<Calendar size={16} />} label="وقت تسجيل المغادرة" value={selectedStay.checkOutTime ? new Date(selectedStay.checkOutTime).toLocaleTimeString('ar-SA') : 'لم يتم بعد'} />
+                    <InfoItem icon={<Clock size={16} />} label="وقت تسجيل الدخول" value={selectedStay.checkInTime ? new Date(selectedStay.checkInTime).toLocaleTimeString('ar-SA') : 'غير متاح'} />
+                    <InfoItem icon={<Clock size={16} />} label="وقت تسجيل المغادرة" value={selectedStay.checkOutTime ? new Date(selectedStay.checkOutTime).toLocaleTimeString('ar-SA') : 'لم يتم بعد'} />
+                    <InfoItem icon={<Calendar size={16} />} label="عدد الليالي" value={selectedStay.checkInTime && selectedStay.expectedCheckOutDate ? `${Math.ceil((new Date(selectedStay.expectedCheckOutDate).getTime() - new Date(selectedStay.checkInTime).getTime()) / 86400000)} ليلة` : 'غير متاح'} />
                   </div>
                 </div>
 
@@ -403,15 +562,30 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
                   <div className="grid grid-cols-2 gap-3">
                     <InfoItem icon={<User size={16} />} label="البالغين" value={selectedStay.numAdults ? `${selectedStay.numAdults} أشخاص` : 'غير متاح'} />
                     <InfoItem icon={<User size={16} />} label="الأطفال" value={selectedStay.numKids ? `${selectedStay.numKids} أطفال` : '0 أطفال'} />
+                    <InfoItem icon={<User size={16} />} label="إجمالي الضيوف" value={selectedStay.numAdults && selectedStay.numKids ? `${selectedStay.numAdults + selectedStay.numKids} شخص` : 'غير متاح'} />
                   </div>
                 </div>
 
-                {/* Charges */}
+                {/* Payment Info */}
                 <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
-                  <h4 className="text-sm font-bold text-gray-700">المبالغ المالية</h4>
+                  <h4 className="text-sm font-bold text-gray-700">المعلومات المالية</h4>
                   <div className="grid grid-cols-2 gap-3">
                     <InfoItem icon={<DollarSign size={16} />} label="رسوم الغرفة" value={selectedStay.roomCharge ? `${selectedStay.roomCharge.toLocaleString('ar-SA')} ريال` : 'غير متاح'} />
                     <InfoItem icon={<DollarSign size={16} />} label="الإجمالي" value={selectedStay.totalCharge ? `${selectedStay.totalCharge.toLocaleString('ar-SA')} ريال` : 'غير متاح'} highlight />
+                    <InfoItem icon={<DollarSign size={16} />} label="المبلغ المدفوع" value={selectedStay.paidAmount ? `${selectedStay.paidAmount.toLocaleString('ar-SA')} ريال` : '0 ريال'} />
+                    <InfoItem icon={<DollarSign size={16} />} label="المبلغ المتبقي" value={selectedStay.totalCharge && selectedStay.paidAmount ? `${(selectedStay.totalCharge - selectedStay.paidAmount).toLocaleString('ar-SA')} ريال` : 'غير متاح'} />
+                    <InfoItem icon={<CheckCircle2 size={16} />} label="حالة الدفع" value={selectedStay.paymentStatus || 'غير متاح'} />
+                    <InfoItem icon={<Building size={16} />} label="مصدر الحجز" value={selectedStay.bookingSource || 'غير متاح'} />
+                  </div>
+                </div>
+
+                {/* Additional Info */}
+                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
+                  <h4 className="text-sm font-bold text-gray-700">معلومات إضافية</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <InfoItem icon={<User size={16} />} label="الموظف المسؤول" value={selectedStay.assignedStaff || 'غير متاح'} />
+                    <InfoItem icon={<Calendar size={16} />} label="تاريخ الإنشاء" value={selectedStay.createdAt ? new Date(selectedStay.createdAt).toLocaleDateString('ar-SA') : 'غير متاح'} />
+                    <InfoItem icon={<Calendar size={16} />} label="آخر تحديث" value={selectedStay.updatedAt ? new Date(selectedStay.updatedAt).toLocaleDateString('ar-SA') : 'غير متاح'} />
                   </div>
                 </div>
 
@@ -427,6 +601,14 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
                         <span className="text-sm font-bold text-gray-600 mr-2">{selectedStay.stars}/5</span>
                       </div>
                     </div>
+                  </div>
+                )}
+
+                {/* Special Requests */}
+                {selectedStay.specialRequests && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                    <div className="flex items-center gap-2 mb-2"><span className="text-sm font-bold text-blue-700">طلبات خاصة</span></div>
+                    <p className="text-sm text-blue-800 leading-relaxed">{selectedStay.specialRequests}</p>
                   </div>
                 )}
 
