@@ -835,6 +835,32 @@ class APIService {
   }
 
   /**
+   * Get Stay Summary (Front Desk)
+   * GET /api/dashboard/front-desk/stays/{stayId}/summary
+   */
+  async getStaySummaryFrontDesk(stayId: string): Promise<any> {
+    return this.authenticatedFetch<any>(
+      `${this.baseURL}/api/dashboard/front-desk/stays/${stayId}/summary`,
+      {
+        method: 'GET',
+      }
+    );
+  }
+
+  /**
+   * Get Stay Summary (Manager)
+   * GET /api/dashboard/manager/stays/{stayId}/summary
+   */
+  async getStaySummaryManager(stayId: string): Promise<any> {
+    return this.authenticatedFetch<any>(
+      `${this.baseURL}/api/dashboard/manager/stays/${stayId}/summary`,
+      {
+        method: 'GET',
+      }
+    );
+  }
+
+  /**
    * Create Stay
    * POST /api/dashboard/front-desk/stays
    */

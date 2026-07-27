@@ -17,6 +17,7 @@ export default function PaymentsSection({ refreshKey }: { refreshKey?: number })
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
   const [detailOrders, setDetailOrders] = useState<any[]>([]);
   const [detailSpecialOrders, setDetailSpecialOrders] = useState<any[]>([]);
+  const [staySummary, setStaySummary] = useState<any>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
 
@@ -55,7 +56,29 @@ export default function PaymentsSection({ refreshKey }: { refreshKey?: number })
     setLoadingDetail(true);
     setDetailOrders([]);
     setDetailSpecialOrders([]);
+    setStaySummary(null);
     try {
+      // Get user role from localStorage
+      const savedUser = localStorage.getItem('lytc_user');
+      const user = savedUser ? JSON.parse(savedUser) : null;
+      const userRole = user?.role;
+
+      // Fetch stay summary based on role
+      let summaryData = null;
+      if (inv.stayId) {
+        try {
+          if (userRole === 'MANAGER') {
+            summaryData = await apiService.getStaySummaryManager(inv.stayId);
+          } else {
+            summaryData = await apiService.getStaySummaryFrontDesk(inv.stayId);
+          }
+          setStaySummary(summaryData);
+        } catch (summaryError) {
+          console.error('Failed to load stay summary:', summaryError);
+          // Continue without summary data
+        }
+      }
+
       const [orders, specialOrders] = await Promise.allSettled([
         apiService.getStayOrders(inv.stayId),
         apiService.getStaySpecialOrders(inv.stayId),
@@ -204,6 +227,51 @@ export default function PaymentsSection({ refreshKey }: { refreshKey?: number })
                   <div className="bg-gray-50 border border-gray-200 rounded-xl p-4"><span className="text-xs font-bold text-gray-400 block mb-1">عدد الليالى</span><span className="text-sm font-bold text-gray-900">{selectedInvoice.nights} ليلة</span></div>
                   <div className="bg-gray-50 border border-gray-200 rounded-xl p-4"><span className="text-xs font-bold text-gray-400 block mb-1">رقم الهاتف</span><span className="text-sm font-bold text-gray-900">{selectedInvoice.guestPhone}</span></div>
                 </div>
+
+                {/* Stay Summary */}
+                {!loadingDetail && staySummary && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                    <h3 className="text-sm font-bold text-gray-700 flex items-center gap-2 mb-3"><Package size={16} className="text-[#D4AF37]" />ملخص الإقامة</h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      {staySummary.totalCharge !== undefined && (
+                        <div className="bg-white border border-amber-100 rounded-lg p-3">
+                          <span className="text-xs font-bold text-gray-400 block mb-1">إجمالي الرسوم</span>
+                          <span className="text-sm font-bold text-gray-900">{staySummary.totalCharge.toLocaleString('ar-SA', { maximumFractionDigits: 0 })} ريال</span>
+                        </div>
+                      )}
+                      {staySummary.roomCharge !== undefined && (
+                        <div className="bg-white border border-amber-100 rounded-lg p-3">
+                          <span className="text-xs font-bold text-gray-400 block mb-1">رسوم الغرفة</span>
+                          <span className="text-sm font-bold text-gray-900">{staySummary.roomCharge.toLocaleString('ar-SA', { maximumFractionDigits: 0 })} ريال</span>
+                        </div>
+                      )}
+                      {staySummary.serviceCharge !== undefined && (
+                        <div className="bg-white border border-amber-100 rounded-lg p-3">
+                          <span className="text-xs font-bold text-gray-400 block mb-1">رسوم الخدمة</span>
+                          <span className="text-sm font-bold text-gray-900">{staySummary.serviceCharge.toLocaleString('ar-SA', { maximumFractionDigits: 0 })} ريال</span>
+                        </div>
+                      )}
+                      {staySummary.otherCharges !== undefined && (
+                        <div className="bg-white border border-amber-100 rounded-lg p-3">
+                          <span className="text-xs font-bold text-gray-400 block mb-1">رسوم أخرى</span>
+                          <span className="text-sm font-bold text-gray-900">{staySummary.otherCharges.toLocaleString('ar-SA', { maximumFractionDigits: 0 })} ريال</span>
+                        </div>
+                      )}
+                      {staySummary.totalOrders !== undefined && (
+                        <div className="bg-white border border-amber-100 rounded-lg p-3">
+                          <span className="text-xs font-bold text-gray-400 block mb-1">إجمالي الطلبات</span>
+                          <span className="text-sm font-bold text-gray-900">{staySummary.totalOrders}</span>
+                        </div>
+                      )}
+                      {staySummary.totalSpecialOrders !== undefined && (
+                        <div className="bg-white border border-amber-100 rounded-lg p-3">
+                          <span className="text-xs font-bold text-gray-400 block mb-1">الطلبات الخاصة</span>
+                          <span className="text-sm font-bold text-gray-900">{staySummary.totalSpecialOrders}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {/* Loading */}
                 {loadingDetail && <div className="flex items-center justify-center py-6"><Loader2 size={24} className="text-[#D4AF37] animate-spin" /></div>}
