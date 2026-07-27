@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Calendar, User, Plus, Search, XCircle, ChevronLeft, ChevronRight,
-  Eye, X, Loader2, CheckCircle2, AlertCircle, Phone, Mail, Building, Clock, DollarSign, Save
+  X, Loader2, CheckCircle2, Building, Clock, DollarSign, Save
 } from 'lucide-react';
 import { apiService, StayDetailsResponse, CreateStayRequest } from '../services/api';
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Building, Bell, User, LogOut, Sparkles, Clock, Menu, X, Check, CheckCircle2,
-  Calendar, BedDouble, Users, MessageSquare, Wrench, Coffee, CreditCard, BarChart3, Globe, Settings, Award, TrendingUp, Brain, Star, FileText, Shield, Crown, ShoppingBag, ShoppingBag as ShoppingBagIcon, Bot
+  Calendar, BedDouble, Users, MessageSquare, Wrench, Coffee, CreditCard, BarChart3, Settings, Award, Star, Crown, ShoppingBag, ShoppingBag as ShoppingBagIcon, Bot
 } from 'lucide-react';
 
 import Login from './components/Login';
