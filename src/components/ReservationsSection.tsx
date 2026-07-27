@@ -525,7 +525,6 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
                   <h4 className="text-sm font-bold text-gray-700">بيانات الضيف</h4>
                   <div className="grid grid-cols-2 gap-3">
                     <InfoItem icon={<User size={16} />} label="اسم الضيف" value={selectedStay.guestName} />
-                    <InfoItem icon={<Phone size={16} />} label="رقم الهاتف" value={selectedStay.guestPhone || 'غير متاح'} />
                   </div>
                 </div>
 
