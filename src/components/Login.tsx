@@ -38,6 +38,8 @@ export default function Login({ onLoginSuccess }: LoginProps) {
       // Set tenant ID for hotel authentication
       apiService.setTenantId('hotel1');
       
+      console.log('Login attempt with:', { username, hotelId, tenantId: 'hotel1' });
+      
       // Save login request to localStorage
       localStorage.setItem('login_username', username);
       localStorage.setItem('login_password', password);
