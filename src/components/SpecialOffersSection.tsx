@@ -56,11 +56,6 @@ export default function SpecialOffersSection() {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    // Delete API not available in backend - remove this functionality
-    alert('حذف العروض غير متاح حالياً في الباك إند');
-  };
-
   const toggleExpand = (id: number) => {
     setIsExpanded(prev => ({
       ...prev,
@@ -162,6 +157,12 @@ export default function SpecialOffersSection() {
                           className="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-400 hover:text-gray-800 rounded-lg transition"
                         >
                           <Edit size={12} />
+                        </button>
+                        <button
+                          onClick={() => alert('Delete functionality not available in backend')}
+                          className="p-1.5 bg-gray-100 hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-lg transition"
+                        >
+                          <Trash2 size={12} />
                         </button>
                       </div>
                     </div>
