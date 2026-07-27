@@ -260,54 +260,6 @@ export interface MarketingCampaign {
   roi: number;
 }
 
-export interface WebsiteAnalytics {
-  date: string;
-  pageViews: number;
-  uniqueVisitors: number;
-  bounceRate: number;
-  avgSessionDuration: number;
-  conversions: number;
-  topPages: PageMetric[];
-  trafficSources: TrafficSource[];
-}
-
-export interface PageMetric {
-  page: string;
-  views: number;
-  avgTimeOnPage: number;
-}
-
-export interface TrafficSource {
-  source: string;
-  visitors: number;
-  percentage: number;
-}
-
-export interface SEOData {
-  date: string;
-  keywordRankings: KeywordRank[];
-  organicTraffic: number;
-  backlinks: number;
-  domainAuthority: number;
-  localRank: number;
-}
-
-export interface KeywordRank {
-  keyword: string;
-  rank: number;
-  volume: number;
-}
-
-export interface SocialMediaMetrics {
-  platform: 'instagram' | 'facebook' | 'tiktok' | 'x';
-  followers: number;
-  engagement: number;
-  reach: number;
-  posts: number;
-  avgLikes: number;
-  avgComments: number;
-}
-
 export interface Review {
   id: string;
   platform: 'google' | 'tripadvisor' | 'booking.com' | 'expedia' | 'agoda';

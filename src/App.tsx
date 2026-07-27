@@ -22,7 +22,6 @@ import SpecialOrdersManagementSection from './components/SpecialOrdersManagement
 import RestaurantStatsSection from './components/RestaurantStatsSection';
 import CafeStatsSection from './components/CafeStatsSection';
 import SpecialOffersSection from './components/SpecialOffersSection';
-import AnalyticsPage from './analytics/AnalyticsPage';
 import AIAssistantSection from './components/AIAssistantSection';
 import { ThemeProvider } from './contexts/ThemeContext';
 
@@ -86,7 +85,6 @@ function App() {
       { label: 'الطلبات', icon: <Coffee size={16} />, roles: ['MANAGER', 'STAFF', 'CHEF'] },
       { label: 'المدفوعات', icon: <CreditCard size={16} />, roles: ['MANAGER', 'STAFF'] },
       { label: 'المساعد الذكي', icon: <Bot size={16} />, roles: ['MANAGER', 'STAFF', 'CHEF', 'BARISTA', 'ROOM_SERVICE'] },
-      { label: 'التحليلات الذكية', icon: <Brain size={16} />, roles: ['MANAGER'] },
       { label: 'العروض والمزايا', icon: <Sparkles size={16} />, roles: ['MANAGER', 'STAFF'] },
       { label: 'إدارة المستخدمين', icon: <User size={16} />, roles: ['MANAGER'] },
       { label: 'إدارة الموظفين', icon: <Award size={16} />, roles: ['MANAGER'] },
@@ -371,8 +369,6 @@ function App() {
         return <PaymentsSection refreshKey={paymentsRefreshKey} />;
       case 'المساعد الذكي':
         return <AIAssistantSection />;
-      case 'التحليلات الذكية':
-        return <AnalyticsPage />;
       case 'إدارة المستخدمين':
         return <UsersManagementSection />;
       case 'إدارة الموظفين':
