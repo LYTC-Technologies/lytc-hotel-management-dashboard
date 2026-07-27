@@ -327,9 +327,6 @@ class APIService {
       headers['X-Hotel-Id'] = this.hotelId;
     }
 
-    // Log headers for debugging
-    console.log('API Headers:', headers);
-
     return headers;
   }
 
