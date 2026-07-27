@@ -291,7 +291,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                     <div className="flex justify-between gap-2 max-w-sm mx-auto" dir="ltr">
                       {otp.map((digit, idx) => (
                         <input
-                          key={idx}
+                          key={`otp-input-${idx}`}
                           id={`otp-${idx}`}
                           type="text"
                           maxLength={1}

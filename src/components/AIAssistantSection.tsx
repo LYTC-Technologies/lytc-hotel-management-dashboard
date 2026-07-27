@@ -158,6 +158,8 @@ export default function AIAssistantSection() {
 
   const handleClear = () => {
     setMessages([]);
+    setError(null);
+    setIsLoading(false);
     localStorage.removeItem('ai_conversation');
   };
 
