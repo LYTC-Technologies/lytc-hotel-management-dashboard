@@ -3,6 +3,8 @@ import { apiService } from './api';
 // AI Request Types
 export interface AIRequest {
   query: string;
+  conversationId?: string;
+  language?: 'ar' | 'en';
 }
 
 // Graph Types
@@ -51,13 +53,13 @@ class AIService {
    * Ask AI Agent
    * POST /api/ai/ask
    */
-  async askAgent(query: string): Promise<AIResponse> {
+  async askAgent(query: string, conversationId?: string, language: 'ar' | 'en' = 'ar'): Promise<AIResponse> {
     const token = localStorage.getItem('auth_token');
     const hotelId = localStorage.getItem('hotel_id');
     
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      'Accept-Language': 'ar-SA',
+      'Accept-Language': language === 'ar' ? 'ar-SA' : 'en-US',
     };
 
     if (token) {
@@ -71,7 +73,11 @@ class AIService {
     const response = await fetch(`${this.baseURL}/api/ai/ask`, {
       method: 'POST',
       headers,
-      body: JSON.stringify({ query, language: 'ar' }),
+      body: JSON.stringify({ 
+        query: `Please respond in ${language === 'ar' ? 'Arabic' : 'English'}. ${query}`,
+        conversationId,
+        language 
+      }),
     });
 
     if (!response.ok) {
