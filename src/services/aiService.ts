@@ -57,6 +57,7 @@ class AIService {
     
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
+      'Accept-Language': 'ar-SA',
     };
 
     if (token) {
@@ -70,7 +71,7 @@ class AIService {
     const response = await fetch(`${this.baseURL}/api/ai/ask`, {
       method: 'POST',
       headers,
-      body: JSON.stringify({ query }),
+      body: JSON.stringify({ query, language: 'ar' }),
     });
 
     if (!response.ok) {

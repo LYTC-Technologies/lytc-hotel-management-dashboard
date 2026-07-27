@@ -199,8 +199,11 @@ export default function AIAssistantSection() {
           labels: {
             color: chartColors.text,
             font: {
-              family: 'Tajawal, sans-serif'
-            }
+              family: 'Tajawal, sans-serif',
+              size: 12
+            },
+            rtl: true,
+            textDirection: 'rtl'
           }
         },
         title: {
@@ -208,18 +211,42 @@ export default function AIAssistantSection() {
           text: graph.title,
           color: chartColors.text,
           font: {
-            size: 14,
+            size: 16,
+            family: 'Tajawal, sans-serif'
+          },
+          padding: {
+            top: 10,
+            bottom: 20
+          }
+        },
+        tooltip: {
+          rtl: true,
+          textDirection: 'rtl',
+          titleFont: {
+            family: 'Tajawal, sans-serif'
+          },
+          bodyFont: {
             family: 'Tajawal, sans-serif'
           }
         }
       },
       scales: graph.type !== 'PIE' ? {
         x: {
-          ticks: { color: chartColors.text },
+          ticks: { 
+            color: chartColors.text,
+            font: {
+              family: 'Tajawal, sans-serif'
+            }
+          },
           grid: { color: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }
         },
         y: {
-          ticks: { color: chartColors.text },
+          ticks: { 
+            color: chartColors.text,
+            font: {
+              family: 'Tajawal, sans-serif'
+            }
+          },
           grid: { color: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }
         }
       } : {}
