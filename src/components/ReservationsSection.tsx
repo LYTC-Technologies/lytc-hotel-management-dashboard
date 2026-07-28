@@ -161,11 +161,29 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
   }, [currentDate]);
 
   const getStaysForDate = (date: Date) => {
-    const dateStr = date.toISOString().split('T')[0];
+    // Use local date instead of UTC to avoid timezone issues
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
+    
     return filteredStays.filter(s => {
-      const checkIn = s.checkInTime ? new Date(s.checkInTime).toISOString().split('T')[0] : '';
-      const checkOut = s.expectedCheckOutDate ? new Date(s.expectedCheckOutDate).toISOString().split('T')[0] : '';
-      return dateStr >= checkIn && dateStr <= checkOut;
+      if (!s.checkInTime || !s.expectedCheckOutDate) return false;
+      
+      const checkInDate = new Date(s.checkInTime);
+      const checkOutDate = new Date(s.expectedCheckOutDate);
+      
+      const checkInYear = checkInDate.getFullYear();
+      const checkInMonth = String(checkInDate.getMonth() + 1).padStart(2, '0');
+      const checkInDay = String(checkInDate.getDate()).padStart(2, '0');
+      const checkInStr = `${checkInYear}-${checkInMonth}-${checkInDay}`;
+      
+      const checkOutYear = checkOutDate.getFullYear();
+      const checkOutMonth = String(checkOutDate.getMonth() + 1).padStart(2, '0');
+      const checkOutDay = String(checkOutDate.getDate()).padStart(2, '0');
+      const checkOutStr = `${checkOutYear}-${checkOutMonth}-${checkOutDay}`;
+      
+      return dateStr >= checkInStr && dateStr <= checkOutStr;
     });
   };
 

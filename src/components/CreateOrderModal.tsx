@@ -99,28 +99,33 @@ export default function CreateOrderModal({ isOpen, onClose, onSuccess, roomNumbe
 
   const loadActiveRooms = async () => {
     try {
-      // Fetch stays that are ACTIVE or CHECKED_IN (rooms with active orders)
-      const [activeResponse, checkedInResponse] = await Promise.allSettled([
-        apiService.getStays(0, 50),
-        apiService.getStays(0, 50),
-      ]);
-
+      // Fetch stays that are ACTIVE or CHECKED_IN (rooms with active bookings)
+      const response = await apiService.getStays(0, 100);
+      
       const rooms: any[] = [];
       const seen = new Set<string>();
 
-      // From ACTIVE stays
-      if (activeResponse.status === 'fulfilled') {
-        const stays = activeResponse.value?.content || [];
-        stays.filter((s: any) => s.status === 'ACTIVE' || s.status === 'CHECKED_IN').forEach((stay: any) => {
-          if (!seen.has(stay.roomNumber)) {
-            seen.add(stay.roomNumber);
-            rooms.push({ roomNumber: stay.roomNumber, guestName: stay.guestName || '', stayId: stay.stayId });
-          }
-        });
-      }
+      // Filter for active stays (ACTIVE, CHECKED_IN, RESERVED, BOOKED)
+      const activeStays = (response.content || []).filter((s: any) => {
+        const status = (s.status || '').toUpperCase();
+        return status === 'ACTIVE' || status === 'CHECKED_IN' || status === 'RESERVED' || status === 'BOOKED';
+      });
+
+      activeStays.forEach((stay: any) => {
+        if (stay.roomNumber && !seen.has(stay.roomNumber)) {
+          seen.add(stay.roomNumber);
+          rooms.push({ 
+            roomNumber: stay.roomNumber, 
+            guestName: stay.guestName || '', 
+            stayId: stay.stayId,
+            status: stay.status 
+          });
+        }
+      });
 
       setActiveRooms(rooms);
     } catch (error) {
+      console.error('Failed to load active rooms:', error);
       setActiveRooms([]);
     }
   };

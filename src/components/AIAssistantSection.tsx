@@ -111,15 +111,6 @@ export default function AIAssistantSection() {
     try {
       const response = await aiService.askAgent(userMessage.content);
       
-      // Check if response contains an error message from backend
-      if (response.textSummary.includes('Sorry, I encountered an issue') || 
-          response.textSummary.includes('Please try rephrasing')) {
-        setMessages(prev => prev.filter(msg => !msg.isTyping));
-        setError('المساعد الذكي يواجه مشكلة في الوصول للبيانات. يرجى المحاولة لاحقاً.');
-        console.error('AI Backend Error:', response.textSummary);
-        return;
-      }
-      
       // Remove typing indicator and add actual response
       setMessages(prev => {
         const withoutTyping = prev.filter(msg => !msg.isTyping);
