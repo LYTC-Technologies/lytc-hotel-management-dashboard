@@ -57,6 +57,11 @@ function App() {
           'ROOM_SERVICE': 'خدمة الغرف'
         };
         setUserRoleDisplay(roleMap[user.role] || 'المدير');
+        
+        // Ensure tenant ID is set when user is logged in
+        if (!localStorage.getItem('tenant_id')) {
+          apiService.setTenantId('hotel1');
+        }
       } catch (e) {
         setUserRoleDisplay('المدير');
       }
