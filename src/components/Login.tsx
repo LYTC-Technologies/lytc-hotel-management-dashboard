@@ -10,7 +10,7 @@ interface LoginProps {
 export default function Login({ onLoginSuccess }: LoginProps) {
   const [username, setUsername] = useState('admin');
   const [password, setPassword] = useState('password');
-  const [hotelId, setHotelId] = useState(() => localStorage.getItem('login_hotel_id') || '12');
+  const [hotelId, setHotelId] = useState(() => localStorage.getItem('login_hotel_id') || 'hotel1');
   const [rememberMe, setRememberMe] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [step, setStep] = useState<'credentials' | '2fa'>('credentials');
@@ -35,8 +35,8 @@ export default function Login({ onLoginSuccess }: LoginProps) {
       // Set hotel ID before login request
       apiService.setHotelId(hotelId);
       
-      // Set tenant ID for hotel authentication
-      apiService.setTenantId('hotel1');
+      // Set tenant ID for hotel authentication (use same value as hotelId)
+      apiService.setTenantId(hotelId);
       
       // Save login request to localStorage
       localStorage.setItem('login_username', username);
@@ -291,7 +291,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
                     <div className="flex justify-between gap-2 max-w-sm mx-auto" dir="ltr">
                       {otp.map((digit, idx) => (
                         <input
-                          key={`otp-input-${idx}`}
+                          key={idx}
                           id={`otp-${idx}`}
                           type="text"
                           maxLength={1}
