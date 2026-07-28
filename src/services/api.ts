@@ -327,6 +327,11 @@ class APIService {
       headers['X-Hotel-Id'] = this.hotelId;
     }
 
+    // Always try to send tenant ID if available
+    if (this.tenantId) {
+      headers['X-Tenant-Id'] = this.tenantId;
+    }
+
     return headers;
   }
 
