@@ -322,9 +322,9 @@ class APIService {
       headers['Authorization'] = `Bearer ${this.token}`;
     }
 
-    // Always try to send hotel ID if available
-    if (this.hotelId) {
-      headers['X-Hotel-Id'] = this.hotelId;
+    // Always try to send tenant ID if available
+    if (this.tenantId) {
+      headers['X-Tenant-Id'] = this.tenantId;
     }
 
     return headers;
@@ -406,9 +406,9 @@ class APIService {
    */
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     const headers = this.getHeaders(false);
-    // Add X-Hotel-Id header for hotel authentication
-    if (this.hotelId) {
-      headers['X-Hotel-Id'] = this.hotelId;
+    // Add X-Tenant-Id header for hotel authentication
+    if (this.tenantId) {
+      headers['X-Tenant-Id'] = this.tenantId;
     }
     
     const response = await fetch(`${this.baseURL}/api/auth/login`, {

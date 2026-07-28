@@ -35,6 +35,9 @@ export default function Login({ onLoginSuccess }: LoginProps) {
       // Set hotel ID before login request
       apiService.setHotelId(hotelId);
       
+      // Set tenant ID for hotel authentication
+      apiService.setTenantId('hotel1');
+      
       // Save login request to localStorage
       localStorage.setItem('login_username', username);
       localStorage.setItem('login_password', password);
