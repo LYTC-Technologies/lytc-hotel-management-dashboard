@@ -406,9 +406,9 @@ class APIService {
    */
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     const headers = this.getHeaders(false);
-    // Add X-Tenant-ID header for hotel authentication
-    if (this.tenantId) {
-      headers['X-Tenant-ID'] = this.tenantId;
+    // Add X-Hotel-Id header for hotel authentication
+    if (this.hotelId) {
+      headers['X-Hotel-Id'] = this.hotelId;
     }
     
     const response = await fetch(`${this.baseURL}/api/auth/login`, {
