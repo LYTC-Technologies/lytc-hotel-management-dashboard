@@ -152,6 +152,10 @@ export default function AIAssistantSection() {
     setError(null);
     setIsLoading(false);
     localStorage.removeItem('ai_conversation');
+    // Force re-render by setting a timeout to clear any pending states
+    setTimeout(() => {
+      setMessages([]);
+    }, 0);
   };
 
   const handleRetry = () => {

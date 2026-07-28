@@ -324,7 +324,7 @@ class APIService {
 
     // Always try to send tenant ID if available
     if (this.tenantId) {
-      headers['X-Tenant-Id'] = this.tenantId;
+      headers['X-Tenant-ID'] = this.tenantId;
     }
 
     return headers;
@@ -406,9 +406,9 @@ class APIService {
    */
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     const headers = this.getHeaders(false);
-    // Add X-Tenant-Id header for hotel authentication
+    // Add X-Tenant-ID header for hotel authentication
     if (this.tenantId) {
-      headers['X-Tenant-Id'] = this.tenantId;
+      headers['X-Tenant-ID'] = this.tenantId;
     }
     
     const response = await fetch(`${this.baseURL}/api/auth/login`, {

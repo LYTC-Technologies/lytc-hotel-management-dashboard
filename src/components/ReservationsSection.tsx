@@ -161,29 +161,23 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
   }, [currentDate]);
 
   const getStaysForDate = (date: Date) => {
-    // Use local date instead of UTC to avoid timezone issues
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const dateStr = `${year}-${month}-${day}`;
-    
     return filteredStays.filter(s => {
       if (!s.checkInTime || !s.expectedCheckOutDate) return false;
       
       const checkInDate = new Date(s.checkInTime);
       const checkOutDate = new Date(s.expectedCheckOutDate);
       
-      const checkInYear = checkInDate.getFullYear();
-      const checkInMonth = String(checkInDate.getMonth() + 1).padStart(2, '0');
-      const checkInDay = String(checkInDate.getDate()).padStart(2, '0');
-      const checkInStr = `${checkInYear}-${checkInMonth}-${checkInDay}`;
+      // Reset time to midnight for accurate date comparison
+      const targetDate = new Date(date);
+      targetDate.setHours(0, 0, 0, 0);
       
-      const checkOutYear = checkOutDate.getFullYear();
-      const checkOutMonth = String(checkOutDate.getMonth() + 1).padStart(2, '0');
-      const checkOutDay = String(checkOutDate.getDate()).padStart(2, '0');
-      const checkOutStr = `${checkOutYear}-${checkOutMonth}-${checkOutDay}`;
+      const checkInMidnight = new Date(checkInDate);
+      checkInMidnight.setHours(0, 0, 0, 0);
       
-      return dateStr >= checkInStr && dateStr <= checkOutStr;
+      const checkOutMidnight = new Date(checkOutDate);
+      checkOutMidnight.setHours(0, 0, 0, 0);
+      
+      return targetDate >= checkInMidnight && targetDate <= checkOutMidnight;
     });
   };
 
