@@ -622,10 +622,8 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
                 <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
                   <h4 className="text-sm font-bold text-gray-700">عدد الضيوف</h4>
                   <div className="grid grid-cols-2 gap-3">
-                    <InfoItem icon={<User size={16} />} label="البالغين" value={selectedStay.numAdults ? `${selectedStay.numAdults} أشخاص` : 'غير متاح'} />
-                    <InfoItem icon={<User size={16} />} label="الأطفال" value={selectedStay.numKids ? `${selectedStay.numKids} أطفال` : '0 أطفال'} />
-                    <InfoItem icon={<User size={16} />} label="السعة القصوى للبالغين" value={selectedStay.maxAdults ? `${selectedStay.maxAdults} أشخاص` : 'غير متاح'} />
-                    <InfoItem icon={<User size={16} />} label="السعة القصوى للأطفال" value={selectedStay.maxKids ? `${selectedStay.maxKids} أطفال` : 'غير متاح'} />
+                    <InfoItem icon={<User size={16} />} label="البالغين" value={selectedStay.numAdults !== undefined && selectedStay.numAdults !== null ? `${selectedStay.numAdults} أشخاص` : 'غير متاح'} />
+                    <InfoItem icon={<User size={16} />} label="الأطفال" value={selectedStay.numKids !== undefined && selectedStay.numKids !== null ? `${selectedStay.numKids} أطفال` : '0 أطفال'} />
                   </div>
                 </div>
 
@@ -634,6 +632,17 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
                   <h4 className="text-sm font-bold text-gray-700">المبالغ المالية</h4>
                   <div className="grid grid-cols-2 gap-3">
                     <InfoItem icon={<DollarSign size={16} />} label="رسوم الغرفة" value={selectedStay.roomCharge ? `${selectedStay.roomCharge.toLocaleString('ar-SA')} ريال` : 'غير متاح'} />
+                    <InfoItem icon={<DollarSign size={16} />} label="الإجمالي" value={(() => {
+                      const roomCharge = selectedStay.roomCharge || 0;
+                      const checkIn = selectedStay.checkInTime ? new Date(selectedStay.checkInTime) : (selectedStay.expectedCheckInDate ? new Date(selectedStay.expectedCheckInDate) : null);
+                      const checkOut = selectedStay.expectedCheckOutDate ? new Date(selectedStay.expectedCheckOutDate) : null;
+                      if (checkIn && checkOut && roomCharge > 0) {
+                        const nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / 86400000);
+                        const total = roomCharge * nights;
+                        return `${total.toLocaleString('ar-SA')} ريال`;
+                      }
+                      return selectedStay.totalCharge ? `${selectedStay.totalCharge.toLocaleString('ar-SA')} ريال` : 'غير متاح';
+                    })()} highlight />
                   </div>
                 </div>
 
