@@ -60,6 +60,7 @@ export default function DashboardHome({
   useEffect(() => {
     const loadDashboardData = async () => {
       setIsLoading(true);
+      console.log('Loading dashboard data...');
       try {
         const [roomsData, staysData, vipsData, specialOrdersData, restaurantStatsData, cafeStatsData] = await Promise.all([
           apiService.getRooms(undefined, undefined, 0, 100),
@@ -69,6 +70,13 @@ export default function DashboardHome({
           apiService.getRestaurantStats(),
           apiService.getCafeStats()
         ]);
+
+        console.log('API Responses:', {
+          roomsData,
+          staysData,
+          vipsData,
+          specialOrdersData
+        });
 
         // Transform rooms data
         const transformedRooms = (roomsData.content || []).map((room: any) => ({
@@ -101,6 +109,7 @@ export default function DashboardHome({
         setRestaurantStats(restaurantStatsData);
         setCafeStats(cafeStatsData);
       } catch (error) {
+        console.error('Error loading dashboard data:', error);
         // Set empty arrays on error to prevent filter errors
         setRooms([]);
         setStays([]);
