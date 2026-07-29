@@ -99,6 +99,26 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
       };
       
       await apiService.createStay(stayData);
+      
+      // Update room status to OCCUPIED after booking
+      try {
+        const rooms = await apiService.getRooms(undefined, undefined, 0, 100);
+        const roomToUpdate = (rooms.content || []).find((r: any) => r.roomNumber === selectedRoomNumber);
+        if (roomToUpdate) {
+          await apiService.updateRoom(roomToUpdate.id, { 
+            roomNumber: selectedRoomNumber, 
+            status: 'OCCUPIED',
+            price: roomToUpdate.price || 0,
+            maxAdults: roomToUpdate.maxAdults,
+            maxKids: roomToUpdate.maxKids,
+            floor: roomToUpdate.floor,
+            description: roomToUpdate.description
+          });
+        }
+      } catch (updateError) {
+        console.error('Failed to update room status:', updateError);
+      }
+      
       setIsCreateOpen(false);
       setGuestName(''); setSelectedRoomNumber(''); setCheckIn(''); setCheckOut(''); setAdults(2); setChildren(0);
       loadStays();
@@ -119,6 +139,28 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
   const handleCheckOut = async (stayId: number) => {
     try {
       await apiService.checkOutStay(stayId);
+      
+      // Update room status to AVAILABLE after checkout
+      const stay = stays.find(s => s.stayId === stayId);
+      if (stay && stay.roomNumber) {
+        try {
+          const rooms = await apiService.getRooms(undefined, undefined, 0, 100);
+          const roomToUpdate = (rooms.content || []).find((r: any) => r.roomNumber === stay.roomNumber);
+          if (roomToUpdate) {
+            await apiService.updateRoom(roomToUpdate.id, { 
+              roomNumber: stay.roomNumber, 
+              status: 'AVAILABLE',
+              price: roomToUpdate.price || 0,
+              maxAdults: roomToUpdate.maxAdults,
+              maxKids: roomToUpdate.maxKids,
+              floor: roomToUpdate.floor,
+              description: roomToUpdate.description
+            });
+          }
+        } catch (updateError) {
+          console.error('Failed to update room status:', updateError);
+        }
+      }
     } catch {}
     // Always reload to sync with backend state, even on 409
     loadStays();
@@ -311,8 +353,11 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex gap-2">
-                              <button onClick={e => { e.stopPropagation(); handleCheckIn(s.stayId); }} disabled={s.status === 'CHECKED_IN' || s.status === 'ACTIVE' || s.status === 'active' || s.status === 'CHECKED_OUT' || s.status === 'CLOSED'} className="px-3 py-1.5 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg text-xs font-bold hover:bg-blue-100 disabled:opacity-40 transition">دخول</button>
-                              <button onClick={e => { e.stopPropagation(); handleCheckOut(s.stayId); }} disabled={s.status !== 'CHECKED_IN' && s.status !== 'ACTIVE'} className="px-3 py-1.5 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg text-xs font-bold hover:bg-emerald-100 disabled:opacity-40 transition">مغادرة</button>
+                              {(s.status === 'RESERVED' || s.status === 'BOOKED' || s.status === 'booked') ? (
+                                <button onClick={e => { e.stopPropagation(); handleCheckIn(s.stayId); }} className="px-3 py-1.5 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg text-xs font-bold hover:bg-blue-100 transition">دخول</button>
+                              ) : (
+                                <button onClick={e => { e.stopPropagation(); handleCheckOut(s.stayId); }} disabled={s.status === 'CHECKED_OUT' || s.status === 'CLOSED' || s.status === 'closed'} className="px-3 py-1.5 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg text-xs font-bold hover:bg-emerald-100 disabled:opacity-40 transition">مغادرة</button>
+                              )}
                             </div>
                           </td>
                         </tr>
@@ -560,7 +605,6 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
                   <div className="grid grid-cols-2 gap-3">
                     <InfoItem icon={<Calendar size={16} />} label="تاريخ الدخول" value={selectedStay.checkInTime ? new Date(selectedStay.checkInTime).toLocaleDateString('ar-SA', { calendar: 'gregory' }) : (selectedStay.expectedCheckInDate ? new Date(selectedStay.expectedCheckInDate).toLocaleDateString('ar-SA', { calendar: 'gregory' }) : 'غير متاح')} />
                     <InfoItem icon={<Calendar size={16} />} label="تاريخ المغادرة المتوقع" value={selectedStay.expectedCheckOutDate ? new Date(selectedStay.expectedCheckOutDate).toLocaleDateString('ar-SA', { calendar: 'gregory' }) : 'غير متاح'} />
-                    <InfoItem icon={<Clock size={16} />} label="وقت تسجيل الدخول" value={selectedStay.checkInTime ? new Date(selectedStay.checkInTime).toLocaleTimeString('ar-SA') : 'غير متاح'} />
                     <InfoItem icon={<Clock size={16} />} label="وقت تسجيل المغادرة" value={selectedStay.checkOutTime ? new Date(selectedStay.checkOutTime).toLocaleTimeString('ar-SA') : 'لم يتم بعد'} />
                     <InfoItem icon={<Calendar size={16} />} label="عدد الليالي" value={(() => {
                       const checkIn = selectedStay.checkInTime ? new Date(selectedStay.checkInTime) : (selectedStay.expectedCheckInDate ? new Date(selectedStay.expectedCheckInDate) : null);
@@ -590,7 +634,6 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
                   <h4 className="text-sm font-bold text-gray-700">المبالغ المالية</h4>
                   <div className="grid grid-cols-2 gap-3">
                     <InfoItem icon={<DollarSign size={16} />} label="رسوم الغرفة" value={selectedStay.roomCharge ? `${selectedStay.roomCharge.toLocaleString('ar-SA')} ريال` : 'غير متاح'} />
-                    <InfoItem icon={<DollarSign size={16} />} label="الإجمالي" value={selectedStay.totalCharge ? `${selectedStay.totalCharge.toLocaleString('ar-SA')} ريال` : 'غير متاح'} highlight />
                   </div>
                 </div>
 
