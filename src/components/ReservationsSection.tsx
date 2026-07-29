@@ -301,7 +301,7 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
                           <td className="px-6 py-4 text-sm font-bold text-gray-900">#{s.stayId}</td>
                           <td className="px-6 py-4 text-sm text-gray-800">{s.guestName}</td>
                           <td className="px-6 py-4 text-sm text-gray-800">{s.roomNumber}</td>
-                          <td className="px-6 py-4 text-sm text-gray-600">{s.checkInTime ? new Date(s.checkInTime).toLocaleDateString('ar-SA') : 'غير متاح'}</td>
+                          <td className="px-6 py-4 text-sm text-gray-600">{s.checkInTime ? new Date(s.checkInTime).toLocaleDateString('ar-SA') : (s.expectedCheckInDate ? new Date(s.expectedCheckInDate).toLocaleDateString('ar-SA') : 'غير متاح')}</td>
                           <td className="px-6 py-4 text-sm text-gray-600">{s.expectedCheckOutDate ? new Date(s.expectedCheckOutDate).toLocaleDateString('ar-SA') : 'غير متاح'}</td>
                           <td className="px-6 py-4">
                             <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${sc.bg} ${sc.text} ${sc.border}`}>
@@ -558,11 +558,19 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
                 <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
                   <h4 className="text-sm font-bold text-gray-700">بيانات الإقامة</h4>
                   <div className="grid grid-cols-2 gap-3">
-                    <InfoItem icon={<Calendar size={16} />} label="تاريخ الدخول" value={selectedStay.checkInTime ? new Date(selectedStay.checkInTime).toLocaleDateString('ar-SA', { calendar: 'gregory' }) : 'غير متاح'} />
+                    <InfoItem icon={<Calendar size={16} />} label="تاريخ الدخول" value={selectedStay.checkInTime ? new Date(selectedStay.checkInTime).toLocaleDateString('ar-SA', { calendar: 'gregory' }) : (selectedStay.expectedCheckInDate ? new Date(selectedStay.expectedCheckInDate).toLocaleDateString('ar-SA', { calendar: 'gregory' }) : 'غير متاح')} />
                     <InfoItem icon={<Calendar size={16} />} label="تاريخ المغادرة المتوقع" value={selectedStay.expectedCheckOutDate ? new Date(selectedStay.expectedCheckOutDate).toLocaleDateString('ar-SA', { calendar: 'gregory' }) : 'غير متاح'} />
                     <InfoItem icon={<Clock size={16} />} label="وقت تسجيل الدخول" value={selectedStay.checkInTime ? new Date(selectedStay.checkInTime).toLocaleTimeString('ar-SA') : 'غير متاح'} />
                     <InfoItem icon={<Clock size={16} />} label="وقت تسجيل المغادرة" value={selectedStay.checkOutTime ? new Date(selectedStay.checkOutTime).toLocaleTimeString('ar-SA') : 'لم يتم بعد'} />
-                    <InfoItem icon={<Calendar size={16} />} label="عدد الليالي" value={selectedStay.checkInTime && selectedStay.expectedCheckOutDate ? `${Math.ceil((new Date(selectedStay.expectedCheckOutDate).getTime() - new Date(selectedStay.checkInTime).getTime()) / 86400000)} ليلة` : 'غير متاح'} />
+                    <InfoItem icon={<Calendar size={16} />} label="عدد الليالي" value={(() => {
+                      const checkIn = selectedStay.checkInTime ? new Date(selectedStay.checkInTime) : (selectedStay.expectedCheckInDate ? new Date(selectedStay.expectedCheckInDate) : null);
+                      const checkOut = selectedStay.expectedCheckOutDate ? new Date(selectedStay.expectedCheckOutDate) : null;
+                      if (checkIn && checkOut) {
+                        const nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / 86400000);
+                        return `${nights} ليلة`;
+                      }
+                      return 'غير متاح';
+                    })()} />
                   </div>
                 </div>
 
