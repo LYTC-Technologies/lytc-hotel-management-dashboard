@@ -63,12 +63,8 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
     setError(null);
     try {
       const response = await apiService.getStays(0, 200);
-      const staysData = response.content || [];
-      console.log('Loaded stays:', staysData.length, 'stays');
-      console.log('Sample stay:', staysData[0]);
-      setStays(staysData);
+      setStays(response.content || []);
     } catch (e: any) {
-      console.error('Failed to load stays:', e);
       setError('فشل تحميل الحجوزات');
       setStays([]);
     } finally {
@@ -166,10 +162,11 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
 
   const getStaysForDate = (date: Date) => {
     return filteredStays.filter(s => {
-      if (!s.checkInTime || !s.expectedCheckOutDate) return false;
-      
-      const checkInDate = new Date(s.checkInTime);
+      // Use expectedCheckInDate if checkInTime is null (for future reservations)
+      const checkInDate = s.checkInTime ? new Date(s.checkInTime) : new Date(s.expectedCheckInDate);
       const checkOutDate = new Date(s.expectedCheckOutDate);
+      
+      if (!checkInDate || !checkOutDate) return false;
       
       // Reset time to midnight for accurate date comparison
       const targetDate = new Date(date);
@@ -182,14 +179,6 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
       checkOutMidnight.setHours(0, 0, 0, 0);
       
       const isInRange = targetDate >= checkInMidnight && targetDate <= checkOutMidnight;
-      console.log('Date check:', {
-        targetDate: targetDate.toISOString(),
-        checkInMidnight: checkInMidnight.toISOString(),
-        checkOutMidnight: checkOutMidnight.toISOString(),
-        isInRange,
-        stayId: s.stayId,
-        roomNumber: s.roomNumber
-      });
       
       return isInRange;
     });

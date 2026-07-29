@@ -327,10 +327,6 @@ class APIService {
       headers['X-Tenant-ID'] = this.tenantId;
     }
 
-    console.log('Headers being sent:', headers);
-    console.log('Tenant ID from instance:', this.tenantId);
-    console.log('Tenant ID from localStorage:', localStorage.getItem('tenant_id'));
-
     return headers;
   }
 
