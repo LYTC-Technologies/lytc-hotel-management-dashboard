@@ -61,24 +61,12 @@ export default function DashboardHome({
     const loadDashboardData = async () => {
       setIsLoading(true);
       console.log('Loading dashboard data...');
+      
+      // Load rooms and stays separately to handle errors independently
       try {
-        const [roomsData, staysData, vipsData, specialOrdersData, restaurantStatsData, cafeStatsData] = await Promise.all([
-          apiService.getRooms(undefined, undefined, 0, 100),
-          apiService.getStays(0, 50),
-          apiService.getVips(0, 20),
-          apiService.getManagerSpecialOrders(),
-          apiService.getRestaurantStats(),
-          apiService.getCafeStats()
-        ]);
-
-        console.log('API Responses:', {
-          roomsData,
-          staysData,
-          vipsData,
-          specialOrdersData
-        });
-
-        // Transform rooms data
+        const roomsData = await apiService.getRooms(undefined, undefined, 0, 100);
+        console.log('Rooms API Response:', roomsData);
+        
         const transformedRooms = (roomsData.content || []).map((room: any) => ({
           id: room.id.toString(),
           number: room.roomNumber,
@@ -93,31 +81,56 @@ export default function DashboardHome({
           occupancyRate: room.status === 'OCCUPIED' ? 100 : 0
         }));
         setRooms(transformedRooms);
+      } catch (error) {
+        console.error('Error loading rooms:', error);
+        setRooms([]);
+      }
 
-        // Transform stays data - ensure it's an array
+      try {
+        const staysData = await apiService.getStays(0, 50);
+        console.log('Stays API Response:', staysData);
+        
         const staysArray = Array.isArray(staysData) ? staysData : (staysData.content || []);
         setStays(staysArray);
+      } catch (error) {
+        console.error('Error loading stays:', error);
+        setStays([]);
+      }
 
-        // Transform vips data - ensure it's an array
+      // Try to load optional data, but don't fail if it doesn't work
+      try {
+        const vipsData = await apiService.getVips(0, 20);
         const vipsArray = Array.isArray(vipsData) ? vipsData : (vipsData.content || []);
         setVips(vipsArray);
+      } catch (error) {
+        console.error('Error loading vips (optional):', error);
+        setVips([]);
+      }
 
-        // Transform special orders - ensure it's an array
+      try {
+        const specialOrdersData = await apiService.getManagerSpecialOrders();
         const specialOrdersArray = Array.isArray(specialOrdersData) ? specialOrdersData : [];
         setSpecialOrders(specialOrdersArray);
+      } catch (error) {
+        console.error('Error loading special orders (optional):', error);
+        setSpecialOrders([]);
+      }
 
+      try {
+        const restaurantStatsData = await apiService.getRestaurantStats();
         setRestaurantStats(restaurantStatsData);
+      } catch (error) {
+        console.error('Error loading restaurant stats (optional):', error);
+      }
+
+      try {
+        const cafeStatsData = await apiService.getCafeStats();
         setCafeStats(cafeStatsData);
       } catch (error) {
-        console.error('Error loading dashboard data:', error);
-        // Set empty arrays on error to prevent filter errors
-        setRooms([]);
-        setStays([]);
-        setVips([]);
-        setSpecialOrders([]);
-      } finally {
-        setIsLoading(false);
+        console.error('Error loading cafe stats (optional):', error);
       }
+
+      setIsLoading(false);
     };
 
     loadDashboardData();
