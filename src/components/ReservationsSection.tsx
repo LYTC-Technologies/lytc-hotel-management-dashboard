@@ -63,8 +63,12 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
     setError(null);
     try {
       const response = await apiService.getStays(0, 200);
-      setStays(response.content || []);
+      const staysData = response.content || [];
+      console.log('Loaded stays:', staysData.length, 'stays');
+      console.log('Sample stay:', staysData[0]);
+      setStays(staysData);
     } catch (e: any) {
+      console.error('Failed to load stays:', e);
       setError('فشل تحميل الحجوزات');
       setStays([]);
     } finally {
@@ -177,7 +181,17 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
       const checkOutMidnight = new Date(checkOutDate);
       checkOutMidnight.setHours(0, 0, 0, 0);
       
-      return targetDate >= checkInMidnight && targetDate <= checkOutMidnight;
+      const isInRange = targetDate >= checkInMidnight && targetDate <= checkOutMidnight;
+      console.log('Date check:', {
+        targetDate: targetDate.toISOString(),
+        checkInMidnight: checkInMidnight.toISOString(),
+        checkOutMidnight: checkOutMidnight.toISOString(),
+        isInRange,
+        stayId: s.stayId,
+        roomNumber: s.roomNumber
+      });
+      
+      return isInRange;
     });
   };
 
