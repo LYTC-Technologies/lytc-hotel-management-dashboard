@@ -120,15 +120,22 @@ export default function DashboardHome({
   const availableRoomsCount = (rooms || []).filter(r => r.status === 'available').length;
   const totalRoomsCount = (rooms || []).length;
   
-  // Calculate total room revenue from stays
+  // Calculate total room revenue from stays (room charge × number of nights)
   const totalRoomRevenue = (stays || []).reduce((sum, stay) => {
-    return sum + (stay.roomCharge || stay.totalCharge || 0);
+    const roomCharge = stay.roomCharge || 0;
+    const checkIn = stay.checkInTime ? new Date(stay.checkInTime) : (stay.expectedCheckInDate ? new Date(stay.expectedCheckInDate) : null);
+    const checkOut = stay.expectedCheckOutDate ? new Date(stay.expectedCheckOutDate) : null;
+    if (checkIn && checkOut && roomCharge > 0) {
+      const nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / 86400000);
+      return sum + (roomCharge * nights);
+    }
+    // Fallback to totalCharge if available
+    return sum + (stay.totalCharge || 0);
   }, 0);
   
   const activeGuestsCount = (stays || []).filter(s => s.status === 'CHECKED_IN').length;
 
   const pendingRequestsCount = (specialOrders || []).filter(s => s.status === 'PENDING').length;
-  const openMaintenanceCount = 0; // No maintenance API available yet
 
   // New Executive Dashboard KPIs
   const averageRoomRate = (rooms || []).length > 0 
@@ -140,12 +147,12 @@ export default function DashboardHome({
     ? (occupiedRoomsCount / totalRoomsCount) * 100 
     : 0;
   
-  // ADR: Total Room Revenue ÷ Number of Rooms Sold
+  // ADR: Total Room Revenue ÷ Number of Rooms Sold (occupied rooms)
   const adr = occupiedRoomsCount > 0 
     ? totalRoomRevenue / occupiedRoomsCount 
     : 0;
   
-  // RevPAR: ADR × Occupancy Rate (or Total Room Revenue ÷ Total Available Rooms)
+  // RevPAR: Total Room Revenue ÷ Total Available Rooms
   const revPAR = totalRoomsCount > 0 
     ? totalRoomRevenue / totalRoomsCount 
     : 0;
@@ -157,8 +164,6 @@ export default function DashboardHome({
   const cancellationRate = (stays || []).length > 0 
     ? ((stays || []).filter(s => s.status === 'CANCELLED').length / (stays || []).length) * 100 
     : 0;
-
-  const pendingPayments = 0; // No invoice API available yet
 
   const pendingHousekeeping = (rooms || []).filter(r => r.status === 'cleaning').length;
 
@@ -429,46 +434,6 @@ export default function DashboardHome({
             <ConciergeBell size={16} />
           </div>
         </button>
-      </div>
-
-      {/* KPI Secondary Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Mini KPI 1 */}
-        <div className={`p-5 border rounded-xl flex items-center justify-between hover:border-gray-800 transition duration-200 ${isDark ? 'bg-[#090909] border-gray-900' : 'bg-white border-gray-200'}`}>
-          <div className="space-y-1">
-            <span className="text-xs" style={{ color: colors.text.muted }}>النزلاء المقيمين الآن</span>
-            <div className="text-xl font-bold font-mono" style={{ color: colors.text.primary }}>{activeGuestsCount} نزيل</div>
-          </div>
-          <div className={`p-2.5 rounded-lg ${isDark ? 'bg-gray-800/40 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
-            <Users size={18} />
-          </div>
-        </div>
-
-        {/* Mini KPI 2 */}
-        <div className={`p-5 border rounded-xl flex items-center justify-between hover:border-gray-800 transition duration-200 ${isDark ? 'bg-[#090909] border-gray-900' : 'bg-white border-gray-200'}`}>
-          <div className="space-y-1">
-            <span className="text-xs" style={{ color: colors.text.muted }}>الطلبات الجديدة المعلقة</span>
-            <div className="text-xl font-bold font-mono" style={{ color: colors.text.primary }}>
-              {pendingRequestsCount} <span className="text-xs font-sans" style={{ color: colors.text.muted }}>طلب</span>
-            </div>
-          </div>
-          <div className={`p-2.5 rounded-lg ${isDark ? 'bg-gray-800/40 text-amber-500' : 'bg-amber-50 text-amber-600'}`}>
-            <MessageSquare size={18} />
-          </div>
-        </div>
-
-        {/* Mini KPI 3 */}
-        <div className={`p-5 border rounded-xl flex items-center justify-between hover:border-gray-800 transition duration-200 ${isDark ? 'bg-[#090909] border-gray-900' : 'bg-white border-gray-200'}`}>
-          <div className="space-y-1">
-            <span className="text-xs" style={{ color: colors.text.muted }}>غرف تحت التنظيف</span>
-            <div className="text-xl font-bold font-mono" style={{ color: colors.text.primary }}>
-              {pendingHousekeeping} <span className="text-xs font-sans" style={{ color: colors.text.muted }}>غرفة</span>
-            </div>
-          </div>
-          <div className={`p-2.5 rounded-lg ${isDark ? 'bg-gray-800/40 text-teal-400' : 'bg-teal-50 text-teal-600'}`}>
-            <Sparkles size={18} />
-          </div>
-        </div>
       </div>
 
       {/* Main Panel: Tables & Quick Actions */}
