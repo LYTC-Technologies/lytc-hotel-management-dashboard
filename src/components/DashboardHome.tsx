@@ -60,12 +60,10 @@ export default function DashboardHome({
   useEffect(() => {
     const loadDashboardData = async () => {
       setIsLoading(true);
-      console.log('Loading dashboard data...');
       
       // Load rooms and stays separately to handle errors independently
       try {
         const roomsData = await apiService.getRooms(undefined, undefined, 0, 100);
-        console.log('Rooms API Response:', roomsData);
         
         const transformedRooms = (roomsData.content || []).map((room: any) => ({
           id: room.id.toString(),
@@ -82,18 +80,15 @@ export default function DashboardHome({
         }));
         setRooms(transformedRooms);
       } catch (error) {
-        console.error('Error loading rooms:', error);
         setRooms([]);
       }
 
       try {
         const staysData = await apiService.getStays(0, 50);
-        console.log('Stays API Response:', staysData);
         
         const staysArray = Array.isArray(staysData) ? staysData : (staysData.content || []);
         setStays(staysArray);
       } catch (error) {
-        console.error('Error loading stays:', error);
         setStays([]);
       }
 
@@ -103,7 +98,6 @@ export default function DashboardHome({
         const vipsArray = Array.isArray(vipsData) ? vipsData : (vipsData.content || []);
         setVips(vipsArray);
       } catch (error) {
-        console.error('Error loading vips (optional):', error);
         setVips([]);
       }
 
@@ -112,7 +106,6 @@ export default function DashboardHome({
         const specialOrdersArray = Array.isArray(specialOrdersData) ? specialOrdersData : [];
         setSpecialOrders(specialOrdersArray);
       } catch (error) {
-        console.error('Error loading special orders (optional):', error);
         setSpecialOrders([]);
       }
 
@@ -120,14 +113,14 @@ export default function DashboardHome({
         const restaurantStatsData = await apiService.getRestaurantStats();
         setRestaurantStats(restaurantStatsData);
       } catch (error) {
-        console.error('Error loading restaurant stats (optional):', error);
+        // Optional - ignore errors
       }
 
       try {
         const cafeStatsData = await apiService.getCafeStats();
         setCafeStats(cafeStatsData);
       } catch (error) {
-        console.error('Error loading cafe stats (optional):', error);
+        // Optional - ignore errors
       }
 
       setIsLoading(false);
@@ -141,17 +134,6 @@ export default function DashboardHome({
   const occupiedRoomsCount = (rooms || []).filter(r => r.status === 'OCCUPIED' || r.status === 'occupied').length;
   const availableRoomsCount = (rooms || []).filter(r => r.status === 'AVAILABLE' || r.status === 'available').length;
   const totalRoomsCount = (rooms || []).length;
-  
-  console.log('Dashboard Data Debug:', {
-    totalBookings,
-    occupiedRoomsCount,
-    availableRoomsCount,
-    totalRoomsCount,
-    rooms: rooms?.length,
-    stays: stays?.length,
-    roomStatuses: rooms?.map(r => ({ number: r.roomNumber, status: r.status })),
-    stayStatuses: stays?.map(s => ({ id: s.stayId, status: s.status }))
-  });
   
   // Calculate total room revenue from stays (room charge × number of nights)
   const totalRoomRevenue = (stays || []).reduce((sum, stay) => {
