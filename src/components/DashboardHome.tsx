@@ -116,8 +116,8 @@ export default function DashboardHome({
 
   // Compute live real metrics from API data
   const totalBookings = (stays || []).length;
-  const occupiedRoomsCount = (rooms || []).filter(r => r.status === 'occupied').length;
-  const availableRoomsCount = (rooms || []).filter(r => r.status === 'available').length;
+  const occupiedRoomsCount = (rooms || []).filter(r => r.status === 'OCCUPIED' || r.status === 'occupied').length;
+  const availableRoomsCount = (rooms || []).filter(r => r.status === 'AVAILABLE' || r.status === 'available').length;
   const totalRoomsCount = (rooms || []).length;
   
   // Calculate total room revenue from stays (room charge × number of nights)
@@ -165,7 +165,7 @@ export default function DashboardHome({
     ? ((stays || []).filter(s => s.status === 'CANCELLED').length / (stays || []).length) * 100 
     : 0;
 
-  const pendingHousekeeping = (rooms || []).filter(r => r.status === 'cleaning').length;
+  const pendingHousekeeping = (rooms || []).filter(r => r.status === 'CLEANING' || r.status === 'cleaning').length;
 
   const vipGuestsArriving = (vips || []).length;
 
@@ -225,7 +225,10 @@ export default function DashboardHome({
       {/* KPI Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {/* KPI 1: Reservations */}
-        <div className={`p-4 sm:p-6 border rounded-xl hover:border-[#D4AF37]/35 transition-all duration-300 relative group overflow-hidden ${isDark ? 'bg-[#0c0c0c] border-gray-900' : 'bg-white border-gray-200'}`}>
+        <button 
+          onClick={() => onNavigate('الحجوزات')}
+          className={`p-4 sm:p-6 border rounded-xl hover:border-[#D4AF37]/35 transition-all duration-300 relative group overflow-hidden w-full text-left ${isDark ? 'bg-[#0c0c0c] border-gray-900' : 'bg-white border-gray-200'}`}
+        >
           <div className="absolute top-0 left-0 w-1.5 h-full bg-[#D4AF37]" />
           <div className="flex justify-between items-start">
             <div>
@@ -239,10 +242,13 @@ export default function DashboardHome({
           <div className="flex items-center gap-1.5 mt-4 text-xs" style={{ color: colors.text.muted }}>
             <span style={{ color: colors.text.disabled }}>مقارنة بالأسبوع الماضي</span>
           </div>
-        </div>
+        </button>
 
         {/* KPI 2: Occupied Rooms */}
-        <div className={`p-4 sm:p-6 border rounded-xl hover:border-blue-500/35 transition-all duration-300 relative group overflow-hidden ${isDark ? 'bg-[#0c0c0c] border-gray-900' : 'bg-white border-gray-200'}`}>
+        <button 
+          onClick={() => onNavigate('الغرف')}
+          className={`p-4 sm:p-6 border rounded-xl hover:border-blue-500/35 transition-all duration-300 relative group overflow-hidden w-full text-left ${isDark ? 'bg-[#0c0c0c] border-gray-900' : 'bg-white border-gray-200'}`}
+        >
           <div className="absolute top-0 left-0 w-1.5 h-full bg-blue-500" />
           <div className="flex justify-between items-start">
             <div>
@@ -261,10 +267,13 @@ export default function DashboardHome({
             </span>
             <span style={{ color: colors.text.disabled }}>معدل الإشغال الإجمالي</span>
           </div>
-        </div>
+        </button>
 
         {/* KPI 3: Available Rooms */}
-        <div className={`p-4 sm:p-6 border rounded-xl hover:border-emerald-500/35 transition-all duration-300 relative group overflow-hidden ${isDark ? 'bg-[#0c0c0c] border-gray-900' : 'bg-white border-gray-200'}`}>
+        <button 
+          onClick={() => onNavigate('الغرف')}
+          className={`p-4 sm:p-6 border rounded-xl hover:border-emerald-500/35 transition-all duration-300 relative group overflow-hidden w-full text-left ${isDark ? 'bg-[#0c0c0c] border-gray-900' : 'bg-white border-gray-200'}`}
+        >
           <div className="absolute top-0 left-0 w-1.5 h-full bg-emerald-500" />
           <div className="flex justify-between items-start">
             <div>
@@ -283,10 +292,13 @@ export default function DashboardHome({
             </span>
             <span style={{ color: colors.text.disabled }}>تحت التنظيف حالياً</span>
           </div>
-        </div>
+        </button>
 
         {/* KPI 4: Active Guests */}
-        <div className={`p-4 sm:p-6 border rounded-xl hover:border-purple-500/35 transition-all duration-300 relative group overflow-hidden ${isDark ? 'bg-[#0c0c0c] border-gray-900' : 'bg-white border-gray-200'}`}>
+        <button 
+          onClick={() => onNavigate('النزلاء')}
+          className={`p-4 sm:p-6 border rounded-xl hover:border-purple-500/35 transition-all duration-300 relative group overflow-hidden w-full text-left ${isDark ? 'bg-[#0c0c0c] border-gray-900' : 'bg-white border-gray-200'}`}
+        >
           <div className="absolute top-0 left-0 w-1.5 h-full bg-purple-500" />
           <div className="flex justify-between items-start">
             <div>
@@ -302,13 +314,16 @@ export default function DashboardHome({
           <div className="flex items-center gap-1.5 mt-3 sm:mt-4 text-xs sm:text-xs" style={{ color: colors.text.muted }}>
             <span style={{ color: colors.text.disabled }}>نزيل نشط حالياً</span>
           </div>
-        </div>
+        </button>
       </div>
 
       {/* Expanded Executive Dashboard KPI Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Occupancy Rate */}
-        <div className={`p-4 border rounded-xl flex items-center justify-between hover:border-[#D4AF37]/35 transition duration-200 ${isDark ? 'bg-[#090909] border-gray-900' : 'bg-white border-gray-200'}`}>
+        <button 
+          onClick={() => onNavigate('الحجوزات')}
+          className={`p-4 border rounded-xl flex items-center justify-between hover:border-[#D4AF37]/35 transition duration-200 w-full text-left ${isDark ? 'bg-[#090909] border-gray-900' : 'bg-white border-gray-200'}`}
+        >
           <div className="space-y-1">
             <span className="text-xs" style={{ color: colors.text.muted }}>معدل الإشغال</span>
             <div className="text-lg font-bold font-mono" style={{ color: colors.primary.gold }}>{occupancyRate.toFixed(1)}%</div>
@@ -317,10 +332,13 @@ export default function DashboardHome({
           <div className={`p-2 rounded-lg ${isDark ? 'bg-amber-950/20 text-amber-400' : 'bg-amber-50 text-amber-600'}`}>
             <PieChart size={16} />
           </div>
-        </div>
+        </button>
 
         {/* ADR */}
-        <div className={`p-4 border rounded-xl flex items-center justify-between hover:border-emerald-500/35 transition duration-200 ${isDark ? 'bg-[#090909] border-gray-900' : 'bg-white border-gray-200'}`}>
+        <button 
+          onClick={() => onNavigate('المدفوعات')}
+          className={`p-4 border rounded-xl flex items-center justify-between hover:border-emerald-500/35 transition duration-200 w-full text-left ${isDark ? 'bg-[#090909] border-gray-900' : 'bg-white border-gray-200'}`}
+        >
           <div className="space-y-1">
             <span className="text-xs" style={{ color: colors.text.muted }}>متوسط السعر اليومي</span>
             <div className="text-lg font-bold font-mono" style={{ color: colors.text.primary }}>{Math.round(adr)} ريال</div>
@@ -329,10 +347,13 @@ export default function DashboardHome({
           <div className={`p-2 rounded-lg ${isDark ? 'bg-emerald-950/20 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
             <DollarSign size={16} />
           </div>
-        </div>
+        </button>
 
         {/* RevPAR */}
-        <div className={`p-4 border rounded-xl flex items-center justify-between hover:border-blue-500/35 transition duration-200 ${isDark ? 'bg-[#090909] border-gray-900' : 'bg-white border-gray-200'}`}>
+        <button 
+          onClick={() => onNavigate('المدفوعات')}
+          className={`p-4 border rounded-xl flex items-center justify-between hover:border-blue-500/35 transition duration-200 w-full text-left ${isDark ? 'bg-[#090909] border-gray-900' : 'bg-white border-gray-200'}`}
+        >
           <div className="space-y-1">
             <span className="text-xs" style={{ color: colors.text.muted }}>الإيراد لكل غرفة متاحة</span>
             <div className="text-lg font-bold font-mono" style={{ color: colors.text.primary }}>{Math.round(revPAR)} ريال</div>
@@ -341,10 +362,13 @@ export default function DashboardHome({
           <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-950/20 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
             <BarChart3 size={16} />
           </div>
-        </div>
+        </button>
 
         {/* Average Room Rate */}
-        <div className={`p-4 border rounded-xl flex items-center justify-between hover:border-purple-500/35 transition duration-200 ${isDark ? 'bg-[#090909] border-gray-900' : 'bg-white border-gray-200'}`}>
+        <button 
+          onClick={() => onNavigate('الغرف')}
+          className={`p-4 border rounded-xl flex items-center justify-between hover:border-purple-500/35 transition duration-200 w-full text-left ${isDark ? 'bg-[#090909] border-gray-900' : 'bg-white border-gray-200'}`}
+        >
           <div className="space-y-1">
             <span className="text-xs" style={{ color: colors.text.muted }}>متوسط سعر الغرفة</span>
             <div className="text-lg font-bold font-mono" style={{ color: colors.text.primary }}>{Math.round(averageRoomRate)} ريال</div>
@@ -352,13 +376,16 @@ export default function DashboardHome({
           <div className={`p-2 rounded-lg ${isDark ? 'bg-purple-950/20 text-purple-400' : 'bg-purple-50 text-purple-600'}`}>
             <TrendingUp size={16} />
           </div>
-        </div>
+        </button>
       </div>
 
       {/* Secondary KPI Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Direct Bookings */}
-        <div className={`p-4 border rounded-xl flex items-center justify-between hover:border-emerald-500/35 transition duration-200 ${isDark ? 'bg-[#090909] border-gray-900' : 'bg-white border-gray-200'}`}>
+        <button 
+          onClick={() => onNavigate('الحجوزات')}
+          className={`p-4 border rounded-xl flex items-center justify-between hover:border-emerald-500/35 transition duration-200 w-full text-left ${isDark ? 'bg-[#090909] border-gray-900' : 'bg-white border-gray-200'}`}
+        >
           <div className="space-y-1">
             <span className="text-xs" style={{ color: colors.text.muted }}>الحجوزات المباشرة</span>
             <div className="text-lg font-bold font-mono" style={{ color: colors.text.primary }}>{directBookings}</div>
@@ -366,21 +393,13 @@ export default function DashboardHome({
           <div className={`p-2 rounded-lg ${isDark ? 'bg-emerald-950/20 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
             <Calendar size={16} />
           </div>
-        </div>
-
-        {/* Platform Bookings */}
-        <div className={`p-4 border rounded-xl flex items-center justify-between hover:border-blue-500/35 transition duration-200 ${isDark ? 'bg-[#090909] border-gray-900' : 'bg-white border-gray-200'}`}>
-          <div className="space-y-1">
-            <span className="text-xs" style={{ color: colors.text.muted }}>حجوزات المنصات</span>
-            <div className="text-lg font-bold font-mono" style={{ color: colors.text.primary }}>{platformBookings}</div>
-          </div>
-          <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-950/20 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
-            <Compass size={16} />
-          </div>
-        </div>
+        </button>
 
         {/* Cancellation Rate */}
-        <div className={`p-4 border rounded-xl flex items-center justify-between hover:border-red-500/35 transition duration-200 ${isDark ? 'bg-[#090909] border-gray-900' : 'bg-white border-gray-200'}`}>
+        <button 
+          onClick={() => onNavigate('الحجوزات')}
+          className={`p-4 border rounded-xl flex items-center justify-between hover:border-red-500/35 transition duration-200 w-full text-left ${isDark ? 'bg-[#090909] border-gray-900' : 'bg-white border-gray-200'}`}
+        >
           <div className="space-y-1">
             <span className="text-xs" style={{ color: colors.text.muted }}>معدل الإلغاء</span>
             <div className="text-lg font-bold font-mono" style={{ color: colors.text.primary }}>{cancellationRate.toFixed(1)}%</div>
@@ -388,7 +407,7 @@ export default function DashboardHome({
           <div className={`p-2 rounded-lg ${isDark ? 'bg-red-950/20 text-red-400' : 'bg-red-50 text-red-600'}`}>
             <ArrowDownRight size={16} />
           </div>
-        </div>
+        </button>
       </div>
 
       {/* Secondary KPI Grid */}
@@ -410,9 +429,9 @@ export default function DashboardHome({
         {/* VIP Guests Arriving */}
         <button 
           onClick={() => onNavigate('النزلاء')}
-          className={`p-4 border rounded-xl flex items-center justify-between hover:border-rose-500/35 transition duration-200 w-full ${isDark ? 'bg-[#090909] border-gray-900' : 'bg-white border-gray-200'}`}
+          className={`p-4 border rounded-xl flex items-center justify-between hover:border-rose-500/35 transition duration-200 w-full text-left ${isDark ? 'bg-[#090909] border-gray-900' : 'bg-white border-gray-200'}`}
         >
-          <div className="space-y-1 text-right">
+          <div className="space-y-1">
             <span className="text-xs" style={{ color: colors.text.muted }}>الضيوف المهمون القادمين</span>
             <div className="text-lg font-bold font-mono" style={{ color: colors.text.primary }}>{vipGuestsArriving}</div>
           </div>
@@ -424,7 +443,7 @@ export default function DashboardHome({
         {/* Pending Special Orders */}
         <button 
           onClick={() => onNavigate('الطلبات الخاصة')}
-          className={`p-4 border rounded-xl flex items-center justify-between hover:border-amber-500/35 transition duration-200 w-full ${isDark ? 'bg-[#090909] border-gray-900' : 'bg-white border-gray-200'}`}
+          className={`p-4 border rounded-xl flex items-center justify-between hover:border-amber-500/35 transition duration-200 w-full text-left ${isDark ? 'bg-[#090909] border-gray-900' : 'bg-white border-gray-200'}`}
         >
           <div className="space-y-1">
             <span className="text-xs" style={{ color: colors.text.muted }}>الطلبات الخاصة المعلقة</span>
@@ -554,61 +573,8 @@ export default function DashboardHome({
           </div>
         </div>
 
-        {/* Right Column: Quick Actions & Live Activities */}
+        {/* Right Column: Live Activities */}
         <div className="space-y-6">
-          {/* Quick Actions Panel */}
-          <div className={`border rounded-xl p-6 shadow-xl space-y-4 ${isDark ? 'bg-[#0b0b0b] border-gray-900' : 'bg-white border-gray-200'}`}>
-            <h2 className={`text-md font-bold flex items-center gap-2 border-b pb-3 ${isDark ? 'text-[#E6C587] border-gray-800' : 'text-gray-800 border-gray-200'}`}>
-              <Sparkles size={16} style={{ color: colors.primary.gold }} />
-              <span>إجراءات التشغيل السريعة</span>
-            </h2>
-            <div className="grid grid-cols-2 gap-3">
-              <button 
-                onClick={onOpenQuickBook}
-                className={`p-4 border hover:border-[#D4AF37]/30 text-right rounded-xl transition duration-200 space-y-2 group ${isDark ? 'bg-gradient-to-br from-[#121212] to-[#181818] border-gray-800 hover:to-[#222]' : 'bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200 hover:to-gray-200'}`}
-              >
-                <div className="w-9 h-9 rounded-lg border flex items-center justify-center group-hover:scale-105 transition-all" style={{ background: isDark ? 'rgba(245, 158, 11, 0.3)' : 'rgba(245, 158, 11, 0.1)', borderColor: `${colors.primary.gold}10`, color: colors.primary.gold }}>
-                  <Calendar size={16} />
-                </div>
-                <h4 className="text-xs font-bold" style={{ color: colors.text.primary }}>تسجيل حجز جديد</h4>
-                <p className="text-xs" style={{ color: colors.text.muted }}>إدخال نزيل جديد للجناح</p>
-              </button>
-
-              <button 
-                onClick={onOpenQuickRequest}
-                className={`p-4 border hover:border-[#D4AF37]/30 text-right rounded-xl transition duration-200 space-y-2 group ${isDark ? 'bg-gradient-to-br from-[#121212] to-[#181818] border-gray-800 hover:to-[#222]' : 'bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200 hover:to-gray-200'}`}
-              >
-                <div className={`w-9 h-9 rounded-lg border flex items-center justify-center group-hover:scale-105 transition-all ${isDark ? 'bg-blue-950/30 text-blue-400 border-blue-500/10' : 'bg-blue-50 text-blue-600 border-blue-200'}`}>
-                  <ConciergeBell size={16} />
-                </div>
-                <h4 className="text-xs font-bold" style={{ color: colors.text.primary }}>تسجيل طلب خدمة</h4>
-                <p className="text-xs" style={{ color: colors.text.muted }}>خدمة غرف ومغسلة ونقل</p>
-              </button>
-
-              <button 
-                onClick={() => onNavigate('الغرف')}
-                className={`p-4 border hover:border-[#D4AF37]/30 text-right rounded-xl transition duration-200 space-y-2 group ${isDark ? 'bg-gradient-to-br from-[#121212] to-[#181818] border-gray-800 hover:to-[#222]' : 'bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200 hover:to-gray-200'}`}
-              >
-                <div className={`w-9 h-9 rounded-lg border flex items-center justify-center group-hover:scale-105 transition-all ${isDark ? 'bg-purple-950/30 text-purple-400 border-purple-500/10' : 'bg-purple-50 text-purple-600 border-purple-200'}`}>
-                  <BedDouble size={16} />
-                </div>
-                <h4 className="text-xs font-bold" style={{ color: colors.text.primary }}>حالة الغرف</h4>
-                <p className="text-xs" style={{ color: colors.text.muted }}>تعديل حالة تنظيف وصيانة</p>
-              </button>
-
-              <button 
-                onClick={() => onNavigate('المدفوعات')}
-                className={`p-4 border hover:border-[#D4AF37]/30 text-right rounded-xl transition duration-200 space-y-2 group ${isDark ? 'bg-gradient-to-br from-[#121212] to-[#181818] border-gray-800 hover:to-[#222]' : 'bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200 hover:to-gray-200'}`}
-              >
-                <div className={`w-9 h-9 rounded-lg border flex items-center justify-center group-hover:scale-105 transition-all ${isDark ? 'bg-emerald-950/30 text-emerald-400 border-emerald-500/10' : 'bg-emerald-50 text-emerald-600 border-emerald-200'}`}>
-                  <CreditCard size={16} />
-                </div>
-                <h4 className="text-xs font-bold" style={{ color: colors.text.primary }}>الفواتير والمالية</h4>
-                <p className="text-xs" style={{ color: colors.text.muted }}>عرض العمليات والمستحقات</p>
-              </button>
-            </div>
-          </div>
-
           {/* Live System Activities Feed - Removed dummy data */}
         </div>
       </div>
