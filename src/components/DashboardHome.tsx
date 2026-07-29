@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { 
   TrendingUp, Calendar, BedDouble, Users, MessageSquare, Sparkles, 
-  Clock, Compass, UserCheck, ChevronLeft, ConciergeBell, Loader2, ArrowDownRight, ShieldAlert, CreditCard
+  Clock, Compass, UserCheck, ChevronLeft, ConciergeBell, Loader2, ArrowDownRight, ShieldAlert, CreditCard, BarChart3, PieChart, DollarSign
 } from 'lucide-react';
 import { Room, Reservation, Guest, ServiceRequest, HousekeepingTask, MaintenanceTicket, Invoice } from '../types';
 import { apiService } from '../services/api';
@@ -118,8 +118,13 @@ export default function DashboardHome({
   const totalBookings = (stays || []).length;
   const occupiedRoomsCount = (rooms || []).filter(r => r.status === 'occupied').length;
   const availableRoomsCount = (rooms || []).filter(r => r.status === 'available').length;
-  const totalRevenue = 0; // No invoice API available yet
-
+  const totalRoomsCount = (rooms || []).length;
+  
+  // Calculate total room revenue from stays
+  const totalRoomRevenue = (stays || []).reduce((sum, stay) => {
+    return sum + (stay.roomCharge || stay.totalCharge || 0);
+  }, 0);
+  
   const activeGuestsCount = (stays || []).filter(s => s.status === 'CHECKED_IN').length;
 
   const pendingRequestsCount = (specialOrders || []).filter(s => s.status === 'PENDING').length;
@@ -130,8 +135,19 @@ export default function DashboardHome({
     ? (rooms || []).reduce((sum, r) => sum + r.pricePerNight, 0) / (rooms || []).length 
     : 0;
   
-  const revPAR = availableRoomsCount > 0 
-    ? totalRevenue / ((rooms || []).length - occupiedRoomsCount) 
+  // Occupancy Rate: (Occupied Rooms ÷ Total Available Rooms) × 100
+  const occupancyRate = totalRoomsCount > 0 
+    ? (occupiedRoomsCount / totalRoomsCount) * 100 
+    : 0;
+  
+  // ADR: Total Room Revenue ÷ Number of Rooms Sold
+  const adr = occupiedRoomsCount > 0 
+    ? totalRoomRevenue / occupiedRoomsCount 
+    : 0;
+  
+  // RevPAR: ADR × Occupancy Rate (or Total Room Revenue ÷ Total Available Rooms)
+  const revPAR = totalRoomsCount > 0 
+    ? totalRoomRevenue / totalRoomsCount 
     : 0;
 
   const directBookings = (stays || []).filter(s => s.bookingSource === 'DIRECT' || !s.bookingSource).length;
@@ -286,6 +302,42 @@ export default function DashboardHome({
 
       {/* Expanded Executive Dashboard KPI Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Occupancy Rate */}
+        <div className={`p-4 border rounded-xl flex items-center justify-between hover:border-[#D4AF37]/35 transition duration-200 ${isDark ? 'bg-[#090909] border-gray-900' : 'bg-white border-gray-200'}`}>
+          <div className="space-y-1">
+            <span className="text-xs" style={{ color: colors.text.muted }}>معدل الإشغال</span>
+            <div className="text-lg font-bold font-mono" style={{ color: colors.primary.gold }}>{occupancyRate.toFixed(1)}%</div>
+            <div className="text-xs" style={{ color: colors.text.disabled }}>{occupiedRoomsCount} من {totalRoomsCount} غرفة</div>
+          </div>
+          <div className={`p-2 rounded-lg ${isDark ? 'bg-amber-950/20 text-amber-400' : 'bg-amber-50 text-amber-600'}`}>
+            <PieChart size={16} />
+          </div>
+        </div>
+
+        {/* ADR */}
+        <div className={`p-4 border rounded-xl flex items-center justify-between hover:border-emerald-500/35 transition duration-200 ${isDark ? 'bg-[#090909] border-gray-900' : 'bg-white border-gray-200'}`}>
+          <div className="space-y-1">
+            <span className="text-xs" style={{ color: colors.text.muted }}>متوسط السعر اليومي</span>
+            <div className="text-lg font-bold font-mono" style={{ color: colors.text.primary }}>{Math.round(adr)} ريال</div>
+            <div className="text-xs" style={{ color: colors.text.disabled }}>للغرفة المباعة</div>
+          </div>
+          <div className={`p-2 rounded-lg ${isDark ? 'bg-emerald-950/20 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
+            <DollarSign size={16} />
+          </div>
+        </div>
+
+        {/* RevPAR */}
+        <div className={`p-4 border rounded-xl flex items-center justify-between hover:border-blue-500/35 transition duration-200 ${isDark ? 'bg-[#090909] border-gray-900' : 'bg-white border-gray-200'}`}>
+          <div className="space-y-1">
+            <span className="text-xs" style={{ color: colors.text.muted }}>الإيراد لكل غرفة متاحة</span>
+            <div className="text-lg font-bold font-mono" style={{ color: colors.text.primary }}>{Math.round(revPAR)} ريال</div>
+            <div className="text-xs" style={{ color: colors.text.disabled }}>بناءً على الإشغال</div>
+          </div>
+          <div className={`p-2 rounded-lg ${isDark ? 'bg-blue-950/20 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
+            <BarChart3 size={16} />
+          </div>
+        </div>
+
         {/* Average Room Rate */}
         <div className={`p-4 border rounded-xl flex items-center justify-between hover:border-purple-500/35 transition duration-200 ${isDark ? 'bg-[#090909] border-gray-900' : 'bg-white border-gray-200'}`}>
           <div className="space-y-1">
@@ -296,7 +348,10 @@ export default function DashboardHome({
             <TrendingUp size={16} />
           </div>
         </div>
+      </div>
 
+      {/* Secondary KPI Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Direct Bookings */}
         <div className={`p-4 border rounded-xl flex items-center justify-between hover:border-emerald-500/35 transition duration-200 ${isDark ? 'bg-[#090909] border-gray-900' : 'bg-white border-gray-200'}`}>
           <div className="space-y-1">
