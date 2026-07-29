@@ -120,6 +120,17 @@ export default function DashboardHome({
   const availableRoomsCount = (rooms || []).filter(r => r.status === 'AVAILABLE' || r.status === 'available').length;
   const totalRoomsCount = (rooms || []).length;
   
+  console.log('Dashboard Data Debug:', {
+    totalBookings,
+    occupiedRoomsCount,
+    availableRoomsCount,
+    totalRoomsCount,
+    rooms: rooms?.length,
+    stays: stays?.length,
+    roomStatuses: rooms?.map(r => ({ number: r.roomNumber, status: r.status })),
+    stayStatuses: stays?.map(s => ({ id: s.stayId, status: s.status }))
+  });
+  
   // Calculate total room revenue from stays (room charge × number of nights)
   const totalRoomRevenue = (stays || []).reduce((sum, stay) => {
     const roomCharge = stay.roomCharge || 0;
