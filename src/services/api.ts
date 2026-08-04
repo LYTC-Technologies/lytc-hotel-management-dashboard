@@ -1619,6 +1619,7 @@ class APIService {
           price: typeof item.price === 'string' ? parseFloat(item.price) : (item.price || 0),
           category: 'FOOD',
           available: item.available !== false,
+          imageUrl: item.imageUrl || null,
           source: 'restaurant',
         });
       });
@@ -1635,6 +1636,7 @@ class APIService {
           price: typeof item.price === 'string' ? parseFloat(item.price) : (item.price || 0),
           category: 'DRINK',
           available: item.available !== false,
+          imageUrl: item.imageUrl || null,
           source: 'cafe',
         });
       });
@@ -1651,6 +1653,7 @@ class APIService {
           price: typeof item.price === 'string' ? parseFloat(item.price) : (item.price || 0),
           category: 'ROOM_SERVICE',
           available: item.available !== false,
+          imageUrl: item.imageUrl || null,
           source: 'room-service',
         });
       });
