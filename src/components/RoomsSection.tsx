@@ -3,11 +3,12 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   BedDouble, Sparkles, AlertTriangle, Hammer, CheckCircle2, User, Filter, Layers, 
   DollarSign, Grid3X3, List, Search, ArrowUpDown, ChevronLeft, Eye, Edit, 
-  Calendar, MapPin, Users, Clock, MoreVertical, X, Save, Building2, Image as ImageIcon, Star, Loader2, Plus, Trash2
+  Calendar, MapPin, Users, Clock, MoreVertical, X, Save, Building2, Image as ImageIcon, Star, Loader2, Plus, Trash2, Wifi, Tv
 } from 'lucide-react';
 import { Room } from '../types';
 import { apiService, RoomResponse } from '../services/api';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { compressImage, isValidImageFile, CompressionProgress } from '../utils/imageCompression';
 
 interface RoomsSectionProps {
   rooms?: Room[];
@@ -39,10 +40,19 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
     description: '',
     floor: 2,
     price: 0,
-    status: 'AVAILABLE' as 'AVAILABLE' | 'OCCUPIED' | 'CLEANING' | 'MAINTENANCE',
+    roomType: 'SINGLE' as 'SINGLE' | 'DOUBLE' | 'SUITE',
+    hasWifi: true,
+    numTvs: 1,
+    viewType: 'CITY' as 'CITY' | 'PANORAMIC' | 'SEA' | 'GARDEN' | 'MOUNTAIN' | 'POOL' | 'RIVER' | 'LANDMARK',
+    numBeds: 1,
+    bedType: 'DOUBLE' as 'TWIN' | 'DOUBLE' | 'QUEEN' | 'KING',
   });
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
   const [createRoomError, setCreateRoomError] = useState<string | null>(null);
+  const [roomImageFile, setRoomImageFile] = useState<File | null>(null);
+  const [roomImagePreview, setRoomImagePreview] = useState<string | null>(null);
+  const [isCompressingImage, setIsCompressingImage] = useState(false);
+  const [compressionProgress, setCompressionProgress] = useState<CompressionProgress | null>(null);
 
   const floors = [2, 3, 4, 5];
 
@@ -68,12 +78,23 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
         number: room.roomNumber,
         status: room.status.toLowerCase() as Room['status'],
         floor: room.floor,
-        pricePerNight: parseFloat(room.price),
-        type: room.description || 'Standard',
+        pricePerNight: room.price,
+        type: room.roomType || 'Standard',
         name: `Room ${room.roomNumber}`,
         maxAdults: room.maxAdults,
         maxKids: room.maxKids,
-        image: '',
+        image: room.imageUrl || '',
+        hasWifi: room.hasWifi,
+        numTvs: room.numTvs,
+        viewType: room.viewType,
+        numBeds: room.numBeds,
+        bedType: room.bedType,
+        description: room.description || '',
+        amenities: [
+          room.hasWifi ? 'Wi-Fi' : null,
+          room.numTvs > 0 ? `TV (${room.numTvs})` : null,
+          room.bedType ? `${room.bedType} Bed` : null,
+        ].filter(Boolean) as string[],
       }));
       
       setRooms(transformedRooms);
@@ -98,14 +119,41 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
     setIsCreatingRoom(true);
     setCreateRoomError(null);
     try {
-      await apiService.createRoom({
+      const createdRoom = await apiService.createRoom({
         roomNumber: newRoom.roomNumber,
         maxAdults: newRoom.maxAdults,
         maxKids: newRoom.maxKids,
         description: newRoom.description,
         floor: newRoom.floor,
         price: newRoom.price,
+        roomType: newRoom.roomType,
+        hasWifi: newRoom.hasWifi,
+        numTvs: newRoom.numTvs,
+        viewType: newRoom.viewType,
+        numBeds: newRoom.numBeds,
+        bedType: newRoom.bedType,
       });
+
+      // Upload image if provided
+      if (roomImageFile) {
+        setIsCompressingImage(true);
+        setCompressionProgress({ progress: 0, isCompressing: true, isUploading: false });
+        
+        try {
+          const compressedFile = await compressImage(roomImageFile, {}, (progress) => {
+            setCompressionProgress(progress);
+          });
+          
+          setCompressionProgress({ progress: 0, isCompressing: false, isUploading: true });
+          await apiService.uploadRoomImage(createdRoom.id, compressedFile);
+        } catch (uploadError) {
+          console.error('Image upload failed:', uploadError);
+          // Continue even if image upload fails
+        } finally {
+          setIsCompressingImage(false);
+          setCompressionProgress(null);
+        }
+      }
       
       // Reset form and close modal
       setNewRoom({
@@ -115,8 +163,15 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
         description: '',
         floor: 2,
         price: 0,
-        status: 'AVAILABLE',
+        roomType: 'SINGLE',
+        hasWifi: true,
+        numTvs: 1,
+        viewType: 'CITY',
+        numBeds: 1,
+        bedType: 'DOUBLE',
       });
+      setRoomImageFile(null);
+      setRoomImagePreview(null);
       setCreateRoomModalOpen(false);
       
       // Reload rooms
@@ -126,6 +181,24 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
     } finally {
       setIsCreatingRoom(false);
     }
+  };
+
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!isValidImageFile(file)) {
+      setCreateRoomError('يرجى اختيار صورة بصيغة JPG, PNG أو WebP');
+      return;
+    }
+
+    setRoomImageFile(file);
+    setRoomImagePreview(URL.createObjectURL(file));
+  };
+
+  const handleRemoveImage = () => {
+    setRoomImageFile(null);
+    setRoomImagePreview(null);
   };
 
   const filteredRooms = rooms.filter(room => {
@@ -391,10 +464,10 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
               className="relative"
             >
               <div className="relative backdrop-blur-xl border rounded-2xl overflow-hidden hover:border-[#D4AF37]/30 hover:shadow-[0_20px_40px_rgba(212,175,55,0.15)] transition-all duration-500 hover:-translate-y-2 group bg-white border-gray-200">
-                {/* Placeholder Photo */}
+                {/* Room Image */}
                 <div className="relative h-44 overflow-hidden">
                   <img 
-                    src="https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=600" 
+                    src={room.image || "https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=600"} 
                     alt={room.name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                     onError={(e) => { e.currentTarget.style.display = 'none'; }}
@@ -517,16 +590,24 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
                     </div>
                     <div className="flex items-center gap-2" style={{ color: colors.text.secondary }}>
                       <Users size={14} style={{ color: colors.primary.gold }} />
-                      <span>{room.capacity} نزلاء</span>
+                      <span>{room.maxAdults + (room.maxKids || 0)} نزلاء</span>
                     </div>
                     <div className="flex items-center gap-2" style={{ color: colors.text.secondary }}>
-                      <Clock size={14} style={{ color: colors.primary.gold }} />
-                      <span>{room.lastUpdated}</span>
+                      <BedDouble size={14} style={{ color: colors.primary.gold }} />
+                      <span>{room.bedType || '-'} ({room.numBeds || 0})</span>
                     </div>
-                    <div className="flex items-center gap-2" style={{ color: colors.text.secondary }}>
-                      <Layers size={14} style={{ color: colors.primary.gold }} />
-                      <span>إشغال {room.occupancyRate}%</span>
-                    </div>
+                    {room.hasWifi && (
+                      <div className="flex items-center gap-2" style={{ color: colors.text.secondary }}>
+                        <Wifi size={14} style={{ color: colors.primary.gold }} />
+                        <span>Wi-Fi</span>
+                      </div>
+                    )}
+                    {room.numTvs > 0 && (
+                      <div className="flex items-center gap-2" style={{ color: colors.text.secondary }}>
+                        <Tv size={14} style={{ color: colors.primary.gold }} />
+                        <span>TV ({room.numTvs})</span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Amenities */}
@@ -641,16 +722,34 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
                 </button>
               </div>
 
+              {/* Room Image */}
+              {selectedRoom.image && (
+                <div className="relative">
+                  <img
+                    src={selectedRoom.image}
+                    alt={selectedRoom.name}
+                    className="w-full h-64 object-cover rounded-xl"
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                  />
+                </div>
+              )}
+
               {/* Description */}
               <div className={`p-4 border rounded-xl ${isDark ? 'bg-gray-50 border-gray-200' : 'bg-gray-50 border-gray-200'}`}>
                 <h4 className="text-sm font-bold mb-2" style={{ color: colors.primary.goldLight }}>الوصف</h4>
                 <p className="text-sm" style={{ color: colors.text.secondary }}>{selectedRoom.description || 'غير متاح'}</p>
               </div>
 
-              {/* Room ID */}
-              <div className={`p-4 border rounded-xl ${isDark ? 'bg-gray-50 border-gray-200' : 'bg-gray-50 border-gray-200'}`}>
-                <h4 className="text-sm font-bold mb-2" style={{ color: colors.primary.goldLight }}>معرف الغرفة</h4>
-                <p className="text-sm font-mono" style={{ color: colors.text.secondary }}>{selectedRoom.id || '-'}</p>
+              {/* Room Type & View */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className={`p-4 border rounded-xl ${isDark ? 'bg-gray-50 border-gray-200' : 'bg-gray-50 border-gray-200'}`}>
+                  <h4 className="text-sm font-bold mb-2" style={{ color: colors.primary.goldLight }}>نوع الغرفة</h4>
+                  <p className="text-sm" style={{ color: colors.text.secondary }}>{selectedRoom.type || 'غير متاح'}</p>
+                </div>
+                <div className={`p-4 border rounded-xl ${isDark ? 'bg-gray-50 border-gray-200' : 'bg-gray-50 border-gray-200'}`}>
+                  <h4 className="text-sm font-bold mb-2" style={{ color: colors.primary.goldLight }}>الإطلالة</h4>
+                  <p className="text-sm" style={{ color: colors.text.secondary }}>{selectedRoom.viewType || 'غير متاح'}</p>
+                </div>
               </div>
 
               {/* Info Grid */}
@@ -674,6 +773,22 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
                 <div className={`p-3 border rounded-xl ${isDark ? 'bg-gray-50 border-gray-200/80' : 'bg-gray-50 border-gray-200'}`}>
                   <span className="block" style={{ color: colors.text.muted }}>أقصى عدد أطفال</span>
                   <span className="text-sm font-bold block mt-1" style={{ color: colors.text.primary }}>{selectedRoom.maxKids || 'غير متاح'}</span>
+                </div>
+                <div className={`p-3 border rounded-xl ${isDark ? 'bg-gray-50 border-gray-200/80' : 'bg-gray-50 border-gray-200'}`}>
+                  <span className="block" style={{ color: colors.text.muted }}>نوع السرير</span>
+                  <span className="text-sm font-bold block mt-1" style={{ color: colors.text.primary }}>{selectedRoom.bedType || 'غير متاح'}</span>
+                </div>
+                <div className={`p-3 border rounded-xl ${isDark ? 'bg-gray-50 border-gray-200/80' : 'bg-gray-50 border-gray-200'}`}>
+                  <span className="block" style={{ color: colors.text.muted }}>عدد الأسرة</span>
+                  <span className="text-sm font-bold block mt-1" style={{ color: colors.text.primary }}>{selectedRoom.numBeds || 'غير متاح'}</span>
+                </div>
+                <div className={`p-3 border rounded-xl ${isDark ? 'bg-gray-50 border-gray-200/80' : 'bg-gray-50 border-gray-200'}`}>
+                  <span className="block" style={{ color: colors.text.muted }}>عدد التلفزيونات</span>
+                  <span className="text-sm font-bold block mt-1" style={{ color: colors.text.primary }}>{selectedRoom.numTvs || 'غير متاح'}</span>
+                </div>
+                <div className={`p-3 border rounded-xl ${isDark ? 'bg-gray-50 border-gray-200/80' : 'bg-gray-50 border-gray-200'}`}>
+                  <span className="block" style={{ color: colors.text.muted }}>Wi-Fi</span>
+                  <span className="text-sm font-bold block mt-1" style={{ color: colors.text.primary }}>{selectedRoom.hasWifi ? 'متاح' : 'غير متاح'}</span>
                 </div>
                 <div className={`p-3 border rounded-xl bg-gray-50 border-gray-200`}>
                   <span className="block text-xs font-bold text-gray-400">الحالة</span>
@@ -757,6 +872,21 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
                     />
                   </div>
 
+                  {/* Room Type */}
+                  <div>
+                    <label className="text-xs font-bold text-gray-400 block mb-2">نوع الغرفة *</label>
+                    <select
+                      value={newRoom.roomType}
+                      onChange={(e) => setNewRoom({ ...newRoom, roomType: e.target.value as any })}
+                      className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
+                      disabled={isCreatingRoom}
+                    >
+                      <option value="SINGLE">غرفة فردية</option>
+                      <option value="DOUBLE">غرفة مزدوجة</option>
+                      <option value="SUITE">جناح</option>
+                    </select>
+                  </div>
+
                   {/* Floor */}
                   <div>
                     <label className="text-xs font-bold text-gray-400 block mb-2">الطابق</label>
@@ -781,13 +911,15 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
                       onChange={(e) => setNewRoom({ ...newRoom, price: parseFloat(e.target.value) || 0 })}
                       className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
                       placeholder="مثال: 500"
+                      min="0"
+                      step="0.01"
                       disabled={isCreatingRoom}
                     />
                   </div>
 
                   {/* Max Adults */}
                   <div>
-                    <label className="text-xs font-bold text-gray-400 block mb-2">أقصى عدد بالغين</label>
+                    <label className="text-xs font-bold text-gray-400 block mb-2">أقصى عدد بالغين *</label>
                     <input
                       type="number"
                       value={newRoom.maxAdults}
@@ -809,6 +941,126 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
                       min="0"
                       disabled={isCreatingRoom}
                     />
+                  </div>
+
+                  {/* Bed Type */}
+                  <div>
+                    <label className="text-xs font-bold text-gray-400 block mb-2">نوع السرير *</label>
+                    <select
+                      value={newRoom.bedType}
+                      onChange={(e) => setNewRoom({ ...newRoom, bedType: e.target.value as any })}
+                      className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
+                      disabled={isCreatingRoom}
+                    >
+                      <option value="TWIN">سريرين منفصلين</option>
+                      <option value="DOUBLE">سرير مزدوج</option>
+                      <option value="QUEEN">سرير كوين</option>
+                      <option value="KING">سرير كينج</option>
+                    </select>
+                  </div>
+
+                  {/* Number of Beds */}
+                  <div>
+                    <label className="text-xs font-bold text-gray-400 block mb-2">عدد الأسرة *</label>
+                    <input
+                      type="number"
+                      value={newRoom.numBeds}
+                      onChange={(e) => setNewRoom({ ...newRoom, numBeds: parseInt(e.target.value) || 1 })}
+                      className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
+                      min="1"
+                      disabled={isCreatingRoom}
+                    />
+                  </div>
+
+                  {/* Number of TVs */}
+                  <div>
+                    <label className="text-xs font-bold text-gray-400 block mb-2">عدد التلفزيونات *</label>
+                    <input
+                      type="number"
+                      value={newRoom.numTvs}
+                      onChange={(e) => setNewRoom({ ...newRoom, numTvs: parseInt(e.target.value) || 0 })}
+                      className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
+                      min="0"
+                      disabled={isCreatingRoom}
+                    />
+                  </div>
+
+                  {/* View Type */}
+                  <div>
+                    <label className="text-xs font-bold text-gray-400 block mb-2">نوع الإطلالة *</label>
+                    <select
+                      value={newRoom.viewType}
+                      onChange={(e) => setNewRoom({ ...newRoom, viewType: e.target.value as any })}
+                      className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
+                      disabled={isCreatingRoom}
+                    >
+                      <option value="CITY">المدينة</option>
+                      <option value="PANORAMIC">بانورامية</option>
+                      <option value="SEA">البحر</option>
+                      <option value="GARDEN">الحديقة</option>
+                      <option value="MOUNTAIN">الجبل</option>
+                      <option value="POOL">المسبح</option>
+                      <option value="RIVER">النهر</option>
+                      <option value="LANDMARK">معلم سياحي</option>
+                    </select>
+                  </div>
+
+                  {/* Wi-Fi */}
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      id="hasWifi"
+                      checked={newRoom.hasWifi}
+                      onChange={(e) => setNewRoom({ ...newRoom, hasWifi: e.target.checked })}
+                      className="w-5 h-5 rounded border-gray-300 text-[#D4AF37] focus:ring-[#D4AF37]"
+                      disabled={isCreatingRoom}
+                    />
+                    <label htmlFor="hasWifi" className="text-xs font-bold text-gray-400">متاح Wi-Fi</label>
+                  </div>
+
+                  {/* Room Image Upload */}
+                  <div>
+                    <label className="text-xs font-bold text-gray-400 block mb-2">صورة الغرفة</label>
+                    <div className="space-y-3">
+                      {roomImagePreview ? (
+                        <div className="relative">
+                          <img
+                            src={roomImagePreview}
+                            alt="Room preview"
+                            className="w-full h-48 object-cover rounded-xl border border-gray-200"
+                          />
+                          <button
+                            onClick={handleRemoveImage}
+                            className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+                            disabled={isCreatingRoom || isCompressingImage}
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-[#D4AF37] transition cursor-pointer">
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/jpg,image/png,image/webp"
+                            onChange={handleImageSelect}
+                            className="hidden"
+                            id="roomImageInput"
+                            disabled={isCreatingRoom || isCompressingImage}
+                          />
+                          <label htmlFor="roomImageInput" className="cursor-pointer">
+                            <ImageIcon size={32} className="mx-auto text-gray-400 mb-2" />
+                            <p className="text-xs text-gray-500">انقر لاختيار صورة</p>
+                            <p className="text-xs text-gray-400 mt-1">JPG, PNG, WebP (سيتم ضغط الصورة تلقائياً)</p>
+                          </label>
+                        </div>
+                      )}
+                      {compressionProgress && (
+                        <div className="text-xs text-gray-500">
+                          {compressionProgress.isCompressing && <span>جاري ضغط الصورة... {compressionProgress.progress}%</span>}
+                          {compressionProgress.isUploading && <span>جاري رفع الصورة...</span>}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Description */}

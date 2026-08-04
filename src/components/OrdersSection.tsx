@@ -338,7 +338,7 @@ export default function OrdersSection({ orders: initialOrders = [] }: OrdersSect
                     {/* Items List */}
                     <div className="space-y-2 mb-4 flex-1">
                       {order.items.map((item: any, idx: number) => (
-                        <div key={`order-item-${order.id}-${idx}`} className="flex items-center justify-between p-2.5 rounded-lg bg-gray-50 border border-gray-100">
+                        <div key={idx} className="flex items-center justify-between p-2.5 rounded-lg bg-gray-50 border border-gray-100">
                           <div className="flex items-center gap-2">
                             <span className="text-base">{CATEGORY_ICONS[item.category] || '🍽️'}</span>
                             <div>

@@ -50,8 +50,15 @@ interface RoomResponse {
   maxAdults: number;
   maxKids: number;
   floor: number;
-  price: string;
+  price: number;
+  roomType: 'SINGLE' | 'DOUBLE' | 'SUITE';
+  hasWifi: boolean;
+  numTvs: number;
+  viewType: 'CITY' | 'PANORAMIC' | 'SEA' | 'GARDEN' | 'MOUNTAIN' | 'POOL' | 'RIVER' | 'LANDMARK';
+  numBeds: number;
+  bedType: 'TWIN' | 'DOUBLE' | 'QUEEN' | 'KING';
   description: string;
+  imageUrl: string;
 }
 
 interface CreateRoomRequest {
@@ -61,6 +68,12 @@ interface CreateRoomRequest {
   description?: string;
   floor?: number;
   price: number;
+  roomType: 'SINGLE' | 'DOUBLE' | 'SUITE';
+  hasWifi: boolean;
+  numTvs: number;
+  viewType: 'CITY' | 'PANORAMIC' | 'SEA' | 'GARDEN' | 'MOUNTAIN' | 'POOL' | 'RIVER' | 'LANDMARK';
+  numBeds: number;
+  bedType: 'TWIN' | 'DOUBLE' | 'QUEEN' | 'KING';
 }
 
 interface UpdateRoomRequest {
@@ -70,6 +83,12 @@ interface UpdateRoomRequest {
   description?: string;
   floor?: number;
   price: number;
+  roomType?: 'SINGLE' | 'DOUBLE' | 'SUITE';
+  hasWifi?: boolean;
+  numTvs?: number;
+  viewType?: 'CITY' | 'PANORAMIC' | 'SEA' | 'GARDEN' | 'MOUNTAIN' | 'POOL' | 'RIVER' | 'LANDMARK';
+  numBeds?: number;
+  bedType?: 'TWIN' | 'DOUBLE' | 'QUEEN' | 'KING';
   status: string;
 }
 
@@ -80,6 +99,12 @@ interface PatchRoomRequest {
   description?: string;
   floor?: number;
   price?: number;
+  roomType?: 'SINGLE' | 'DOUBLE' | 'SUITE';
+  hasWifi?: boolean;
+  numTvs?: number;
+  viewType?: 'CITY' | 'PANORAMIC' | 'SEA' | 'GARDEN' | 'MOUNTAIN' | 'POOL' | 'RIVER' | 'LANDMARK';
+  numBeds?: number;
+  bedType?: 'TWIN' | 'DOUBLE' | 'QUEEN' | 'KING';
   status?: string;
 }
 
@@ -783,6 +808,112 @@ class APIService {
       `${this.baseURL}/api/dashboard/front-desk/rooms/${id}`,
       {
         method: 'DELETE',
+      }
+    );
+  }
+
+  /**
+   * Upload Room Image
+   * POST /api/dashboard/front-desk/rooms/{id}/image
+   */
+  async uploadRoomImage(id: number, file: File): Promise<RoomResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const headers = this.getHeaders(true);
+    // Remove Content-Type to let browser set it with boundary for multipart
+    delete headers['Content-Type'];
+
+    return this.authenticatedFetch<RoomResponse>(
+      `${this.baseURL}/api/dashboard/front-desk/rooms/${id}/image`,
+      {
+        method: 'POST',
+        body: formData,
+        headers,
+      }
+    );
+  }
+
+  /**
+   * Upload Restaurant Menu Image
+   * POST /api/dashboard/restaurant/menu/{id}/image
+   */
+  async uploadRestaurantMenuImage(id: number, file: File): Promise<MenuItemResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const headers = this.getHeaders(true);
+    delete headers['Content-Type'];
+
+    return this.authenticatedFetch<MenuItemResponse>(
+      `${this.baseURL}/api/dashboard/restaurant/menu/${id}/image`,
+      {
+        method: 'POST',
+        body: formData,
+        headers,
+      }
+    );
+  }
+
+  /**
+   * Upload Cafe Menu Image
+   * POST /api/dashboard/cafe/menu/{id}/image
+   */
+  async uploadCafeMenuImage(id: number, file: File): Promise<MenuItemResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const headers = this.getHeaders(true);
+    delete headers['Content-Type'];
+
+    return this.authenticatedFetch<MenuItemResponse>(
+      `${this.baseURL}/api/dashboard/cafe/menu/${id}/image`,
+      {
+        method: 'POST',
+        body: formData,
+        headers,
+      }
+    );
+  }
+
+  /**
+   * Upload Room Service Menu Image
+   * POST /api/dashboard/room-service/menu/{id}/image
+   */
+  async uploadRoomServiceMenuImage(id: number, file: File): Promise<MenuItemResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const headers = this.getHeaders(true);
+    delete headers['Content-Type'];
+
+    return this.authenticatedFetch<MenuItemResponse>(
+      `${this.baseURL}/api/dashboard/room-service/menu/${id}/image`,
+      {
+        method: 'POST',
+        body: formData,
+        headers,
+      }
+    );
+  }
+
+  /**
+   * Upload Special Offer Image
+   * POST /api/dashboard/front-desk/special-offers/{id}/image
+   */
+  async uploadSpecialOfferImage(id: number, file: File): Promise<SpecialOfferResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const headers = this.getHeaders(true);
+    delete headers['Content-Type'];
+
+    return this.authenticatedFetch<SpecialOfferResponse>(
+      `${this.baseURL}/api/dashboard/front-desk/special-offers/${id}/image`,
+      {
+        method: 'POST',
+        body: formData,
+        headers,
       }
     );
   }

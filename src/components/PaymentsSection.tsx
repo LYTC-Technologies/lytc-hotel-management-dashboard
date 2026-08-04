@@ -282,13 +282,13 @@ export default function PaymentsSection({ refreshKey }: { refreshKey?: number })
                     <h3 className="text-sm font-bold text-gray-700 flex items-center gap-2 mb-3"><Package size={16} className="text-[#D4AF37]" />الطلبات ({detailOrders.length})</h3>
                     <div className="space-y-2">
                       {detailOrders.map((order: any, idx: number) => (
-                        <div key={`order-${order.orderId || idx}-${idx}`} className="p-3 bg-gray-50 border border-gray-200 rounded-xl">
+                        <div key={idx} className="p-3 bg-gray-50 border border-gray-200 rounded-xl">
                           <div className="flex justify-between items-start mb-2">
                             <span className="text-sm font-bold text-gray-800">طلب #{order.orderId || idx + 1}</span>
                             <span className="text-xs font-bold text-[#AA7B30]">{order.totalAmount || 0} ريال</span>
                           </div>
                           {order.items && Array.isArray(order.items) && order.items.map((item: any, i: number) => (
-                            <div key={`item-${order.orderId || idx}-${i}`} className="flex justify-between items-center py-1.5 border-t border-gray-100 first:border-0">
+                            <div key={i} className="flex justify-between items-center py-1.5 border-t border-gray-100 first:border-0">
                               <div className="flex items-center gap-2">
                                 <span className="text-sm text-gray-800">{item.itemName || item.name || 'عنصر'}</span>
                                 <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded">{CATEGORY_LABELS[item.category] || order.category || ''}</span>
@@ -311,7 +311,7 @@ export default function PaymentsSection({ refreshKey }: { refreshKey?: number })
                     <h3 className="text-sm font-bold text-gray-700 flex items-center gap-2 mb-3"><ShoppingBag size={16} className="text-purple-500" />الطلبات الخاصة ({detailSpecialOrders.length})</h3>
                     <div className="space-y-2">
                       {detailSpecialOrders.map((so: any, idx: number) => (
-                        <div key={`special-order-${so.id || idx}-${idx}`} className="p-3 bg-purple-50 border border-purple-200 rounded-xl">
+                        <div key={idx} className="p-3 bg-purple-50 border border-purple-200 rounded-xl">
                           <div className="flex justify-between items-start">
                             <div>
                               <span className="text-sm font-bold text-gray-800">{so.specialOffer?.title || 'طلب خاص'}</span>

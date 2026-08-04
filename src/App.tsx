@@ -25,8 +25,6 @@ import SpecialOffersSection from './components/SpecialOffersSection';
 import AIAssistantSection from './components/AIAssistantSection';
 import { ThemeProvider } from './contexts/ThemeContext';
 
-
-import { HOTEL_INFO } from './data';
 import { apiService } from './services/api';
 import { Room, Reservation, Guest, ServiceRequest, HousekeepingTask, MaintenanceTicket, RestaurantOrder, Invoice } from './types';
 

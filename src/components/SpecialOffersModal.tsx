@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Tag, Save, Loader2 } from 'lucide-react';
-import { apiService, CreateSpecialOfferRequest } from '../services/api';
+import { X, Tag, Save, Loader2, Image as ImageIcon } from 'lucide-react';
+import { apiService, CreateSpecialOfferRequest, SpecialOfferResponse } from '../services/api';
+import { compressImage, isValidImageFile, CompressionProgress } from '../utils/imageCompression';
 
 interface SpecialOffersModalProps {
   isOpen: boolean;
@@ -17,6 +18,11 @@ export default function SpecialOffersModal({ isOpen, onClose, onSuccess }: Speci
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isCompressingImage, setIsCompressingImage] = useState(false);
+  const [compressionProgress, setCompressionProgress] = useState<CompressionProgress | null>(null);
+  const [createdOfferId, setCreatedOfferId] = useState<number | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -36,7 +42,30 @@ export default function SpecialOffersModal({ isOpen, onClose, onSuccess }: Speci
     setErrorMessage('');
 
     try {
-      await apiService.createSpecialOffer(formData);
+      const createdOffer: SpecialOfferResponse = await apiService.createSpecialOffer(formData);
+      setCreatedOfferId(createdOffer.id);
+
+      // Upload image if provided
+      if (imageFile && createdOffer.id) {
+        setIsCompressingImage(true);
+        setCompressionProgress({ progress: 0, isCompressing: true, isUploading: false });
+        
+        try {
+          const compressedFile = await compressImage(imageFile, {}, (progress) => {
+            setCompressionProgress(progress);
+          });
+          
+          setCompressionProgress({ progress: 0, isCompressing: false, isUploading: true });
+          await apiService.uploadSpecialOfferImage(createdOffer.id, compressedFile);
+        } catch (uploadError) {
+          console.error('Image upload failed:', uploadError);
+          // Continue even if image upload fails
+        } finally {
+          setIsCompressingImage(false);
+          setCompressionProgress(null);
+        }
+      }
+
       setIsLoading(false);
       onSuccess();
       onClose();
@@ -46,6 +75,9 @@ export default function SpecialOffersModal({ isOpen, onClose, onSuccess }: Speci
         title: '',
         description: '',
       });
+      setImageFile(null);
+      setImagePreview(null);
+      setCreatedOfferId(null);
     } catch (error: any) {
       setIsLoading(false);
       if (error.message && error.message.includes('Authentication')) {
@@ -54,6 +86,24 @@ export default function SpecialOffersModal({ isOpen, onClose, onSuccess }: Speci
         setErrorMessage('فشل إنشاء العرض الخاص. الرجاء المحاولة مرة أخرى.');
       }
     }
+  };
+
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!isValidImageFile(file)) {
+      setErrorMessage('يرجى اختيار صورة بصيغة JPG, PNG أو WebP');
+      return;
+    }
+
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
   };
 
   return (
@@ -131,6 +181,53 @@ export default function SpecialOffersModal({ isOpen, onClose, onSuccess }: Speci
                   placeholder="وصف تفصيلي للعرض..."
                   required
                 />
+              </div>
+
+              {/* Image Upload */}
+              <div>
+                <label className="block text-xs font-bold text-gray-400 mb-2">
+                  صورة العرض
+                </label>
+                <div className="space-y-3">
+                  {imagePreview ? (
+                    <div className="relative">
+                      <img
+                        src={imagePreview}
+                        alt="Offer preview"
+                        className="w-full h-48 object-cover rounded-xl border border-gray-200"
+                      />
+                      <button
+                        onClick={handleRemoveImage}
+                        className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+                        disabled={isLoading || isCompressingImage}
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-[#D4AF37] transition cursor-pointer">
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/jpg,image/png,image/webp"
+                        onChange={handleImageSelect}
+                        className="hidden"
+                        id="specialOfferImageInput"
+                        disabled={isLoading || isCompressingImage}
+                      />
+                      <label htmlFor="specialOfferImageInput" className="cursor-pointer">
+                        <ImageIcon size={32} className="mx-auto text-gray-400 mb-2" />
+                        <p className="text-xs text-gray-500">انقر لاختيار صورة</p>
+                        <p className="text-xs text-gray-400 mt-1">JPG, PNG, WebP (سيتم ضغط الصورة تلقائياً)</p>
+                      </label>
+                    </div>
+                  )}
+                  {compressionProgress && (
+                    <div className="text-xs text-gray-500">
+                      {compressionProgress.isCompressing && <span>جاري ضغط الصورة... {compressionProgress.progress}%</span>}
+                      {compressionProgress.isUploading && <span>جاري رفع الصورة...</span>}
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Submit Button */}
