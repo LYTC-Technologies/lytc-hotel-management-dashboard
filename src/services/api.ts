@@ -1595,23 +1595,18 @@ class APIService {
 
   /**
    * Get all menu items from all 3 endpoints, merge and normalize
-   * Uses guest menu as primary source (dashboard GET endpoints may not exist)
-   * Falls back gracefully if any endpoint fails
+   * Uses dashboard endpoints as primary source (includes unavailable items)
+   * Falls back to guest menu if dashboard endpoints fail
    */
   async getAllMenuItems(): Promise<any[]> {
-    // Primary: use guest menu which supports category filter
-    const results = await Promise.allSettled([
-      this.getGuestMenu('FOOD', 0, 100),
-      this.getGuestMenu('DRINK', 0, 100),
-      this.getGuestMenu('SERVICE', 0, 100),
-    ]);
-
     const allItems: any[] = [];
 
-    // FOOD items
-    if (results[0].status === 'fulfilled') {
-      const items = results[0].value?.content || [];
-      items.forEach((item: any) => {
+    // Try dashboard endpoints first (includes unavailable items)
+    try {
+      const restaurantMenu = await this.getRestaurantMenu(0, 100);
+      const restaurantItems = Array.isArray(restaurantMenu?.content) ? restaurantMenu.content : 
+                              Array.isArray(restaurantMenu) ? restaurantMenu : [];
+      restaurantItems.forEach((item: any) => {
         allItems.push({
           id: item.id,
           name: item.name || '',
@@ -1623,12 +1618,33 @@ class APIService {
           source: 'restaurant',
         });
       });
+    } catch (error) {
+      // Fallback to guest menu for FOOD
+      try {
+        const guestFood = await this.getGuestMenu('FOOD', 0, 100);
+        const items = guestFood?.content || [];
+        items.forEach((item: any) => {
+          allItems.push({
+            id: item.id,
+            name: item.name || '',
+            description: item.description || '',
+            price: typeof item.price === 'string' ? parseFloat(item.price) : (item.price || 0),
+            category: 'FOOD',
+            available: item.available !== false,
+            imageUrl: item.imageUrl || null,
+            source: 'restaurant',
+          });
+        });
+      } catch (e) {
+        // Ignore error
+      }
     }
 
-    // DRINK items
-    if (results[1].status === 'fulfilled') {
-      const items = results[1].value?.content || [];
-      items.forEach((item: any) => {
+    try {
+      const cafeMenu = await this.getCafeMenu(0, 100);
+      const cafeItems = Array.isArray(cafeMenu?.content) ? cafeMenu.content : 
+                        Array.isArray(cafeMenu) ? cafeMenu : [];
+      cafeItems.forEach((item: any) => {
         allItems.push({
           id: item.id,
           name: item.name || '',
@@ -1640,12 +1656,33 @@ class APIService {
           source: 'cafe',
         });
       });
+    } catch (error) {
+      // Fallback to guest menu for DRINK
+      try {
+        const guestDrink = await this.getGuestMenu('DRINK', 0, 100);
+        const items = guestDrink?.content || [];
+        items.forEach((item: any) => {
+          allItems.push({
+            id: item.id,
+            name: item.name || '',
+            description: item.description || '',
+            price: typeof item.price === 'string' ? parseFloat(item.price) : (item.price || 0),
+            category: 'DRINK',
+            available: item.available !== false,
+            imageUrl: item.imageUrl || null,
+            source: 'cafe',
+          });
+        });
+      } catch (e) {
+        // Ignore error
+      }
     }
 
-    // ROOM_SERVICE items
-    if (results[2].status === 'fulfilled') {
-      const items = results[2].value?.content || [];
-      items.forEach((item: any) => {
+    try {
+      const roomServiceMenu = await this.getRoomServiceMenu(0, 100);
+      const roomServiceItems = Array.isArray(roomServiceMenu?.content) ? roomServiceMenu.content : 
+                               Array.isArray(roomServiceMenu) ? roomServiceMenu : [];
+      roomServiceItems.forEach((item: any) => {
         allItems.push({
           id: item.id,
           name: item.name || '',
@@ -1657,30 +1694,25 @@ class APIService {
           source: 'room-service',
         });
       });
-    }
-
-    // If all 3 category-specific calls returned empty, try loading all items without category filter
-    if (allItems.length === 0) {
+    } catch (error) {
+      // Fallback to guest menu for ROOM_SERVICE
       try {
-        const allResponse = await this.getGuestMenu(undefined, 0, 300);
-        const allRaw = allResponse?.content || [];
-        allRaw.forEach((item: any) => {
-          const cat = (item.category || 'FOOD').toString().trim().toUpperCase();
-          let derivedCategory = 'FOOD';
-          if (cat === 'DRINK' || cat.includes('شرب')) derivedCategory = 'DRINK';
-          else if (cat === 'SERVICE' || cat === 'ROOM_SERVICE' || cat.includes('خدم')) derivedCategory = 'ROOM_SERVICE';
+        const guestRoomService = await this.getGuestMenu('SERVICE', 0, 100);
+        const items = guestRoomService?.content || [];
+        items.forEach((item: any) => {
           allItems.push({
             id: item.id,
             name: item.name || '',
             description: item.description || '',
             price: typeof item.price === 'string' ? parseFloat(item.price) : (item.price || 0),
-            category: derivedCategory,
+            category: 'ROOM_SERVICE',
             available: item.available !== false,
-            source: derivedCategory === 'FOOD' ? 'restaurant' : derivedCategory === 'DRINK' ? 'cafe' : 'room-service',
+            imageUrl: item.imageUrl || null,
+            source: 'room-service',
           });
         });
-      } catch (error) {
-        // All endpoints failed
+      } catch (e) {
+        // Ignore error
       }
     }
 
