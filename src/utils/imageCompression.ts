@@ -1,5 +1,4 @@
-// @ts-ignore - browser-image-compression package may have type definition issues
-const imageCompression = require('browser-image-compression');
+import imageCompression from 'browser-image-compression';
 
 export interface CompressionOptions {
   maxSizeMB?: number;
