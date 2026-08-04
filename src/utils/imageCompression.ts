@@ -16,9 +16,9 @@ export interface CompressionProgress {
 
 const defaultOptions: CompressionOptions = {
   maxSizeMB: 1,
-  maxWidthOrHeight: 1920,
-  useWebWorker: true,
-  initialQuality: 0.85,
+  maxWidthOrHeight: 1280,
+  useWebWorker: false,
+  initialQuality: 0.7,
 };
 
 /**
@@ -40,20 +40,13 @@ export async function compressImage(
 
     const mergedOptions = { ...defaultOptions, ...options };
 
-    // Check if file is already small enough
-    if (file.size <= mergedOptions.maxSizeMB! * 1024 * 1024) {
-      if (onProgress) {
-        onProgress({ progress: 100, isCompressing: false, isUploading: false });
-      }
-      return file;
-    }
-
-    // Compress the image
+    // Compress the image to WebP format with max 1MB
     const compressedFile = await imageCompression(file, {
-      maxSizeMB: mergedOptions.maxSizeMB,
-      maxWidthOrHeight: mergedOptions.maxWidthOrHeight,
+      maxSizeMB: 1, // Max 1MB
+      maxWidthOrHeight: 1920,
       useWebWorker: mergedOptions.useWebWorker,
-      initialQuality: mergedOptions.initialQuality,
+      initialQuality: 0.8,
+      fileType: 'image/webp', // Convert to WebP
     });
 
     if (onProgress) {

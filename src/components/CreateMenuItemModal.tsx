@@ -8,10 +8,11 @@ import { compressImage, isValidImageFile, CompressionProgress } from '../utils/i
 interface CreateMenuItemModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (newItem?: MenuItemResponse) => void;
+  editingItem?: MenuItemResponse | null;
 }
 
-export default function CreateMenuItemModal({ isOpen, onClose, onSuccess }: CreateMenuItemModalProps) {
+export default function CreateMenuItemModal({ isOpen, onClose, onSuccess, editingItem }: CreateMenuItemModalProps) {
   const { colors, isDark } = useThemeColors();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -26,6 +27,27 @@ export default function CreateMenuItemModal({ isOpen, onClose, onSuccess }: Crea
   const [compressionProgress, setCompressionProgress] = useState<CompressionProgress | null>(null);
   const [createdItemId, setCreatedItemId] = useState<number | null>(null);
 
+  // Populate form when editing
+  React.useEffect(() => {
+    if (editingItem) {
+      setName(editingItem.name || '');
+      setDescription(editingItem.description || '');
+      setPrice(editingItem.price || 0);
+      setCategory(editingItem.category || 'FOOD');
+      setAvailable(editingItem.available !== false);
+      setImagePreview(editingItem.imageUrl || null);
+    } else {
+      // Reset form for create mode
+      setName('');
+      setDescription('');
+      setPrice(0);
+      setCategory('FOOD');
+      setAvailable(true);
+      setImageFile(null);
+      setImagePreview(null);
+    }
+  }, [editingItem, isOpen]);
+
   const handleSubmit = async () => {
     if (!name || !price) {
       setErrorMessage('الرجاء تعبئة الحقول المطلوبة (الاسم والسعر)');
@@ -36,31 +58,54 @@ export default function CreateMenuItemModal({ isOpen, onClose, onSuccess }: Crea
     setErrorMessage('');
 
     try {
-      const menuItemRequest: CreateMenuItemRequest = {
-        name,
-        description,
-        price,
-        category,
-        available
-      };
+      let resultItem: MenuItemResponse;
 
-      let createdItem: MenuItemResponse;
+      if (editingItem) {
+        // Update existing item
+        const updateRequest = {
+          name,
+          description,
+          price,
+          category,
+          available
+        };
 
-      // Create menu item based on category
-      if (category === 'FOOD') {
-        createdItem = await apiService.createRestaurantMenuItem(menuItemRequest);
-      } else if (category === 'DRINK') {
-        createdItem = await apiService.createCafeMenuItem(menuItemRequest);
-      } else if (category === 'ROOM_SERVICE') {
-        createdItem = await apiService.createRoomServiceMenuItem(menuItemRequest);
+        if (category === 'FOOD') {
+          resultItem = await apiService.updateRestaurantMenuItem(editingItem.id, updateRequest);
+        } else if (category === 'DRINK') {
+          resultItem = await apiService.updateCafeMenuItem(editingItem.id, updateRequest);
+        } else if (category === 'ROOM_SERVICE') {
+          resultItem = await apiService.updateRoomServiceMenuItem(editingItem.id, updateRequest);
+        } else {
+          // Fallback - try restaurant update for unknown categories
+          resultItem = await apiService.updateRestaurantMenuItem(editingItem.id, updateRequest);
+        }
       } else {
-        createdItem = await apiService.createMenuItemByCategory(menuItemRequest, category);
+        // Create new item
+        const menuItemRequest: CreateMenuItemRequest = {
+          name,
+          description,
+          price,
+          category,
+          available
+        };
+
+        if (category === 'FOOD') {
+          resultItem = await apiService.createRestaurantMenuItem(menuItemRequest);
+        } else if (category === 'DRINK') {
+          resultItem = await apiService.createCafeMenuItem(menuItemRequest);
+        } else if (category === 'ROOM_SERVICE') {
+          resultItem = await apiService.createRoomServiceMenuItem(menuItemRequest);
+        } else {
+          resultItem = await apiService.createMenuItemByCategory(menuItemRequest, category);
+        }
       }
 
-      setCreatedItemId(createdItem.id);
+      setCreatedItemId(resultItem.id);
 
       // Upload image if provided
-      if (imageFile && createdItem.id) {
+      let imageResponse = null;
+      if (imageFile && resultItem.id) {
         setIsCompressingImage(true);
         setCompressionProgress({ progress: 0, isCompressing: true, isUploading: false });
         
@@ -73,11 +118,11 @@ export default function CreateMenuItemModal({ isOpen, onClose, onSuccess }: Crea
 
           // Upload based on category
           if (category === 'FOOD') {
-            await apiService.uploadRestaurantMenuImage(createdItem.id, compressedFile);
+            imageResponse = await apiService.uploadRestaurantMenuImage(resultItem.id, compressedFile);
           } else if (category === 'DRINK') {
-            await apiService.uploadCafeMenuImage(createdItem.id, compressedFile);
+            imageResponse = await apiService.uploadCafeMenuImage(resultItem.id, compressedFile);
           } else if (category === 'ROOM_SERVICE') {
-            await apiService.uploadRoomServiceMenuImage(createdItem.id, compressedFile);
+            imageResponse = await apiService.uploadRoomServiceMenuImage(resultItem.id, compressedFile);
           }
         } catch (uploadError) {
           console.error('Image upload failed:', uploadError);
@@ -89,7 +134,8 @@ export default function CreateMenuItemModal({ isOpen, onClose, onSuccess }: Crea
       }
       
       setIsLoading(false);
-      onSuccess();
+      // Pass the item with updated image URL
+      onSuccess({ ...resultItem, ...(imageResponse?.imageUrl ? { imageUrl: imageResponse.imageUrl } : {}) });
       onClose();
       
       // Reset form
@@ -101,9 +147,14 @@ export default function CreateMenuItemModal({ isOpen, onClose, onSuccess }: Crea
       setImageFile(null);
       setImagePreview(null);
       setCreatedItemId(null);
-    } catch (error) {
+      setErrorMessage('');
+    } catch (error: any) {
       setIsLoading(false);
-      setErrorMessage('فشل إنشاء العنصر. الرجاء المحاولة مرة أخرى.');
+      if (error.message && error.message.includes('Authentication')) {
+        setErrorMessage('فشل المصادقة. يرجى تسجيل الدخول مرة أخرى.');
+      } else {
+        setErrorMessage('فشل حفظ العنصر. الرجاء المحاولة مرة أخرى.');
+      }
     }
   };
 
@@ -148,7 +199,9 @@ export default function CreateMenuItemModal({ isOpen, onClose, onSuccess }: Crea
                 <div className="p-2 rounded-lg" style={{ background: `${colors.primary.gold}20`, borderColor: `${colors.primary.gold}30`, border: '1px solid' }}>
                   <ChefHat size={20} style={{ color: colors.primary.goldLight }} />
                 </div>
-                <h3 className="text-xl font-bold" style={{ color: colors.primary.goldLight }}>Create Item</h3>
+                <h3 className="text-xl font-bold" style={{ color: colors.primary.goldLight }}>
+                  {editingItem ? 'تعديل عنصر' : 'إنشاء عنصر جديد'}
+                </h3>
               </div>
               <button onClick={onClose} className={`p-2 border rounded-lg ${isDark ? 'bg-gray-900 border-gray-200' : 'bg-gray-100 border-gray-300'}`}>
                 <X size={18} />
@@ -163,46 +216,48 @@ export default function CreateMenuItemModal({ isOpen, onClose, onSuccess }: Crea
 
             <div className="space-y-4">
               <div>
-                <label className="text-xs block mb-2" style={{ color: colors.text.muted }}>Name *</label>
+                <label className="text-xs block mb-2 font-bold text-gray-400">الاسم *</label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none ${isDark ? 'bg-gray-50 border-gray-200 focus:border-[#D4AF37] text-white' : 'bg-white border-gray-300 focus:border-[#D4AF37] text-gray-900'}`}
-                  placeholder="Enter item name"
+                  className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-gray-800 focus:outline-none transition"
+                  placeholder="مثال: برجر لحم"
+                  required
                 />
               </div>
 
               <div>
-                <label className="text-xs block mb-2" style={{ color: colors.text.muted }}>Description</label>
+                <label className="text-xs block mb-2 font-bold text-gray-400">الوصف</label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none resize-none ${isDark ? 'bg-gray-50 border-gray-200 focus:border-[#D4AF37] text-white' : 'bg-white border-gray-300 focus:border-[#D4AF37] text-gray-900'}`}
-                  placeholder="Enter item description"
+                  className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-gray-800 focus:outline-none transition resize-none"
+                  placeholder="وصف تفصيلي للعنصر..."
                   rows={3}
                 />
               </div>
 
               <div>
-                <label className="text-xs block mb-2" style={{ color: colors.text.muted }}>Price *</label>
+                <label className="text-xs block mb-2 font-bold text-gray-400">السعر *</label>
                 <input
                   type="number"
                   value={price}
                   onChange={(e) => setPrice(parseFloat(e.target.value) || 0)}
                   min="0"
                   step="0.01"
-                  className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none ${isDark ? 'bg-gray-50 border-gray-200 focus:border-[#D4AF37] text-white' : 'bg-white border-gray-300 focus:border-[#D4AF37] text-gray-900'}`}
+                  className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-gray-800 focus:outline-none transition"
                   placeholder="0.00"
+                  required
                 />
               </div>
 
               <div>
-                <label className="text-xs block mb-2" style={{ color: colors.text.muted }}>Category</label>
+                <label className="text-xs block mb-2 font-bold text-gray-400">التصنيف</label>
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none ${isDark ? 'bg-gray-50 border-gray-200 focus:border-[#D4AF37] text-white' : 'bg-white border-gray-300 focus:border-[#D4AF37] text-gray-900'}`}
+                  className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-gray-800 focus:outline-none transition"
                 >
                   <option value="FOOD">طعام (Food)</option>
                   <option value="DRINK">مشروبات (Drink)</option>
@@ -216,10 +271,10 @@ export default function CreateMenuItemModal({ isOpen, onClose, onSuccess }: Crea
                   id="available"
                   checked={available}
                   onChange={(e) => setAvailable(e.target.checked)}
-                  className={`w-4 h-4 rounded focus:ring-offset-0 ${isDark ? 'bg-gray-50 border-gray-200 focus:ring-[#D4AF37]' : 'bg-white border-gray-300 focus:ring-[#D4AF37]'}`}
+                  className="w-4 h-4 rounded focus:ring-offset-0 bg-gray-50 border-gray-200 focus:ring-[#D4AF37]"
                 />
-                <label htmlFor="available" className="text-xs" style={{ color: colors.text.secondary }}>
-                  Available
+                <label htmlFor="available" className="text-xs font-bold text-gray-600">
+                  متوفر
                 </label>
               </div>
 

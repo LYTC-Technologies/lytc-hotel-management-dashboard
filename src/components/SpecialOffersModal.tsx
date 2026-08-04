@@ -7,7 +7,7 @@ import { compressImage, isValidImageFile, CompressionProgress } from '../utils/i
 interface SpecialOffersModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (newOffer?: SpecialOfferResponse) => void;
 }
 
 export default function SpecialOffersModal({ isOpen, onClose, onSuccess }: SpecialOffersModalProps) {
@@ -46,6 +46,7 @@ export default function SpecialOffersModal({ isOpen, onClose, onSuccess }: Speci
       setCreatedOfferId(createdOffer.id);
 
       // Upload image if provided
+      let imageResponse = null;
       if (imageFile && createdOffer.id) {
         setIsCompressingImage(true);
         setCompressionProgress({ progress: 0, isCompressing: true, isUploading: false });
@@ -56,10 +57,11 @@ export default function SpecialOffersModal({ isOpen, onClose, onSuccess }: Speci
           });
           
           setCompressionProgress({ progress: 0, isCompressing: false, isUploading: true });
-          await apiService.uploadSpecialOfferImage(createdOffer.id, compressedFile);
+          imageResponse = await apiService.uploadSpecialOfferImage(createdOffer.id, compressedFile);
         } catch (uploadError) {
           console.error('Image upload failed:', uploadError);
-          // Continue even if image upload fails
+          // Don't alert - just log and continue
+          // The offer was created successfully, just image failed
         } finally {
           setIsCompressingImage(false);
           setCompressionProgress(null);
@@ -67,7 +69,8 @@ export default function SpecialOffersModal({ isOpen, onClose, onSuccess }: Speci
       }
 
       setIsLoading(false);
-      onSuccess();
+      // Pass the offer with updated image URL
+      onSuccess({ ...createdOffer, ...(imageResponse?.imageUrl ? { imageUrl: imageResponse.imageUrl } : {}) });
       onClose();
       
       // Reset form
@@ -161,7 +164,7 @@ export default function SpecialOffersModal({ isOpen, onClose, onSuccess }: Speci
                   name="title"
                   value={formData.title}
                   onChange={handleInputChange}
-                  className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-white focus:outline-none transition"
+                  className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-gray-800 focus:outline-none transition"
                   placeholder="مثال: عرض الصيف الفاخر"
                   required
                 />
@@ -176,7 +179,7 @@ export default function SpecialOffersModal({ isOpen, onClose, onSuccess }: Speci
                   name="description"
                   value={formData.description}
                   onChange={handleInputChange}
-                  className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-white focus:outline-none transition resize-none"
+                  className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-gray-800 focus:outline-none transition resize-none"
                   rows={4}
                   placeholder="وصف تفصيلي للعرض..."
                   required

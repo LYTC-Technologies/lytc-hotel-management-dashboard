@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { 
   Tag, Plus, X, Edit, Trash2, Save, Loader2, Sparkles, 
-  Search, ChevronDown, ChevronUp
+  Search, ChevronDown, ChevronUp, Image as ImageIcon
 } from 'lucide-react';
 import { apiService, SpecialOfferResponse } from '../services/api';
 import SpecialOffersModal from './SpecialOffersModal';
+import { compressImage, isValidImageFile, CompressionProgress } from '../utils/imageCompression';
 
 export default function SpecialOffersSection() {
   const [offers, setOffers] = useState<SpecialOfferResponse[]>([]);
@@ -15,6 +16,10 @@ export default function SpecialOffersSection() {
   const [editingOffer, setEditingOffer] = useState<SpecialOfferResponse | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isExpanded, setIsExpanded] = useState<Record<number, boolean>>({});
+  const [editImageFile, setEditImageFile] = useState<File | null>(null);
+  const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
+  const [isCompressingImage, setIsCompressingImage] = useState(false);
+  const [compressionProgress, setCompressionProgress] = useState<CompressionProgress | null>(null);
 
   useEffect(() => {
     loadOffers();
@@ -25,7 +30,9 @@ export default function SpecialOffersSection() {
     setError(null);
     try {
       const response = await apiService.getSpecialOffers(0, 50);
-      setOffers(response.content || []);
+      // Sort offers by ID ascending
+      const sortedOffers = (response.content || []).sort((a, b) => a.id - b.id);
+      setOffers(sortedOffers);
     } catch (error: any) {
       if (error.message && error.message.includes('Authentication')) {
         setError('فشل المصادقة. يرجى تسجيل الدخول مرة أخرى.');
@@ -38,19 +45,83 @@ export default function SpecialOffersSection() {
     }
   };
 
-  const handleCreateSuccess = () => {
-    loadOffers();
+  const handleCreateSuccess = (newOffer?: SpecialOfferResponse) => {
+    if (newOffer) {
+      // Add new offer and sort by ID ascending
+      setOffers(prevOffers => {
+        const updatedOffers = [...prevOffers, newOffer];
+        return updatedOffers.sort((a, b) => a.id - b.id);
+      });
+    } else {
+      loadOffers();
+    }
   };
 
   const handleEdit = (offer: SpecialOfferResponse) => {
     setEditingOffer(offer);
+    setEditImagePreview(offer.imageUrl || null);
+    setEditImageFile(null);
+  };
+
+  const handleEditImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!isValidImageFile(file)) {
+      alert('يرجى اختيار صورة بصيغة JPG, PNG أو WebP');
+      return;
+    }
+
+    setEditImageFile(file);
+    setEditImagePreview(URL.createObjectURL(file));
+  };
+
+  const handleEditRemoveImage = () => {
+    setEditImageFile(null);
+    setEditImagePreview(null);
   };
 
   const handleUpdate = async (id: number, offerData: { title?: string; description?: string }) => {
     try {
-      await apiService.updateSpecialOffer(id, offerData);
-      loadOffers();
+      const updatedOffer = await apiService.updateSpecialOffer(id, offerData);
+
+      // Upload image if provided
+      let imageResponse = null;
+      if (editImageFile) {
+        setIsCompressingImage(true);
+        setCompressionProgress({ progress: 0, isCompressing: true, isUploading: false });
+        
+        try {
+          const compressedFile = await compressImage(editImageFile, {}, (progress) => {
+            setCompressionProgress(progress);
+          });
+          
+          setCompressionProgress({ progress: 0, isCompressing: false, isUploading: true });
+          imageResponse = await apiService.uploadSpecialOfferImage(id, compressedFile);
+        } catch (uploadError) {
+          console.error('Image upload failed:', uploadError);
+          // Continue even if image upload fails
+        } finally {
+          setIsCompressingImage(false);
+          setCompressionProgress(null);
+        }
+      }
+
+      // Update offer locally to maintain position
+      setOffers(prevOffers => 
+        prevOffers.map(offer => 
+          offer.id === id ? { 
+            ...offer, 
+            ...updatedOffer,
+            // Update image URL if upload was successful
+            ...(imageResponse?.imageUrl ? { imageUrl: imageResponse.imageUrl } : {})
+          } : offer
+        )
+      );
+      
       setEditingOffer(null);
+      setEditImageFile(null);
+      setEditImagePreview(null);
     } catch (error) {
       alert('فشل تحديث العرض. الرجاء المحاولة مرة أخرى.');
     }
@@ -136,69 +207,92 @@ export default function SpecialOffersSection() {
             </div>
           ) : (
             /* Offers Grid */
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-6">
               {filteredOffers.map((offer) => (
                 <motion.div
                   key={offer.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-[#D4AF37]/35 transition duration-300"
+                  className="relative"
                 >
-                  {/* Header */}
-                  <div className="p-4 border-b border-gray-200">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h3 className="text-sm font-bold text-gray-800 mb-1">{offer.title}</h3>
-                        <span className="text-xs text-gray-500 font-mono">#{offer.id}</span>
+                  <div className="relative backdrop-blur-xl border rounded-2xl overflow-hidden hover:border-[#D4AF37]/30 hover:shadow-[0_20px_40px_rgba(212,175,55,0.15)] transition-all duration-500 hover:-translate-y-2 group bg-white border-gray-200">
+                    {/* Offer Image */}
+                    <div className="relative h-64 overflow-hidden">
+                      {offer.imageUrl ? (
+                        <img 
+                          src={offer.imageUrl} 
+                          alt={offer.title}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                          onError={(e) => { 
+                            e.currentTarget.src = "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600";
+                          }}
+                        />
+                      ) : (
+                        <img 
+                          src="https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600" 
+                          alt={offer.title}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                        />
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-gray-900/70 via-gray-900/20 to-transparent" />
+                      <div className="absolute top-3 right-3">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border backdrop-blur-md shadow-lg bg-green-500/20 text-green-400 border-green-500/30">
+                          <span className="w-2 h-2 rounded-full bg-green-400"></span>
+                          <span>نشط</span>
+                        </span>
                       </div>
-                      <div className="flex gap-1">
+                      <div className="absolute bottom-3 left-3 right-3">
+                        <span className="text-3xl font-black font-mono text-white drop-shadow-lg">#{offer.id}</span>
+                      </div>
+                    </div>
+
+                    {/* Offer Info */}
+                    <div className="p-6 space-y-4">
+                      {/* Title */}
+                      <h3 className="text-xl font-black text-gray-900">{offer.title}</h3>
+
+                      {/* Description */}
+                      <div className="bg-gray-50 p-4 rounded-xl">
+                        <span className="block text-gray-400 text-xs mb-2">الوصف</span>
+                        <p className="text-sm text-gray-700 leading-relaxed">
+                          {isExpanded[offer.id] 
+                            ? offer.description 
+                            : offer.description.length > 150 
+                              ? `${offer.description.substring(0, 150)}...` 
+                              : offer.description
+                          }
+                        </p>
+                        {offer.description.length > 150 && (
+                          <button
+                            onClick={() => toggleExpand(offer.id)}
+                            className="mt-2 text-xs text-[#D4AF37] hover:underline flex items-center gap-1"
+                          >
+                            {isExpanded[offer.id] ? (
+                              <>
+                                <ChevronUp size={10} />
+                                عرض أقل
+                              </>
+                            ) : (
+                              <>
+                                <ChevronDown size={10} />
+                                عرض المزيد
+                              </>
+                            )}
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Actions */}
+                      <div className="pt-3 border-t border-gray-100">
                         <button
                           onClick={() => handleEdit(offer)}
-                          className="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-400 hover:text-gray-800 rounded-lg transition"
+                          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 border border-gray-200 rounded-lg text-sm font-bold text-gray-600 hover:text-gray-900 hover:border-[#D4AF37]/30 hover:bg-amber-50 transition-all duration-300"
                         >
-                          <Edit size={12} />
+                          <Edit size={16} />
+                          <span>تعديل</span>
                         </button>
                       </div>
                     </div>
-                  </div>
-
-                  {/* Content */}
-                  <div className="p-4">
-                    <p className="text-xs text-gray-400 leading-relaxed">
-                      {isExpanded[offer.id] 
-                        ? offer.description 
-                        : offer.description.length > 100 
-                          ? `${offer.description.substring(0, 100)}...` 
-                          : offer.description
-                      }
-                    </p>
-                    
-                    {offer.description.length > 100 && (
-                      <button
-                        onClick={() => toggleExpand(offer.id)}
-                        className="mt-2 text-xs text-[#D4AF37] hover:underline flex items-center gap-1"
-                      >
-                        {isExpanded[offer.id] ? (
-                          <>
-                            <ChevronUp size={10} />
-                            عرض أقل
-                          </>
-                        ) : (
-                          <>
-                            <ChevronDown size={10} />
-                            عرض المزيد
-                          </>
-                        )}
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Footer */}
-                  <div className="px-4 py-3 bg-gray-50/50 border-t border-gray-200 flex justify-between items-center">
-                    <span className="text-xs text-gray-500">نشط</span>
-                    <button className="text-xs text-[#D4AF37] hover:underline">
-                      تعديل
-                    </button>
                   </div>
                 </motion.div>
               ))}
@@ -217,17 +311,21 @@ export default function SpecialOffersSection() {
       {/* Edit Offer Modal */}
       {editingOffer && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white border border-[#D4AF37]/30 rounded-2xl p-6 max-w-md w-full">
+          <div className="bg-white border border-[#D4AF37]/30 rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold text-[#AA7B30]">تعديل العرض</h3>
-              <button onClick={() => setEditingOffer(null)} className="p-2 bg-gray-100 border border-gray-200 rounded-lg">
+              <button onClick={() => {
+                setEditingOffer(null);
+                setEditImageFile(null);
+                setEditImagePreview(null);
+              }} className="p-2 bg-gray-100 border border-gray-200 rounded-lg">
                 <X size={18} />
               </button>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="text-xs text-gray-500 block mb-2">العنوان</label>
+                <label className="text-xs text-gray-600 block mb-2">العنوان</label>
                 <input
                   type="text"
                   defaultValue={editingOffer.title}
@@ -237,7 +335,7 @@ export default function SpecialOffersSection() {
               </div>
 
               <div>
-                <label className="text-xs text-gray-500 block mb-2">الوصف</label>
+                <label className="text-xs text-gray-600 block mb-2">الوصف</label>
                 <textarea
                   defaultValue={editingOffer.description}
                   id="editDescription"
@@ -246,11 +344,60 @@ export default function SpecialOffersSection() {
                 />
               </div>
 
+              {/* Image Upload */}
+              <div>
+                <label className="text-xs text-gray-600 block mb-2">صورة العرض</label>
+                <div className="space-y-3">
+                  {editImagePreview ? (
+                    <div className="relative">
+                      <img
+                        src={editImagePreview}
+                        alt="Offer preview"
+                        className="w-full h-48 object-cover rounded-xl border border-gray-200"
+                      />
+                      <button
+                        onClick={handleEditRemoveImage}
+                        className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+                        disabled={isCompressingImage}
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-[#D4AF37] transition cursor-pointer">
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/jpg,image/png,image/webp"
+                        onChange={handleEditImageSelect}
+                        className="hidden"
+                        id="editOfferImageInput"
+                        disabled={isCompressingImage}
+                      />
+                      <label htmlFor="editOfferImageInput" className="cursor-pointer">
+                        <ImageIcon size={32} className="mx-auto text-gray-400 mb-2" />
+                        <p className="text-xs text-gray-500">انقر لاختيار صورة</p>
+                        <p className="text-xs text-gray-400 mt-1">JPG, PNG, WebP (سيتم ضغط الصورة تلقائياً)</p>
+                      </label>
+                    </div>
+                  )}
+                  {compressionProgress && (
+                    <div className="text-xs text-gray-500">
+                      {compressionProgress.isCompressing && <span>جاري ضغط الصورة... {compressionProgress.progress}%</span>}
+                      {compressionProgress.isUploading && <span>جاري رفع الصورة...</span>}
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
                 <button
                   type="button"
-                  onClick={() => setEditingOffer(null)}
-                  className="px-4 py-2 bg-gray-50 border border-gray-200 text-gray-400 rounded-xl text-xs font-bold hover:text-gray-800 transition"
+                  onClick={() => {
+                    setEditingOffer(null);
+                    setEditImageFile(null);
+                    setEditImagePreview(null);
+                  }}
+                  className="px-4 py-2 bg-gray-50 border border-gray-200 text-gray-600 rounded-xl text-xs font-bold hover:text-gray-900 transition"
                 >
                   إلغاء
                 </button>
@@ -261,10 +408,20 @@ export default function SpecialOffersSection() {
                     const description = (document.getElementById('editDescription') as HTMLTextAreaElement).value;
                     handleUpdate(editingOffer.id, { title, description });
                   }}
-                  className="px-6 py-2 bg-gradient-to-r from-[#AA7B30] to-[#D4AF37] text-black font-extrabold text-xs rounded-xl shadow hover:shadow-lg transition duration-200 flex items-center gap-2"
+                  className="px-6 py-2 bg-gradient-to-r from-[#AA7B30] to-[#D4AF37] text-black font-extrabold text-xs rounded-xl shadow hover:shadow-lg transition duration-200 flex items-center gap-2 disabled:opacity-50"
+                  disabled={isCompressingImage}
                 >
-                  <Save size={14} />
-                  حفظ التغييرات
+                  {isCompressingImage ? (
+                    <>
+                      <Loader2 size={14} className="animate-spin" />
+                      جاري الحفظ...
+                    </>
+                  ) : (
+                    <>
+                      <Save size={14} />
+                      حفظ التغييرات
+                    </>
+                  )}
                 </button>
               </div>
             </div>

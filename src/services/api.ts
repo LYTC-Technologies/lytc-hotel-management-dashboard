@@ -824,14 +824,14 @@ class APIService {
     // Remove Content-Type to let browser set it with boundary for multipart
     delete headers['Content-Type'];
 
-    return this.authenticatedFetch<RoomResponse>(
-      `${this.baseURL}/api/dashboard/front-desk/rooms/${id}/image`,
-      {
-        method: 'POST',
-        body: formData,
-        headers,
-      }
-    );
+    const url = `${this.baseURL}/api/dashboard/front-desk/rooms/${id}/image`;
+    const response = await fetch(url, {
+      method: 'POST',
+      body: formData,
+      headers,
+    });
+
+    return this.handleResponse<RoomResponse>(response);
   }
 
   /**
@@ -843,16 +843,17 @@ class APIService {
     formData.append('file', file);
 
     const headers = this.getHeaders(true);
+    // Remove Content-Type to let browser set it with boundary for multipart
     delete headers['Content-Type'];
 
-    return this.authenticatedFetch<MenuItemResponse>(
-      `${this.baseURL}/api/dashboard/restaurant/menu/${id}/image`,
-      {
-        method: 'POST',
-        body: formData,
-        headers,
-      }
-    );
+    const url = `${this.baseURL}/api/dashboard/restaurant/menu/${id}/image`;
+    const response = await fetch(url, {
+      method: 'POST',
+      body: formData,
+      headers,
+    });
+
+    return this.handleResponse<MenuItemResponse>(response);
   }
 
   /**
@@ -864,16 +865,17 @@ class APIService {
     formData.append('file', file);
 
     const headers = this.getHeaders(true);
+    // Remove Content-Type to let browser set it with boundary for multipart
     delete headers['Content-Type'];
 
-    return this.authenticatedFetch<MenuItemResponse>(
-      `${this.baseURL}/api/dashboard/cafe/menu/${id}/image`,
-      {
-        method: 'POST',
-        body: formData,
-        headers,
-      }
-    );
+    const url = `${this.baseURL}/api/dashboard/cafe/menu/${id}/image`;
+    const response = await fetch(url, {
+      method: 'POST',
+      body: formData,
+      headers,
+    });
+
+    return this.handleResponse<MenuItemResponse>(response);
   }
 
   /**
@@ -885,16 +887,17 @@ class APIService {
     formData.append('file', file);
 
     const headers = this.getHeaders(true);
+    // Remove Content-Type to let browser set it with boundary for multipart
     delete headers['Content-Type'];
 
-    return this.authenticatedFetch<MenuItemResponse>(
-      `${this.baseURL}/api/dashboard/room-service/menu/${id}/image`,
-      {
-        method: 'POST',
-        body: formData,
-        headers,
-      }
-    );
+    const url = `${this.baseURL}/api/dashboard/room-service/menu/${id}/image`;
+    const response = await fetch(url, {
+      method: 'POST',
+      body: formData,
+      headers,
+    });
+
+    return this.handleResponse<MenuItemResponse>(response);
   }
 
   /**
@@ -906,16 +909,17 @@ class APIService {
     formData.append('file', file);
 
     const headers = this.getHeaders(true);
+    // Remove Content-Type to let browser set it with boundary for multipart
     delete headers['Content-Type'];
 
-    return this.authenticatedFetch<SpecialOfferResponse>(
-      `${this.baseURL}/api/dashboard/front-desk/special-offers/${id}/image`,
-      {
-        method: 'POST',
-        body: formData,
-        headers,
-      }
-    );
+    const url = `${this.baseURL}/api/dashboard/front-desk/special-offers/${id}/image`;
+    const response = await fetch(url, {
+      method: 'POST',
+      body: formData,
+      headers,
+    });
+
+    return this.handleResponse<SpecialOfferResponse>(response);
   }
 
   // ==================== STAYS APIs ====================

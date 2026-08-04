@@ -47,6 +47,7 @@ export default function OrdersSection({ orders: initialOrders = [] }: OrdersSect
   const debounceTimer = useRef<NodeJS.Timeout>();
   const [isCreateOrderModalOpen, setIsCreateOrderModalOpen] = useState(false);
   const [isCreateMenuItemModalOpen, setIsCreateMenuItemModalOpen] = useState(false);
+  const [editingMenuItem, setEditingMenuItem] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -64,13 +65,16 @@ export default function OrdersSection({ orders: initialOrders = [] }: OrdersSect
       const response = await apiService.getRestaurantStats();
       setStats(response);
     } catch (error) {
+      console.error('Failed to load stats:', error);
     }
   };
 
   const loadMenu = async () => {
     try {
       const items = await apiService.getAllMenuItems();
-      setMenuItems(items);
+      // Sort menu items by ID ascending
+      const sortedItems = items.sort((a, b) => a.id - b.id);
+      setMenuItems(sortedItems);
     } catch (error) {
       setMenuItems([]);
     }
@@ -100,7 +104,9 @@ export default function OrdersSection({ orders: initialOrders = [] }: OrdersSect
       }));
       setOrders(transformedOrders);
     } catch (error: any) {
+      console.error('Failed to load restaurant pending orders:', error);
       setOrders([]);
+      setError('فشل في تحميل الطلبات. يرجى المحاولة مرة أخرى.');
     } finally {
       setIsLoading(false);
     }
@@ -118,14 +124,43 @@ export default function OrdersSection({ orders: initialOrders = [] }: OrdersSect
     }
   };
 
+  const handleCreateMenuItemSuccess = (newItem?: any) => {
+    if (newItem) {
+      // Add new item or update existing item locally
+      setMenuItems(prevItems => {
+        const existingIndex = prevItems.findIndex(item => item.id === newItem.id);
+        if (existingIndex >= 0) {
+          // Update existing item - maintain position
+          const updatedItems = [...prevItems];
+          updatedItems[existingIndex] = newItem;
+          return updatedItems;
+        } else {
+          // Add new item and sort by ID ascending
+          const updatedItems = [...prevItems, newItem];
+          return updatedItems.sort((a, b) => a.id - b.id);
+        }
+      });
+    } else {
+      loadMenu();
+    }
+    setEditingMenuItem(null);
+    setIsCreateMenuItemModalOpen(false);
+  };
+
+  const handleEditMenuItem = (item: any) => {
+    setEditingMenuItem(item);
+    setIsCreateMenuItemModalOpen(true);
+  };
+
   const handleUpdateOrderStatus = async (orderId: string, newStatus: string) => {
     try {
       // Only send valid backend statuses
       const backendStatus = ['PENDING', 'COMPLETED', 'CANCELLED'].includes(newStatus) ? newStatus : 'PENDING';
       await apiService.updateRestaurantOrderStatus(parseInt(orderId), backendStatus);
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: backendStatus } : o));
-      loadStats();
+      loadStats(); // Reload stats after status update
     } catch (error) {
+      console.error('Failed to update order status:', error);
     }
   };
 
@@ -143,11 +178,11 @@ export default function OrdersSection({ orders: initialOrders = [] }: OrdersSect
     return matchesStatus && matchesRoom;
   });
 
-  // Use local order counts as primary (stats API may return zeros)
-  const totalOrdersCount = orders.length;
-  const pendingCount = orders.filter(o => o.status === 'PENDING').length;
-  const completedCount = orders.filter(o => o.status === 'COMPLETED').length;
-  const cancelledCount = orders.filter(o => o.status === 'CANCELLED').length;
+  // Use stats from API if available, otherwise use local order counts
+  const totalOrdersCount = stats?.totalOrders ?? orders.length;
+  const pendingCount = stats?.pendingOrders ?? orders.filter(o => o.status === 'PENDING').length;
+  const completedCount = stats?.completedOrders ?? orders.filter(o => o.status === 'COMPLETED').length;
+  const cancelledCount = stats?.cancelledOrders ?? orders.filter(o => o.status === 'CANCELLED').length;
 
   return (
     <div className="space-y-6 pb-12">
@@ -390,21 +425,123 @@ export default function OrdersSection({ orders: initialOrders = [] }: OrdersSect
               <p className="text-gray-500 text-sm font-bold">لا توجد عناصر في القائمة</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-6">
               {menuItems.map((item) => (
-                <div key={item.id} className="p-4 border border-gray-200 rounded-xl bg-gray-50">
-                  <div className="flex justify-between items-start">
-                    <span className="text-base font-bold text-gray-900">{item.name}</span>
-                    <span className="text-xs font-bold px-2 py-0.5 rounded bg-gray-200 text-gray-600">{CATEGORY_LABELS[item.category] || item.category}</span>
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="relative"
+                >
+                  <div className="relative backdrop-blur-xl border rounded-2xl overflow-hidden hover:border-[#D4AF37]/30 hover:shadow-[0_20px_40px_rgba(212,175,55,0.15)] transition-all duration-500 hover:-translate-y-2 group bg-white border-gray-200">
+                    {/* Item Image */}
+                    <div className="relative h-64 overflow-hidden">
+                      {item.imageUrl ? (
+                        <img 
+                          src={item.imageUrl} 
+                          alt={item.name}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                          onError={(e) => { 
+                            e.currentTarget.src = "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600";
+                          }}
+                        />
+                      ) : (
+                        <img 
+                          src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600" 
+                          alt={item.name}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                        />
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-gray-900/70 via-gray-900/20 to-transparent" />
+                      <div className="absolute top-3 right-3">
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border backdrop-blur-md shadow-lg ${item.available ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-red-500/20 text-red-400 border-red-500/30'}`}>
+                          <span className={`w-2 h-2 rounded-full ${item.available ? 'bg-green-400' : 'bg-red-400'}`}></span>
+                          <span>{item.available ? 'متوفر' : 'غير متوفر'}</span>
+                        </span>
+                      </div>
+                      <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
+                        <span className="text-3xl font-black font-mono text-white drop-shadow-lg">#{item.id}</span>
+                        <span className="text-sm text-white/80 bg-black/30 backdrop-blur-sm px-3 py-1 rounded-lg font-bold">{CATEGORY_LABELS[item.category] || item.category}</span>
+                      </div>
+                    </div>
+
+                    {/* Item Info */}
+                    <div className="p-6 space-y-4">
+                      {/* Name */}
+                      <h3 className="text-xl font-black text-gray-900">{item.name}</h3>
+
+                      {/* Price */}
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-500 text-sm">السعر</span>
+                        <span className="text-2xl font-black text-[#AA7B30]">{item.price ? `${item.price.toLocaleString('ar-SA')} ر.س` : 'غير متاح'}</span>
+                      </div>
+
+                      {/* Details Grid */}
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-xl">
+                          <span className="text-gray-400 text-xs">التصنيف</span>
+                          <span className="font-bold text-gray-800">{CATEGORY_LABELS[item.category] || item.category}</span>
+                        </div>
+                        <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-xl">
+                          <span className="text-gray-400 text-xs">الحالة</span>
+                          <span className={`font-bold ${item.available ? 'text-green-600' : 'text-red-600'}`}>
+                            {item.available ? 'متوفر' : 'غير متوفر'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Description */}
+                      <div className="bg-gray-50 p-4 rounded-xl">
+                        <span className="block text-gray-400 text-xs mb-2">الوصف</span>
+                        <p className="text-sm text-gray-700 leading-relaxed">
+                          {item.description || 'بدون وصف'}
+                        </p>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="pt-3 border-t border-gray-100 flex gap-2">
+                        <button
+                          onClick={() => handleEditMenuItem(item)}
+                          className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 border border-gray-200 rounded-lg text-sm font-bold text-gray-600 hover:text-gray-900 hover:border-[#D4AF37]/30 hover:bg-amber-50 transition-all duration-300"
+                        >
+                          <span>تعديل</span>
+                        </button>
+                        <select
+                          value={item.available ? 'true' : 'false'}
+                          onChange={async (e) => {
+                            const newAvailable = e.target.value === 'true';
+                            try {
+                              // Use PATCH instead of PUT for partial updates
+                              const updateRequest = { available: newAvailable };
+                              let updatedItem;
+                              if (item.category === 'FOOD') {
+                                updatedItem = await apiService.patchRestaurantMenuItem(item.id, updateRequest);
+                              } else if (item.category === 'DRINK') {
+                                updatedItem = await apiService.patchCafeMenuItem(item.id, updateRequest);
+                              } else if (item.category === 'ROOM_SERVICE') {
+                                updatedItem = await apiService.patchRoomServiceMenuItem(item.id, updateRequest);
+                              }
+                              // Update local state
+                              setMenuItems(prevItems => 
+                                prevItems.map(i => i.id === item.id ? { ...i, available: newAvailable } : i)
+                              );
+                            } catch (error) {
+                              console.error('Failed to update status:', error);
+                            }
+                          }}
+                          className={`flex-1 px-3 py-2.5 border rounded-lg text-sm font-bold transition-all duration-300 ${
+                            item.available 
+                              ? 'border-green-200 text-green-600 bg-green-50' 
+                              : 'border-red-200 text-red-600 bg-red-50'
+                          }`}
+                        >
+                          <option value="true">متوفر</option>
+                          <option value="false">غير متوفر</option>
+                        </select>
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-sm text-gray-500 mt-1">{item.description || 'بدون وصف'}</p>
-                  <div className="flex justify-between items-center mt-3">
-                    <span className="text-base font-black font-mono text-[#AA7B30]">{item.price} ريال</span>
-                    <span className={`text-sm font-bold ${item.available ? 'text-emerald-600' : 'text-red-600'}`}>
-                      {item.available ? 'متوفر' : 'غير متوفر'}
-                    </span>
-                  </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           )}
@@ -422,8 +559,9 @@ export default function OrdersSection({ orders: initialOrders = [] }: OrdersSect
       {/* Create Menu Item Modal */}
       <CreateMenuItemModal
         isOpen={isCreateMenuItemModalOpen}
-        onClose={() => setIsCreateMenuItemModalOpen(false)}
-        onSuccess={() => { loadMenu(); setIsCreateMenuItemModalOpen(false); }}
+        onClose={() => { setIsCreateMenuItemModalOpen(false); setEditingMenuItem(null); }}
+        onSuccess={handleCreateMenuItemSuccess}
+        editingItem={editingMenuItem}
       />
     </div>
   );
