@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
-  Building, Bell, User, LogOut, Sparkles, Clock, Menu, X, Check, CheckCircle2,
-  Calendar, BedDouble, Users, MessageSquare, Wrench, Coffee, CreditCard, BarChart3, Settings, Award, Star, Crown, ShoppingBag, ShoppingBag as ShoppingBagIcon, Bot
+  Building, User, LogOut, Sparkles, Menu, X,
+  Calendar, BedDouble, Coffee, BarChart3, ShoppingBag, Bot
 } from 'lucide-react';
 
 import Login from './components/Login';
@@ -63,7 +63,7 @@ function App() {
   }, []);
 
   // Active view tab state with # routing
-  const [activeTab, setActiveTab] = useState<'لوحة التحكم' | 'الحجوزات' | 'الغرف' | 'النزلاء' | 'الطلبات' | 'المدفوعات' | 'إدارة المستخدمين' | 'إدارة الموظفين' | 'النزلاء VIP' | 'التقييمات' | 'الطلبات الخاصة' | 'إحصائيات المطعم' | 'إحصائيات المقهى' | 'العروض والمزايا' | 'الموظفين' | 'إدارة الضيوف' | 'التحليلات الذكية' | 'المساعد الذكي'>(() => {
+  const [activeTab, setActiveTab] = useState<'لوحة التحكم' | 'الحجوزات' | 'الغرف' | 'النزلاء' | 'الطلبات' | 'إدارة المستخدمين' | 'الطلبات الخاصة' | 'إحصائيات المطعم' | 'إحصائيات المقهى' | 'العروض والمزايا' | 'المساعد الذكي'>(() => {
     const hash = window.location.hash.replace('#', '');
     if (hash) {
       try {
