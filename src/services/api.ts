@@ -26,6 +26,7 @@ interface SpecialOfferResponse {
   id: number;
   title: string;
   description: string;
+  imageUrl?: string | null;
 }
 
 interface CreateMenuItemRequest {
