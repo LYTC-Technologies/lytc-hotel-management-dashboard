@@ -277,17 +277,17 @@ function App() {
 
   // State Manipulator Functions
   const handleAddReservation = (newRes: Reservation) => {
-    setReservations(prev => [newRes, ...prev]);
+    setReservations((prev: any) => [newRes, ...prev]);
 
-    setNotifications(prev => [
+    setNotifications((prev: any) => [
       { id: Date.now().toString(), title: `حجز مؤكد وجديد باسم ${newRes.guestName} للجناح ${newRes.roomNumber}`, time: 'الآن', read: false },
       ...prev
     ]);
   };
 
   const handleUpdateReservationStatus = (resId: string, status: Reservation['status']) => {
-    setReservations(prev => prev.map(res => res.id === resId ? { ...res, status } : res));
-    const targetRes = reservations.find(r => r.id === resId);
+    setReservations((prev: any[]) => prev.map((res: { id: string; }) => res.id === resId ? { ...res, status } : res));
+    const targetRes = reservations.find((r: { id: string; }) => r.id === resId);
     if (!targetRes) return;
 
     if (status === 'checked_out') {
@@ -300,10 +300,10 @@ function App() {
         priority: 'high',
         lastCleaned: 'الآن'
       };
-      setHousekeeping(prev => [newTask, ...prev]);
+      setHousekeeping((prev: any) => [newTask, ...prev]);
     }
 
-    setNotifications(prev => [
+    setNotifications((prev: any) => [
       {
         id: Date.now().toString(),
         title: `تعديل حالة الإقامة للنزيل ${targetRes.guestName} إلى: ${
@@ -317,27 +317,27 @@ function App() {
   };
 
   const handleUpdateRequestStatus = (reqId: string, status: ServiceRequest['status']) => {
-    setRequests(prev => prev.map(r => r.id === reqId ? { ...r, status } : r));
+    setRequests((prev: any[]) => prev.map((r: { id: string; }) => r.id === reqId ? { ...r, status } : r));
   };
 
   const handleAssignRequest = (reqId: string, assignee: string) => {
-    setRequests(prev => prev.map(r => r.id === reqId ? { ...r, assignee, status: 'assigned' } : r));
+    setRequests((prev: any[]) => prev.map((r: { id: string; }) => r.id === reqId ? { ...r, assignee, status: 'assigned' } : r));
   };
 
   const handleUpdateTaskStatus = (taskId: string, status: HousekeepingTask['status']) => {
-    setHousekeeping(prev => prev.map(t => t.id === taskId ? { ...t, status } : t));
+    setHousekeeping((prev: any[]) => prev.map((t: { id: string; }) => t.id === taskId ? { ...t, status } : t));
   };
 
   const handleUpdateTicketStatus = (ticketId: string, status: MaintenanceTicket['status']) => {
-    setMaintenance(prev => prev.map(t => t.id === ticketId ? { ...t, status } : t));
+    setMaintenance((prev: any[]) => prev.map((t: { id: string; }) => t.id === ticketId ? { ...t, status } : t));
   };
 
   const handleUpdateOrderStatus = (orderId: string, status: RestaurantOrder['status']) => {
-    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o));
+    setOrders((prev: any[]) => prev.map((o: { id: string; }) => o.id === orderId ? { ...o, status } : o));
   };
 
   const handleUpdateInvoiceStatus = (invId: string, status: Invoice['status']) => {
-    setInvoices(prev => prev.map(inv => inv.id === invId ? { ...inv, status } : inv));
+    setInvoices((prev: any[]) => prev.map((inv: { id: string; }) => inv.id === invId ? { ...inv, status } : inv));
   };
 
   // Render modular views
@@ -574,7 +574,7 @@ function App() {
               <input
                 type="text"
                 value={quickBookName}
-                onChange={(e) => setQuickBookName(e.target.value)}
+                onChange={(e: { target: { value: any; }; }) => setQuickBookName(e.target.value)}
                 className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#D4AF37] transition"
                 placeholder="مثال: الشيخ سليمان آل سعود"
               />
@@ -582,7 +582,7 @@ function App() {
               <input
                 type="text"
                 value={quickBookRoom}
-                onChange={(e) => setQuickBookRoom(e.target.value)}
+                onChange={(e: { target: { value: any; }; }) => setQuickBookRoom(e.target.value)}
                 className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#D4AF37] transition"
                 placeholder="مثال: 101"
               />
@@ -634,14 +634,14 @@ function App() {
               <input
                 type="text"
                 value={quickReqRoom}
-                onChange={(e) => setQuickReqRoom(e.target.value)}
+                onChange={(e: { target: { value: any; }; }) => setQuickReqRoom(e.target.value)}
                 className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#D4AF37] transition"
                 placeholder="مثال: 501"
               />
               <label className="text-sm font-bold text-gray-600 block">تصنيف الخدمة:</label>
               <select
                 value={quickReqType}
-                onChange={(e) => setQuickReqType(e.target.value)}
+                onChange={(e: { target: { value: any; }; }) => setQuickReqType(e.target.value)}
                 className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#D4AF37] transition"
               >
                 <option value="room_service">خدمة غرف وطعام</option>
@@ -653,7 +653,7 @@ function App() {
               <label className="text-sm font-bold text-gray-600 block">تفاصيل الطلب:</label>
               <textarea
                 value={quickReqDetails}
-                onChange={(e) => setQuickReqDetails(e.target.value)}
+                onChange={(e: { target: { value: any; }; }) => setQuickReqDetails(e.target.value)}
                 className="w-full h-20 bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm text-gray-800 focus:outline-none focus:border-[#D4AF37] transition resize-none"
                 placeholder="توصيل قهوة عربية بالزعفران..."
               />
@@ -676,7 +676,7 @@ function App() {
                       priority: 'medium',
                       timestamp: new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })
                     };
-                    setRequests(prev => [newReq, ...prev]);
+                    setRequests((prev: any) => [newReq, ...prev]);
                     setQuickRequestOpen(false);
                     setQuickReqRoom('');
                     setQuickReqDetails('');
