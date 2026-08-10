@@ -13,11 +13,7 @@ import GuestsSection from './components/GuestsSection';
 import RequestsSection from './components/RequestsSection';
 import HousekeepingSection from './components/HousekeepingSection';
 import OrdersSection from './components/OrdersSection';
-import PaymentsSection from './components/PaymentsSection';
 import UsersManagementSection from './components/UsersManagementSection';
-import EmployeesManagementSection from './components/EmployeesManagementSection';
-import VipGuestsSection from './components/VipGuestsSection';
-import RatingsSection from './components/RatingsSection';
 import SpecialOrdersManagementSection from './components/SpecialOrdersManagementSection';
 import RestaurantStatsSection from './components/RestaurantStatsSection';
 import CafeStatsSection from './components/CafeStatsSection';
@@ -86,13 +82,9 @@ function App() {
       { label: 'الحجوزات', icon: <Calendar size={16} />, roles: ['MANAGER', 'STAFF'] },
       { label: 'الغرف', icon: <BedDouble size={16} />, roles: ['MANAGER', 'STAFF', 'ROOM_SERVICE'] },
       { label: 'الطلبات', icon: <Coffee size={16} />, roles: ['MANAGER', 'STAFF', 'CHEF'] },
-      { label: 'المدفوعات', icon: <CreditCard size={16} />, roles: ['MANAGER', 'STAFF'] },
       { label: 'المساعد الذكي', icon: <Bot size={16} />, roles: ['MANAGER', 'STAFF', 'CHEF', 'BARISTA', 'ROOM_SERVICE'] },
       { label: 'العروض والمزايا', icon: <Sparkles size={16} />, roles: ['MANAGER', 'STAFF'] },
       { label: 'إدارة المستخدمين', icon: <User size={16} />, roles: ['MANAGER'] },
-      { label: 'إدارة الموظفين', icon: <Award size={16} />, roles: ['MANAGER'] },
-      { label: 'النزلاء VIP', icon: <Star size={16} />, roles: ['MANAGER', 'STAFF'] },
-      { label: 'التقييمات', icon: <Star size={16} />, roles: ['MANAGER', 'STAFF'] },
       { label: 'الطلبات الخاصة', icon: <ShoppingBag size={16} />, roles: ['MANAGER', 'STAFF'] },
       { label: 'إحصائيات المطعم', icon: <BarChart3 size={16} />, roles: ['MANAGER', 'CHEF'] },
       { label: 'إحصائيات المقهى', icon: <BarChart3 size={16} />, roles: ['MANAGER', 'BARISTA'] }
@@ -177,7 +169,6 @@ function App() {
   // Quick Modal Triggers
   const [quickBookOpen, setQuickBookOpen] = useState(false);
   const [quickRequestOpen, setQuickRequestOpen] = useState(false);
-  const [paymentsRefreshKey, setPaymentsRefreshKey] = useState(0);
   const [quickBookName, setQuickBookName] = useState('');
   const [quickBookRoom, setQuickBookRoom] = useState('');
   const [quickReqRoom, setQuickReqRoom] = useState('');
@@ -363,23 +354,15 @@ function App() {
       case 'الغرف':
         return <RoomsSection />;
       case 'الحجوزات':
-        return <ReservationsSection onCheckout={() => setPaymentsRefreshKey(prev => prev + 1)} />;
+        return <ReservationsSection />;
       case 'النزلاء':
         return <GuestsSection guests={guests} reservations={reservations} />;
       case 'الطلبات':
         return <OrdersSection />;
-      case 'المدفوعات':
-        return <PaymentsSection refreshKey={paymentsRefreshKey} />;
       case 'المساعد الذكي':
         return <AIAssistantSection />;
       case 'إدارة المستخدمين':
         return <UsersManagementSection />;
-      case 'إدارة الموظفين':
-        return <EmployeesManagementSection />;
-      case 'النزلاء VIP':
-        return <VipGuestsSection />;
-      case 'التقييمات':
-        return <RatingsSection />;
       case 'الطلبات الخاصة':
         return <SpecialOrdersManagementSection />;
       case 'إحصائيات المطعم':
