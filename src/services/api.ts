@@ -39,6 +39,22 @@ interface CreateMenuItemRequest {
   imageUrl?: string;
 }
 
+interface UpdateMenuItemRequest {
+  name: string;
+  description?: string;
+  price: number;
+  available?: boolean;
+  category: 'FOOD' | 'DRINK' | 'SERVICE';
+}
+
+interface PatchMenuItemRequest {
+  name?: string;
+  description?: string;
+  price?: number;
+  available?: boolean;
+  category?: 'FOOD' | 'DRINK' | 'SERVICE';
+}
+
 interface CreateOrderRequest {
   category: 'FOOD' | 'DRINK' | 'SERVICE';
   items: OrderItemRequest[];
@@ -47,75 +63,107 @@ interface CreateOrderRequest {
 interface RoomResponse {
   id: number;
   roomNumber: string;
-  status: string;
-  maxAdults: number;
-  maxKids: number;
+  status: 'AVAILABLE' | 'OCCUPIED' | 'CLEANING' | 'MAINTENANCE';
   floor: number;
-  price: number;
-  roomType: 'SINGLE' | 'DOUBLE' | 'SUITE';
-  hasWifi: boolean;
-  numTvs: number;
   viewType: 'CITY' | 'PANORAMIC' | 'SEA' | 'GARDEN' | 'MOUNTAIN' | 'POOL' | 'RIVER' | 'LANDMARK';
-  numBeds: number;
-  bedType: 'TWIN' | 'DOUBLE' | 'QUEEN' | 'KING';
   description: string;
   imageUrl: string;
+  categoryId: number;
+  categoryName: string;
+  price: number;
+  maxAdults: number;
+  maxKids: number;
+  numBeds: number;
+  bedType: 'TWIN' | 'DOUBLE' | 'QUEEN' | 'KING';
+  hasWifi: boolean;
+  numTvs: number;
 }
 
 interface CreateRoomRequest {
   roomNumber: string;
-  maxAdults?: number;
-  maxKids?: number;
-  description?: string;
+  categoryId: number;
   floor?: number;
-  price: number;
-  roomType: 'SINGLE' | 'DOUBLE' | 'SUITE';
-  hasWifi: boolean;
-  numTvs: number;
   viewType: 'CITY' | 'PANORAMIC' | 'SEA' | 'GARDEN' | 'MOUNTAIN' | 'POOL' | 'RIVER' | 'LANDMARK';
-  numBeds: number;
-  bedType: 'TWIN' | 'DOUBLE' | 'QUEEN' | 'KING';
+  description?: string;
 }
 
 interface UpdateRoomRequest {
   roomNumber: string;
-  maxAdults?: number;
-  maxKids?: number;
-  description?: string;
+  categoryId: number;
   floor?: number;
-  price: number;
-  roomType?: 'SINGLE' | 'DOUBLE' | 'SUITE';
-  hasWifi?: boolean;
-  numTvs?: number;
-  viewType?: 'CITY' | 'PANORAMIC' | 'SEA' | 'GARDEN' | 'MOUNTAIN' | 'POOL' | 'RIVER' | 'LANDMARK';
-  numBeds?: number;
-  bedType?: 'TWIN' | 'DOUBLE' | 'QUEEN' | 'KING';
-  status: string;
+  viewType: 'CITY' | 'PANORAMIC' | 'SEA' | 'GARDEN' | 'MOUNTAIN' | 'POOL' | 'RIVER' | 'LANDMARK';
+  description?: string;
+  status: 'AVAILABLE' | 'OCCUPIED' | 'CLEANING' | 'MAINTENANCE';
 }
 
 interface PatchRoomRequest {
   roomNumber?: string;
-  maxAdults?: number;
-  maxKids?: number;
-  description?: string;
+  categoryId?: number;
   floor?: number;
-  price?: number;
-  roomType?: 'SINGLE' | 'DOUBLE' | 'SUITE';
-  hasWifi?: boolean;
-  numTvs?: number;
   viewType?: 'CITY' | 'PANORAMIC' | 'SEA' | 'GARDEN' | 'MOUNTAIN' | 'POOL' | 'RIVER' | 'LANDMARK';
+  description?: string;
+  status?: 'AVAILABLE' | 'OCCUPIED' | 'CLEANING' | 'MAINTENANCE';
+}
+
+// Room Category related types
+interface RoomCategoryResponse {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  numBeds: number;
+  bedType: 'TWIN' | 'DOUBLE' | 'QUEEN' | 'KING';
+  maxAdults: number;
+  maxKids: number;
+  hasWifi: boolean;
+  numTvs: number;
+  imageUrl: string;
+}
+
+interface CreateRoomCategoryRequest {
+  name: string;
+  description?: string;
+  price: number;
+  numBeds: number;
+  bedType: 'TWIN' | 'DOUBLE' | 'QUEEN' | 'KING';
+  maxAdults: number;
+  maxKids: number;
+  hasWifi: boolean;
+  numTvs: number;
+}
+
+interface UpdateRoomCategoryRequest {
+  name?: string;
+  description?: string;
+  price?: number;
   numBeds?: number;
   bedType?: 'TWIN' | 'DOUBLE' | 'QUEEN' | 'KING';
-  status?: string;
+  maxAdults?: number;
+  maxKids?: number;
+  hasWifi?: boolean;
+  numTvs?: number;
+}
+
+interface DailyRateResponse {
+  date: string;
+  price: number;
+  customRate: boolean;
+}
+
+interface SetRatesRequest {
+  startDate: string;
+  endDate: string;
+  price: number;
 }
 
 // Stays related types
 interface StayDetailsResponse {
   stayId: number;
+  expectedCheckInDate: string;
   checkInTime: string;
   expectedCheckOutDate: string;
   checkOutTime: string;
-  status: string;
+  status: 'RESERVED' | 'ACTIVE' | 'CLOSED' | 'CANCELLED' | 'NO_SHOW';
   stars: number;
   notes: string;
   roomCharge: number;
@@ -123,6 +171,9 @@ interface StayDetailsResponse {
   guestId: number;
   guestName: string;
   guestPhone: string;
+  email: string;
+  nationality: string;
+  identification: string;
   roomId: number;
   roomNumber: string;
   floor: number;
@@ -136,6 +187,9 @@ interface StayDetailsResponse {
 interface CreateStayRequest {
   guestName: string;
   phone: string;
+  email?: string;
+  nationality?: string;
+  identification?: string;
   roomNumber: string;
   numAdults: number;
   numKids?: number;
@@ -152,9 +206,15 @@ interface CreateSpecialOrderRequest {
 interface SpecialOrderResponse {
   id: number;
   stayId: number;
-  specialOfferId: number;
+  specialOffer: SpecialOfferResponse;
   agreedPrice: number;
+  createdAt: string;
   status: string;
+  completedAt?: string;
+}
+
+interface ExtendStayRequest {
+  newCheckOutDate: string;
 }
 
 interface PageStayDetailsResponse {
@@ -172,14 +232,38 @@ interface OrderItemRequest {
   notes?: string;
 }
 
+interface OrderItemDetailResponse {
+  id: number;
+  menuItemId: number;
+  itemName: string;
+  quantity: number;
+  unitPrice: number;
+  notes: string;
+}
+
+interface OrderResponse {
+  orderId: number;
+  roomNumber: string;
+  guestName: string;
+  category: 'FOOD' | 'DRINK' | 'SERVICE';
+  totalAmount: number;
+  status: 'PENDING' | 'COMPLETED' | 'CANCELLED';
+  createdAt: string;
+  completedAt?: string;
+  items: OrderItemDetailResponse[];
+}
+
+interface UpdateOrderStatusRequest {
+  status: 'PENDING' | 'COMPLETED' | 'CANCELLED';
+}
+
 interface MenuItemResponse {
   id: number;
   name: string;
   description: string;
-  category: string;
-  price: string;
+  category: 'FOOD' | 'DRINK' | 'SERVICE';
+  price: number;
   available: boolean;
-  preparationTime?: number;
   imageUrl?: string;
 }
 
@@ -265,24 +349,165 @@ interface PageVipResponse {
   empty: boolean;
 }
 
+// Reservation Request related types
+interface ReservationRequestResponse {
+  id: number;
+  guestName: string;
+  guestEmail: string;
+  guestPhone: string;
+  nationality: string;
+  identification: string;
+  categoryId: number;
+  categoryName: string;
+  checkInDate: string;
+  checkOutDate: string;
+  numAdults: number;
+  numKids: number;
+  quotedTotalCharge: number;
+  status: string;
+  notes: string;
+  rejectionReason: string;
+  processedByUserId: number;
+  processedAt: string;
+  createdAt: string;
+}
+
+interface SubmitReservationRequest {
+  guestName: string;
+  guestEmail: string;
+  guestPhone: string;
+  nationality?: string;
+  identification?: string;
+  categoryId: number;
+  checkInDate: string;
+  checkOutDate: string;
+  numAdults: number;
+  numKids?: number;
+  notes?: string;
+}
+
+interface ApproveReservationRequest {
+  roomId: number;
+}
+
+interface RejectReservationRequest {
+  reason: string;
+}
+
 // Stats related types
 interface DashboardStatsResponse {
   totalOrders: number;
-  pendingOrders: number;
-  completedOrders: number;
   totalRevenue: number;
-  todayRevenue: number;
+  averageOrderValue: number;
+  averagePreparationTimeMinutes: number;
+  completedOrders: number;
 }
 
 interface PendingOrdersResponse {
   orderId: number;
-  guestName: string;
   roomNumber: string;
+  guestName: string;
   category: string;
-  totalAmount: string;
+  totalAmount: number;
   orderStatus: string;
   createdAt: string;
-  items: any[];
+  items: OrderItemDetailResponse[];
+}
+
+// Manager Overview types
+interface ManagerOverviewResponse {
+  totalPendingOrders: number;
+  totalOrdersCompletedToday: number;
+  totalRevenueToday: number;
+  totalRevenue: number;
+  totalClosedStays: number;
+  occupancyRate: number;
+  occupiedRooms: number;
+  totalRooms: number;
+  adr: number;
+  revPar: number;
+  totalRevenueThisMonth: number;
+  upcomingCheckIns: number;
+  upcomingCheckOuts: number;
+  currentGuests: number;
+  roomsOutOfService: number;
+  averageStayDays: number;
+  cancellationRate: number;
+}
+
+interface OccupancyResponse {
+  totalRooms: number;
+  occupiedRooms: number;
+  availableRooms: number;
+  occupancyRate: number;
+}
+
+// Receipt types
+interface ReceiptResponse {
+  stayId: number;
+  guestName: string;
+  checkInTime: string;
+  checkOutTime: string;
+  roomNumber: string;
+  roomCharge: number;
+  menuOrders: ReceiptItem[];
+  specialOrders: ReceiptItem[];
+  totalCharge: number;
+}
+
+interface ReceiptItem {
+  description: string;
+  amount: number;
+  date: string;
+}
+
+// Full Stay Summary
+interface FullStaySummaryResponse {
+  stayDetails: StayDetailsResponse;
+  financialSummary: FinancialSummary;
+  orders: OrderResponse[];
+  specialOrders: SpecialOrderResponse[];
+}
+
+interface FinancialSummary {
+  roomCharge: number;
+  regularOrdersTotal: number;
+  specialOrdersTotal: number;
+  grandTotal: number;
+}
+
+// Pageable types
+interface Pageable {
+  page: number;
+  size: number;
+  sort?: string[];
+}
+
+interface PageMetadata {
+  size: number;
+  number: number;
+  totalElements: number;
+  totalPages: number;
+}
+
+interface PagedModelRoomResponse {
+  content: RoomResponse[];
+  page: PageMetadata;
+}
+
+interface PagedModelStayDetailsResponse {
+  content: StayDetailsResponse[];
+  page: PageMetadata;
+}
+
+interface PagedModelReservationRequestResponse {
+  content: ReservationRequestResponse[];
+  page: PageMetadata;
+}
+
+interface PagedModelSpecialOrderResponse {
+  content: SpecialOrderResponse[];
+  page: PageMetadata;
 }
 
 // API Service Class
@@ -1738,6 +1963,266 @@ class APIService {
         return this.createRestaurantMenuItem(item);
     }
   }
+
+  // ==================== ROOM CATEGORIES APIs ====================
+
+  /**
+   * Get Room Categories
+   * GET /api/dashboard/front-desk/room-categories
+   */
+  async getRoomCategories(
+    page: number = 0,
+    size: number = 50
+  ): Promise<any> {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      size: size.toString(),
+    });
+
+    return this.authenticatedFetch<any>(
+      `${this.baseURL}/api/dashboard/front-desk/room-categories?${params.toString()}`,
+      { method: 'GET' }
+    );
+  }
+
+  /**
+   * Create Room Category
+   * POST /api/dashboard/front-desk/room-categories
+   */
+  async createRoomCategory(category: CreateRoomCategoryRequest): Promise<RoomCategoryResponse> {
+    return this.authenticatedFetch<RoomCategoryResponse>(
+      `${this.baseURL}/api/dashboard/front-desk/room-categories`,
+      {
+        method: 'POST',
+        body: JSON.stringify(category),
+      }
+    );
+  }
+
+  /**
+   * Update Room Category
+   * PUT /api/dashboard/front-desk/room-categories/{id}
+   */
+  async updateRoomCategory(id: number, category: UpdateRoomCategoryRequest): Promise<RoomCategoryResponse> {
+    return this.authenticatedFetch<RoomCategoryResponse>(
+      `${this.baseURL}/api/dashboard/front-desk/room-categories/${id}`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(category),
+      }
+    );
+  }
+
+  /**
+   * Delete Room Category
+   * DELETE /api/dashboard/front-desk/room-categories/{id}
+   */
+  async deleteRoomCategory(id: number): Promise<void> {
+    return this.authenticatedFetch<void>(
+      `${this.baseURL}/api/dashboard/front-desk/room-categories/${id}`,
+      { method: 'DELETE' }
+    );
+  }
+
+  /**
+   * Upload Room Category Image
+   * POST /api/dashboard/front-desk/room-categories/{id}/image
+   */
+  async uploadRoomCategoryImage(id: number, file: File): Promise<RoomCategoryResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const headers = this.getHeaders(true);
+    delete headers['Content-Type'];
+
+    const url = `${this.baseURL}/api/dashboard/front-desk/room-categories/${id}/image`;
+    const response = await fetch(url, {
+      method: 'POST',
+      body: formData,
+      headers,
+    });
+
+    return this.handleResponse<RoomCategoryResponse>(response);
+  }
+
+  /**
+   * Set Daily Rates for Room Category
+   * POST /api/dashboard/front-desk/room-categories/{id}/rates
+   */
+  async setRoomCategoryRates(id: number, rates: SetRatesRequest): Promise<void> {
+    return this.authenticatedFetch<void>(
+      `${this.baseURL}/api/dashboard/front-desk/room-categories/${id}/rates`,
+      {
+        method: 'POST',
+        body: JSON.stringify(rates),
+      }
+    );
+  }
+
+  /**
+   * Get Daily Rates for Room Category
+   * GET /api/dashboard/front-desk/room-categories/{id}/rates
+   */
+  async getRoomCategoryRates(id: number): Promise<DailyRateResponse[]> {
+    return this.authenticatedFetch<DailyRateResponse[]>(
+      `${this.baseURL}/api/dashboard/front-desk/room-categories/${id}/rates`,
+      { method: 'GET' }
+    );
+  }
+
+  // ==================== RESERVATION REQUESTS APIs ====================
+
+  /**
+   * Get Pending Reservation Requests (Landing Page Requests)
+   * GET /api/dashboard/front-desk/reservation-requests
+   */
+  async getPendingReservationRequests(
+    page: number = 0,
+    size: number = 50
+  ): Promise<PagedModelReservationRequestResponse> {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      size: size.toString(),
+    });
+
+    return this.authenticatedFetch<PagedModelReservationRequestResponse>(
+      `${this.baseURL}/api/dashboard/front-desk/reservation-requests?${params.toString()}`,
+      { method: 'GET' }
+    );
+  }
+
+  /**
+   * Approve Reservation Request
+   * POST /api/dashboard/front-desk/reservation-requests/{id}/approve
+   */
+  async approveReservationRequest(id: number, request: ApproveReservationRequest): Promise<any> {
+    return this.authenticatedFetch<any>(
+      `${this.baseURL}/api/dashboard/front-desk/reservation-requests/${id}/approve`,
+      {
+        method: 'POST',
+        body: JSON.stringify(request),
+      }
+    );
+  }
+
+  /**
+   * Reject Reservation Request
+   * POST /api/dashboard/front-desk/reservation-requests/{id}/reject
+   */
+  async rejectReservationRequest(id: number, request: RejectReservationRequest): Promise<any> {
+    return this.authenticatedFetch<any>(
+      `${this.baseURL}/api/dashboard/front-desk/reservation-requests/${id}/reject`,
+      {
+        method: 'POST',
+        body: JSON.stringify(request),
+      }
+    );
+  }
+
+  // ==================== MANAGER STAYS APIs ====================
+
+  /**
+   * Get Manager Stays with status filter
+   * GET /api/dashboard/manager/stays
+   */
+  async getManagerStays(
+    status?: 'RESERVED' | 'ACTIVE' | 'CLOSED' | 'CANCELLED' | 'NO_SHOW',
+    page: number = 0,
+    size: number = 50
+  ): Promise<PagedModelStayDetailsResponse> {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      size: size.toString(),
+    });
+
+    if (status) {
+      params.append('status', status);
+    }
+
+    return this.authenticatedFetch<PagedModelStayDetailsResponse>(
+      `${this.baseURL}/api/dashboard/manager/stays?${params.toString()}`,
+      { method: 'GET' }
+    );
+  }
+
+  /**
+   * Get Stay Summary (Manager)
+   * GET /api/dashboard/manager/stays/{stayId}/summary
+   */
+  async getManagerStaySummary(stayId: number): Promise<FullStaySummaryResponse> {
+    return this.authenticatedFetch<FullStaySummaryResponse>(
+      `${this.baseURL}/api/dashboard/manager/stays/${stayId}/summary`,
+      { method: 'GET' }
+    );
+  }
+
+  // ==================== FRONT DESK ADDITIONAL APIs ====================
+
+  /**
+   * Get Stay Summary (Front Desk)
+   * GET /api/dashboard/front-desk/stays/{stayId}/summary
+   */
+  async getFrontDeskStaySummary(stayId: number): Promise<FullStaySummaryResponse> {
+    return this.authenticatedFetch<FullStaySummaryResponse>(
+      `${this.baseURL}/api/dashboard/front-desk/stays/${stayId}/summary`,
+      { method: 'GET' }
+    );
+  }
+
+  /**
+   * Get Stay Receipt
+   * GET /api/dashboard/front-desk/stays/{stayId}/receipt
+   */
+  async getStayReceipt(stayId: number): Promise<ReceiptResponse> {
+    return this.authenticatedFetch<ReceiptResponse>(
+      `${this.baseURL}/api/dashboard/front-desk/stays/${stayId}/receipt`,
+      { method: 'GET' }
+    );
+  }
+
+  /**
+   * Get Orders for Stay
+   * GET /api/dashboard/front-desk/stays/{stayId}/orders
+   */
+  async getFrontDeskStayOrders(stayId: number): Promise<PendingOrdersResponse[]> {
+    return this.authenticatedFetch<PendingOrdersResponse[]>(
+      `${this.baseURL}/api/dashboard/front-desk/stays/${stayId}/orders`,
+      { method: 'GET' }
+    );
+  }
+
+  /**
+   * Get Stays Checking In Today
+   * GET /api/dashboard/front-desk/stays/checkin-today
+   */
+  async getStaysCheckInToday(
+    page: number = 0,
+    size: number = 50
+  ): Promise<PagedModelStayDetailsResponse> {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      size: size.toString(),
+    });
+
+    return this.authenticatedFetch<PagedModelStayDetailsResponse>(
+      `${this.baseURL}/api/dashboard/front-desk/stays/checkin-today?${params.toString()}`,
+      { method: 'GET' }
+    );
+  }
+
+  /**
+   * Extend Stay
+   * POST /api/dashboard/front-desk/stays/{stayId}/extend
+   */
+  async extendStay(stayId: number, request: ExtendStayRequest): Promise<StayDetailsResponse> {
+    return this.authenticatedFetch<StayDetailsResponse>(
+      `${this.baseURL}/api/dashboard/front-desk/stays/${stayId}/extend`,
+      {
+        method: 'POST',
+        body: JSON.stringify(request),
+      }
+    );
+  }
 }
 
 // Export singleton instance
@@ -1750,29 +2235,56 @@ export type {
   CreateSpecialOfferRequest,
   SpecialOfferResponse,
   CreateMenuItemRequest,
+  UpdateMenuItemRequest,
+  PatchMenuItemRequest,
   MenuItemResponse,
   CreateOrderRequest,
   OrderItemRequest,
+  OrderItemDetailResponse,
+  OrderResponse,
+  UpdateOrderStatusRequest,
   RoomResponse,
   CreateRoomRequest,
   UpdateRoomRequest,
   PatchRoomRequest,
+  RoomCategoryResponse,
+  CreateRoomCategoryRequest,
+  UpdateRoomCategoryRequest,
+  DailyRateResponse,
+  SetRatesRequest,
   StayDetailsResponse,
   CreateStayRequest,
   CreateSpecialOrderRequest,
   SpecialOrderResponse,
+  ExtendStayRequest,
   PageStayDetailsResponse,
   UserResponse,
   CreateUserRequest,
+  UpdateUserRequest,
   CreateVipRequest,
   VipResponse,
   PageVipResponse,
-  UpdateUserRequest,
   PageUserResponse,
   EmployeeResponse,
   CreateEmployeeRequest,
   UpdateEmployeeStatusRequest,
   PageEmployeeResponse,
+  ReservationRequestResponse,
+  SubmitReservationRequest,
+  ApproveReservationRequest,
+  RejectReservationRequest,
   DashboardStatsResponse,
   PendingOrdersResponse,
+  ManagerOverviewResponse,
+  OccupancyResponse,
+  ReceiptResponse,
+  ReceiptItem,
+  FullStaySummaryResponse,
+  FinancialSummary,
+  Pageable,
+  PageMetadata,
+  PagedModelRoomResponse,
+  PagedModelStayDetailsResponse,
+  PagedModelReservationRequestResponse,
+  PagedModelSpecialOrderResponse,
 };

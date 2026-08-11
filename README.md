@@ -4,14 +4,20 @@ A comprehensive luxury hotel management dashboard built by LYTC, featuring an in
 
 ## Features
 
-- **Room Management**: Complete oversight of room status, occupancy, and maintenance
-- **Reservation System**: Streamlined booking management and guest check-in/check-out processes
-- **Guest Services**: Efficient handling of guest requests and service orders
+- **Room Management**: Complete oversight of room status, occupancy, and maintenance with real-time updates
+- **Room Categories**: Manage room categories with specifications, pricing, and daily rates
+- **Reservation System**: Streamlined booking management with calendar view, guest check-in/check-out processes
+- **Landing Page Integration**: Handle reservation requests from the landing page with approval/rejection workflow
+- **Guest Services**: Efficient handling of guest requests and service orders (room service, restaurant, cafe)
+- **Menu Management**: Create and manage menu items with image uploads for all service categories
+- **Special Offers**: Promotional offers management with image support
 - **Housekeeping Coordination**: Real-time room cleaning status and staff assignment
 - **Financial Analytics**: Comprehensive reporting on revenue, expenses, and performance metrics
+- **Real-time Updates**: SSE (Server-Sent Events) integration for live data synchronization
+- **Image Compression**: Automatic WebP compression for images under 1MB
 - **Arabic Interface**: Full Arabic language support with RTL (right-to-left) layout
 - **Modern UI**: Built with React 19, Tailwind CSS, and Motion for smooth animations
-- **AI Integration**: Powered by Google Gemini AI for intelligent insights and automation
+- **Responsive Design**: Optimized for desktop, tablet, and mobile devices
 
 ## Technology Stack
 
@@ -20,8 +26,10 @@ A comprehensive luxury hotel management dashboard built by LYTC, featuring an in
 - **Build Tool**: Vite 6
 - **Animations**: Motion (Framer Motion)
 - **Icons**: Lucide React
-- **AI Integration**: Google Generative AI SDK
-- **Backend**: Express.js for server-side operations
+- **API Integration**: REST API with Swagger documentation compliance
+- **Real-time Updates**: Server-Sent Events (SSE)
+- **Image Processing**: browser-image-compression for WebP conversion
+- **Backend API**: https://lytc-hotel-backend.onrender.com
 
 ## Prerequisites
 
@@ -76,10 +84,22 @@ Dashboard/
 ├── public/              # Static assets (logo, images)
 ├── src/
 │   ├── components/      # Reusable React components
+│   │   ├── RoomsSection.tsx
+│   │   ├── RoomCategoriesSection.tsx
+│   │   ├── ReservationsSection.tsx
+│   │   ├── OrdersSection.tsx
+│   │   ├── SpecialOffersSection.tsx
+│   │   ├── MenuItemsSection.tsx
+│   │   └── ...
+│   ├── services/        # API service layer
+│   │   └── api.ts       # REST API integration with Swagger types
+│   ├── hooks/           # Custom React hooks
+│   │   └── useSSE.ts    # Server-Sent Events hook
+│   ├── utils/           # Utility functions
+│   │   └── imageCompression.ts  # WebP image compression
+│   ├── types.ts         # TypeScript type definitions
 │   ├── App.tsx         # Main application component
 │   ├── main.tsx        # Application entry point
-│   ├── data.ts         # Mock data and constants
-│   ├── types.ts        # TypeScript type definitions
 │   └── index.css       # Global styles
 ├── index.html          # HTML template with SEO meta tags
 ├── package.json        # Project dependencies and scripts

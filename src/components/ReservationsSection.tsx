@@ -2,30 +2,33 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Calendar, User, Plus, Search, XCircle, ChevronLeft, ChevronRight,
-  X, Loader2, CheckCircle2, Building, Clock, DollarSign, Save
+  X, Loader2, CheckCircle2, Building, Clock, DollarSign, Save,
+  Check, AlertCircle, Mail, Phone, Globe, CreditCard
 } from 'lucide-react';
-import { apiService, StayDetailsResponse, CreateStayRequest } from '../services/api';
+import { apiService, StayDetailsResponse, CreateStayRequest, ReservationRequestResponse, ApproveReservationRequest, RejectReservationRequest, RoomResponse } from '../services/api';
 
 type ViewMode = 'month' | 'week' | 'day';
 
 const STATUS_COLORS: Record<string, { bg: string; text: string; border: string; dot: string }> = {
-  'CHECKED_IN': { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', dot: 'bg-blue-500' },
-  'ACTIVE': { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', dot: 'bg-blue-500' },
-  'active': { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', dot: 'bg-blue-500' },
   'RESERVED': { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200', dot: 'bg-green-500' },
-  'BOOKED': { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200', dot: 'bg-green-500' },
-  'booked': { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200', dot: 'bg-green-500' },
-  'CHECKED_OUT': { bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-200', dot: 'bg-gray-400' },
+  'ACTIVE': { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', dot: 'bg-blue-500' },
   'CLOSED': { bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-200', dot: 'bg-gray-400' },
-  'closed': { bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-200', dot: 'bg-gray-400' },
   'CANCELLED': { bg: 'bg-red-50', text: 'text-red-600', border: 'border-red-200', dot: 'bg-red-500' },
+  'NO_SHOW': { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200', dot: 'bg-orange-500' },
+  'PENDING': { bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-200', dot: 'bg-yellow-500' },
+  'APPROVED': { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200', dot: 'bg-green-500' },
+  'REJECTED': { bg: 'bg-red-50', text: 'text-red-600', border: 'border-red-200', dot: 'bg-red-500' },
 };
 
 const STATUS_LABELS: Record<string, string> = {
-  'CHECKED_IN': 'نشط', 'ACTIVE': 'نشط', 'active': 'نشط',
-  'RESERVED': 'محجوز', 'BOOKED': 'محجوز', 'booked': 'محجوز',
-  'CHECKED_OUT': 'مغلق', 'CLOSED': 'مغلق', 'closed': 'مغلق',
+  'RESERVED': 'محجوز',
+  'ACTIVE': 'نشط',
+  'CLOSED': 'مغلق',
   'CANCELLED': 'ملغي',
+  'NO_SHOW': 'لم يحضر',
+  'PENDING': 'قيد الانتظار',
+  'APPROVED': 'موافق عليه',
+  'REJECTED': 'مرفوض',
 };
 
 const DAY_NAMES = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
@@ -33,16 +36,25 @@ const MONTH_NAMES = ['يناير', 'فبراير', 'مارس', 'أبريل', 'م
 
 export default function ReservationsSection({ onCheckout }: { onCheckout?: () => void }) {
   const [stays, setStays] = useState<StayDetailsResponse[]>([]);
+  const [reservationRequests, setReservationRequests] = useState<ReservationRequestResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('month');
   const [displayMode, setDisplayMode] = useState<'calendar' | 'table'>('calendar');
+  const [showPendingRequests, setShowPendingRequests] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedStay, setSelectedStay] = useState<StayDetailsResponse | null>(null);
+  const [selectedRequest, setSelectedRequest] = useState<ReservationRequestResponse | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
+  const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [rejectReason, setRejectReason] = useState('');
+  const [selectedRoomForApproval, setSelectedRoomForApproval] = useState<number | null>(null);
+  const [availableRoomsForApproval, setAvailableRoomsForApproval] = useState<RoomResponse[]>([]);
 
   // New reservation modal
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -56,7 +68,7 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
 
-  useEffect(() => { loadStays(); }, []);
+  useEffect(() => { loadStays(); loadReservationRequests(); }, []);
 
   const loadStays = async () => {
     setIsLoading(true);
@@ -69,6 +81,16 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
       setStays([]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadReservationRequests = async () => {
+    try {
+      const response = await apiService.getPendingReservationRequests(0, 100);
+      setReservationRequests(response.content || []);
+    } catch (e: any) {
+      console.error('Failed to load reservation requests:', e);
+      setReservationRequests([]);
     }
   };
 
@@ -102,16 +124,14 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
       
       // Update room status to OCCUPIED after booking
       try {
-        const rooms = await apiService.getRooms(undefined, undefined, 0, 100);
-        const roomToUpdate = (rooms.content || []).find((r: any) => r.roomNumber === selectedRoomNumber);
+        const roomToUpdate = availableRooms.find((r: RoomResponse) => r.roomNumber === selectedRoomNumber);
         if (roomToUpdate) {
           await apiService.updateRoom(roomToUpdate.id, { 
             roomNumber: selectedRoomNumber, 
+            categoryId: roomToUpdate.categoryId,
             status: 'OCCUPIED',
-            price: roomToUpdate.price || 0,
-            maxAdults: roomToUpdate.maxAdults,
-            maxKids: roomToUpdate.maxKids,
             floor: roomToUpdate.floor,
+            viewType: roomToUpdate.viewType,
             description: roomToUpdate.description
           });
         }
@@ -141,19 +161,18 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
       await apiService.checkOutStay(stayId);
       
       // Update room status to AVAILABLE after checkout
-      const stay = stays.find(s => s.stayId === stayId);
+      const stay = stays.find((s: StayDetailsResponse) => s.stayId === stayId);
       if (stay && stay.roomNumber) {
         try {
           const rooms = await apiService.getRooms(undefined, undefined, 0, 100);
-          const roomToUpdate = (rooms.content || []).find((r: any) => r.roomNumber === stay.roomNumber);
+          const roomToUpdate = (rooms.content || []).find((r: RoomResponse) => r.roomNumber === stay.roomNumber);
           if (roomToUpdate) {
             await apiService.updateRoom(roomToUpdate.id, { 
               roomNumber: stay.roomNumber, 
+              categoryId: roomToUpdate.categoryId,
               status: 'AVAILABLE',
-              price: roomToUpdate.price || 0,
-              maxAdults: roomToUpdate.maxAdults,
-              maxKids: roomToUpdate.maxKids,
               floor: roomToUpdate.floor,
+              viewType: roomToUpdate.viewType,
               description: roomToUpdate.description
             });
           }
@@ -170,12 +189,63 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
   // Filter stays
   const filteredStays = useMemo(() => stays.filter(s => {
     const matchSearch = !searchQuery || s.guestName.toLowerCase().includes(searchQuery.toLowerCase()) || s.roomNumber?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchStatus = filterStatus === 'all' ||
-      (filterStatus === 'active' && (s.status === 'CHECKED_IN' || s.status === 'ACTIVE' || s.status === 'active')) ||
-      (filterStatus === 'reserved' && (s.status === 'RESERVED' || s.status === 'BOOKED' || s.status === 'booked')) ||
-      (filterStatus === 'closed' && (s.status === 'CHECKED_OUT' || s.status === 'CLOSED' || s.status === 'closed'));
+    const matchStatus = filterStatus === 'all' || s.status === filterStatus;
     return matchSearch && matchStatus;
   }), [stays, searchQuery, filterStatus]);
+
+  // Filter reservation requests
+  const filteredRequests = useMemo(() => reservationRequests.filter(r => r.status === 'PENDING'), [reservationRequests]);
+
+  const handleApproveRequest = async () => {
+    if (!selectedRequest || !selectedRoomForApproval) return;
+    try {
+      await apiService.approveReservationRequest(selectedRequest.id, { roomId: selectedRoomForApproval });
+      setIsApproveModalOpen(false);
+      setSelectedRequest(null);
+      setSelectedRoomForApproval(null);
+      loadReservationRequests();
+      loadStays();
+    } catch (e: any) {
+      console.error('Failed to approve request:', e);
+      alert('فشل الموافقة على الطلب');
+    }
+  };
+
+  const handleRejectRequest = async () => {
+    if (!selectedRequest || !rejectReason.trim()) return;
+    try {
+      await apiService.rejectReservationRequest(selectedRequest.id, { reason: rejectReason });
+      setIsRejectModalOpen(false);
+      setSelectedRequest(null);
+      setRejectReason('');
+      loadReservationRequests();
+    } catch (e: any) {
+      console.error('Failed to reject request:', e);
+      alert('فشل رفض الطلب');
+    }
+  };
+
+  const loadAvailableRoomsForApproval = async () => {
+    try {
+      const response = await apiService.getRooms('AVAILABLE', undefined, 0, 100);
+      setAvailableRoomsForApproval(response.content || []);
+    } catch (e) {
+      console.error('Failed to load available rooms:', e);
+      setAvailableRoomsForApproval([]);
+    }
+  };
+
+  const openApproveModal = (request: ReservationRequestResponse) => {
+    setSelectedRequest(request);
+    loadAvailableRoomsForApproval();
+    setIsApproveModalOpen(true);
+  };
+
+  const openRejectModal = (request: ReservationRequestResponse) => {
+    setSelectedRequest(request);
+    setRejectReason('');
+    setIsRejectModalOpen(true);
+  };
 
   // Calendar helpers
   const getDaysInMonth = (date: Date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
@@ -256,10 +326,73 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
           <h1 className="text-3xl font-black text-gray-900">الحجوزات</h1>
           <p className="text-sm mt-1 text-gray-500">عرض وإدارة حجوزات الفندق على التقويم.</p>
         </div>
-        <button onClick={() => { loadAvailableRooms(); setIsCreateOpen(true); }} className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#AA7B30] to-[#D4AF37] text-white font-bold text-sm rounded-xl shadow-lg hover:shadow-xl transition">
-          <Plus size={18} /><span>حجز جديد</span>
-        </button>
+        <div className="flex items-center gap-3">
+          {filteredRequests.length > 0 && (
+            <button onClick={() => setShowPendingRequests(!showPendingRequests)} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition ${showPendingRequests ? 'bg-[#D4AF37] text-white' : 'bg-yellow-50 text-yellow-700 border border-yellow-200'}`}>
+              <AlertCircle size={18} />
+              <span>طلبات معلقة ({filteredRequests.length})</span>
+            </button>
+          )}
+          <button onClick={() => { loadAvailableRooms(); setIsCreateOpen(true); }} className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#AA7B30] to-[#D4AF37] text-white font-bold text-sm rounded-xl shadow-lg hover:shadow-xl transition">
+            <Plus size={18} /><span>حجز جديد</span>
+          </button>
+        </div>
       </div>
+
+      {/* Pending Requests Section */}
+      {showPendingRequests && (
+        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+          <div className="p-5 border-b border-gray-200 flex justify-between items-center">
+            <h3 className="text-lg font-bold text-gray-900">طلبات الحجوز المعلقة (من صفحة الهبوط)</h3>
+            <button onClick={() => setShowPendingRequests(false)} className="p-2 hover:bg-gray-100 rounded-lg transition"><X size={18} className="text-gray-500" /></button>
+          </div>
+          {filteredRequests.length === 0 ? (
+            <div className="text-center py-12 text-gray-400 text-sm font-bold">لا توجد طلبات معلقة</div>
+          ) : (
+            <div className="divide-y divide-gray-200">
+              {filteredRequests.map(request => (
+                <div key={request.id} className="p-5 hover:bg-gray-50 transition">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-3">
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${STATUS_COLORS['PENDING'].bg} ${STATUS_COLORS['PENDING'].text} ${STATUS_COLORS['PENDING'].border}`}>
+                          <span className={`w-2 h-2 rounded-full ${STATUS_COLORS['PENDING'].dot}`}></span>
+                          {STATUS_LABELS['PENDING']}
+                        </span>
+                        <span className="text-xs text-gray-400">#{request.id}</span>
+                        <span className="text-xs text-gray-400">{new Date(request.createdAt).toLocaleDateString('ar-SA')}</span>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                        <div className="flex items-center gap-2 text-gray-700"><User size={14} />{request.guestName}</div>
+                        <div className="flex items-center gap-2 text-gray-700"><Mail size={14} />{request.guestEmail}</div>
+                        <div className="flex items-center gap-2 text-gray-700"><Phone size={14} />{request.guestPhone}</div>
+                        <div className="flex items-center gap-2 text-gray-700"><Globe size={14} />{request.nationality || 'غير محدد'}</div>
+                        <div className="flex items-center gap-2 text-gray-700"><Building size={14} />{request.categoryName}</div>
+                        <div className="flex items-center gap-2 text-gray-700"><DollarSign size={14} />{request.quotedTotalCharge?.toLocaleString('ar-SA')} ريال</div>
+                        <div className="flex items-center gap-2 text-gray-700"><Calendar size={14} />{new Date(request.checkInDate).toLocaleDateString('ar-SA')} → {new Date(request.checkOutDate).toLocaleDateString('ar-SA')}</div>
+                        <div className="flex items-center gap-2 text-gray-700"><User size={14} />{request.numAdults} بالغين, {request.numKids} أطفال</div>
+                      </div>
+                      {request.notes && (
+                        <div className="mt-3 p-3 bg-gray-50 rounded-lg text-sm text-gray-600">
+                          <span className="font-bold">ملاحظات:</span> {request.notes}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => openApproveModal(request)} className="px-4 py-2 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm font-bold hover:bg-green-100 transition flex items-center gap-2">
+                        <Check size={16} />موافقة
+                      </button>
+                      <button onClick={() => openRejectModal(request)} className="px-4 py-2 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm font-bold hover:bg-red-100 transition flex items-center gap-2">
+                        <XCircle size={16} />رفض
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Calendar Controls */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -302,9 +435,11 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
           </div>
           <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-600 focus:outline-none focus:border-[#D4AF37]">
             <option value="all">الكل</option>
-            <option value="active">نشط</option>
-            <option value="reserved">محجوز</option>
-            <option value="closed">مغلق</option>
+            <option value="RESERVED">محجوز</option>
+            <option value="ACTIVE">نشط</option>
+            <option value="CLOSED">مغلق</option>
+            <option value="CANCELLED">ملغي</option>
+            <option value="NO_SHOW">لم يحضر</option>
           </select>
         </div>
       </div>
@@ -353,11 +488,11 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex gap-2">
-                              {(s.status === 'RESERVED' || s.status === 'BOOKED' || s.status === 'booked') ? (
+                              {s.status === 'RESERVED' ? (
                                 <button onClick={e => { e.stopPropagation(); handleCheckIn(s.stayId); }} className="px-3 py-1.5 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg text-xs font-bold hover:bg-blue-100 transition">دخول</button>
-                              ) : (
-                                <button onClick={e => { e.stopPropagation(); handleCheckOut(s.stayId); }} disabled={s.status === 'CHECKED_OUT' || s.status === 'CLOSED' || s.status === 'closed'} className="px-3 py-1.5 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg text-xs font-bold hover:bg-emerald-100 disabled:opacity-40 transition">مغادرة</button>
-                              )}
+                              ) : s.status === 'ACTIVE' ? (
+                                <button onClick={e => { e.stopPropagation(); handleCheckOut(s.stayId); }} className="px-3 py-1.5 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg text-xs font-bold hover:bg-emerald-100 transition">مغادرة</button>
+                              ) : null}
                             </div>
                           </td>
                         </tr>
@@ -671,8 +806,12 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
 
                 {/* Actions */}
                 <div className="flex gap-3 pt-4 border-t border-gray-100">
-                  <button onClick={() => { handleCheckIn(selectedStay.stayId); setIsModalOpen(false); }} disabled={selectedStay.status === 'CHECKED_IN' || selectedStay.status === 'ACTIVE' || selectedStay.status === 'CHECKED_OUT' || selectedStay.status === 'CLOSED'} className="flex-1 py-3 bg-blue-50 border border-blue-200 text-blue-700 font-bold text-sm rounded-xl hover:bg-blue-100 transition disabled:opacity-40 disabled:cursor-not-allowed">تسجيل الدخول</button>
-                  <button onClick={() => { handleCheckOut(selectedStay.stayId); setIsModalOpen(false); }} disabled={selectedStay.status !== 'CHECKED_IN' && selectedStay.status !== 'ACTIVE'} className="flex-1 py-3 bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold text-sm rounded-xl hover:bg-emerald-100 transition disabled:opacity-40 disabled:cursor-not-allowed">تسجيل المغادرة</button>
+                  {selectedStay.status === 'RESERVED' && (
+                    <button onClick={() => { handleCheckIn(selectedStay.stayId); setIsModalOpen(false); }} className="flex-1 py-3 bg-blue-50 border border-blue-200 text-blue-700 font-bold text-sm rounded-xl hover:bg-blue-100 transition">تسجيل الدخول</button>
+                  )}
+                  {selectedStay.status === 'ACTIVE' && (
+                    <button onClick={() => { handleCheckOut(selectedStay.stayId); setIsModalOpen(false); }} className="flex-1 py-3 bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold text-sm rounded-xl hover:bg-emerald-100 transition">تسجيل المغادرة</button>
+                  )}
                 </div>
               </div>
             </motion.div>
@@ -704,13 +843,13 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
                   <label className="text-xs block mb-2 text-gray-500 font-bold">رقم الغرفة *</label>
                   <select
                     value={selectedRoomNumber}
-                    onChange={(e) => setSelectedRoomNumber(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedRoomNumber(e.target.value)}
                     className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#D4AF37] text-gray-900 bg-white"
                   >
                     <option value="">اختر غرفة متاحة</option>
-                    {availableRooms.map((room: any) => (
+                    {availableRooms.map((room: RoomResponse) => (
                       <option key={room.id} value={room.roomNumber}>
-                        {room.roomNumber} - {room.description || 'غرفة'}
+                        {room.roomNumber} - {room.categoryName} - {room.description || 'غرفة'}
                       </option>
                     ))}
                   </select>
@@ -721,7 +860,7 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
                     <input
                       type="date"
                       value={checkIn}
-                      onChange={(e) => setCheckIn(e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCheckIn(e.target.value)}
                       className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#D4AF37] text-gray-900 bg-white"
                     />
                   </div>
@@ -730,7 +869,7 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
                     <input
                       type="date"
                       value={checkOut}
-                      onChange={(e) => setCheckOut(e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCheckOut(e.target.value)}
                       className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#D4AF37] text-gray-900 bg-white"
                     />
                   </div>
@@ -742,7 +881,7 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
                     <input
                       type="number"
                       value={adults}
-                      onChange={(e) => setAdults(parseInt(e.target.value))}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAdults(parseInt(e.target.value))}
                       min="1"
                       className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#D4AF37] text-gray-900 bg-white"
                     />
@@ -752,7 +891,7 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
                     <input
                       type="number"
                       value={children}
-                      onChange={(e) => setChildren(parseInt(e.target.value))}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setChildren(parseInt(e.target.value))}
                       min="0"
                       className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#D4AF37] text-gray-900 bg-white"
                     />
@@ -786,6 +925,126 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
                     )}
                   </button>
                 </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Approve Request Modal */}
+      <AnimatePresence>
+        {isApproveModalOpen && selectedRequest && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setIsApproveModalOpen(false)}>
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} onClick={e => e.stopPropagation()} className="bg-white border border-gray-200 rounded-2xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold text-[#AA7B30]">موافقة على طلب الحجز</h3>
+                <button onClick={() => setIsApproveModalOpen(false)} className="p-2 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 transition">
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="space-y-4 mb-6">
+                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-2">
+                  <div className="flex items-center gap-2 text-sm text-gray-700"><User size={14} />{selectedRequest.guestName}</div>
+                  <div className="flex items-center gap-2 text-sm text-gray-700"><Mail size={14} />{selectedRequest.guestEmail}</div>
+                  <div className="flex items-center gap-2 text-sm text-gray-700"><Phone size={14} />{selectedRequest.guestPhone}</div>
+                  <div className="flex items-center gap-2 text-sm text-gray-700"><Calendar size={14} />{new Date(selectedRequest.checkInDate).toLocaleDateString('ar-SA')} → {new Date(selectedRequest.checkOutDate).toLocaleDateString('ar-SA')}</div>
+                  <div className="flex items-center gap-2 text-sm text-gray-700"><Building size={14} />{selectedRequest.categoryName}</div>
+                  <div className="flex items-center gap-2 text-sm text-gray-700"><DollarSign size={14} />{selectedRequest.quotedTotalCharge?.toLocaleString('ar-SA')} ريال</div>
+                </div>
+
+                <div>
+                  <label className="text-xs block mb-2 text-gray-500 font-bold">اختر غرفة متاحة *</label>
+                  <select
+                    value={selectedRoomForApproval || ''}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedRoomForApproval(e.target.value ? parseInt(e.target.value) : null)}
+                    className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#D4AF37] text-gray-900 bg-white"
+                  >
+                    <option value="">اختر غرفة متاحة</option>
+                    {availableRoomsForApproval.map((room: RoomResponse) => (
+                      <option key={room.id} value={room.id}>
+                        {room.roomNumber} - {room.categoryName} - {room.description || 'غرفة'}
+                      </option>
+                    ))}
+                  </select>
+                  {availableRoomsForApproval.length === 0 && (
+                    <p className="text-xs text-red-500 mt-2">لا توجد غرف متاحة حالياً</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => setIsApproveModalOpen(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-xl text-sm font-bold transition bg-gray-100 text-gray-600 hover:text-gray-900"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="button"
+                  onClick={handleApproveRequest}
+                  disabled={!selectedRoomForApproval}
+                  className="px-6 py-2 bg-gradient-to-r from-[#AA7B30] to-[#D4AF37] text-black font-extrabold text-sm rounded-xl shadow hover:shadow-lg transition duration-200 flex items-center gap-2 disabled:opacity-50"
+                >
+                  <Check size={16} />
+                  موافقة
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Reject Request Modal */}
+      <AnimatePresence>
+        {isRejectModalOpen && selectedRequest && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setIsRejectModalOpen(false)}>
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} onClick={e => e.stopPropagation()} className="bg-white border border-gray-200 rounded-2xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold text-red-600">رفض طلب الحجز</h3>
+                <button onClick={() => setIsRejectModalOpen(false)} className="p-2 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 transition">
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="space-y-4 mb-6">
+                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-2">
+                  <div className="flex items-center gap-2 text-sm text-gray-700"><User size={14} />{selectedRequest.guestName}</div>
+                  <div className="flex items-center gap-2 text-sm text-gray-700"><Mail size={14} />{selectedRequest.guestEmail}</div>
+                  <div className="flex items-center gap-2 text-sm text-gray-700"><Phone size={14} />{selectedRequest.guestPhone}</div>
+                  <div className="flex items-center gap-2 text-sm text-gray-700"><Calendar size={14} />{new Date(selectedRequest.checkInDate).toLocaleDateString('ar-SA')} → {new Date(selectedRequest.checkOutDate).toLocaleDateString('ar-SA')}</div>
+                </div>
+
+                <div>
+                  <label className="text-xs block mb-2 text-gray-500 font-bold">سبب الرفض *</label>
+                  <textarea
+                    value={rejectReason}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setRejectReason(e.target.value)}
+                    rows={4}
+                    placeholder="أدخل سبب رفض الطلب..."
+                    className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#D4AF37] text-gray-900 bg-white resize-none"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => setIsRejectModalOpen(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-xl text-sm font-bold transition bg-gray-100 text-gray-600 hover:text-gray-900"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="button"
+                  onClick={handleRejectRequest}
+                  disabled={!rejectReason.trim()}
+                  className="px-6 py-2 bg-red-600 text-white font-extrabold text-sm rounded-xl shadow hover:shadow-lg transition duration-200 flex items-center gap-2 disabled:opacity-50"
+                >
+                  <XCircle size={16} />
+                  رفض
+                </button>
               </div>
             </motion.div>
           </motion.div>
