@@ -8,11 +8,6 @@ const getBedTypeArabic = (bedType?: string): string => {
   return translations[bedType || ''] || bedType || 'غير متاح';
 };
 
-const getViewTypeArabic = (viewType?: string): string => {
-  const translations: Record<string, string> = { 'CITY': 'مدينة', 'PANORAMIC': 'بانوراما', 'SEA': 'بحر', 'GARDEN': 'حديقة', 'MOUNTAIN': 'جبل', 'POOL': 'مسبح', 'RIVER': 'نهر', 'LANDMARK': 'معلم سياحي' };
-  return translations[viewType || ''] || viewType || 'غير متاح';
-};
-
 export default function RoomCategoriesSection() {
   const [categories, setCategories] = useState<RoomCategoryResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -35,7 +30,7 @@ export default function RoomCategoriesSection() {
     }
   };
 
-  const filteredCategories = categories.filter(cat => cat.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredCategories = categories.filter((cat: RoomCategoryResponse) => cat.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
     <div className="space-y-6 pb-12">
@@ -51,7 +46,7 @@ export default function RoomCategoriesSection() {
 
       <div className="relative">
         <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-        <input type="text" placeholder="بحث عن فئة..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="bg-white border border-gray-200 focus:border-[#D4AF37] rounded-xl pr-10 pl-4 py-2.5 text-sm w-full" />
+        <input type="text" placeholder="بحث عن فئة..." value={searchQuery} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)} className="bg-white border border-gray-200 focus:border-[#D4AF37] rounded-xl pr-10 pl-4 py-2.5 text-sm w-full" />
       </div>
 
       {isLoading ? (
@@ -67,7 +62,7 @@ export default function RoomCategoriesSection() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCategories.map(category => (
+          {filteredCategories.map((category: RoomCategoryResponse) => (
             <motion.div key={category.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative">
               <div className="relative bg-white border border-gray-200 rounded-2xl overflow-hidden hover:border-[#D4AF37]/30 hover:shadow-[0_20px_40px_rgba(212,175,55,0.15)] transition-all duration-500 hover:-translate-y-2 group">
                 <div className="relative h-48 overflow-hidden">
@@ -98,10 +93,6 @@ export default function RoomCategoriesSection() {
                     <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-xl">
                       <BedDouble size={16} className="text-gray-400" />
                       <span className="font-bold text-gray-800">{getBedTypeArabic(category.bedType)}</span>
-                    </div>
-                    <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-xl">
-                      <MapPin size={16} className="text-gray-400" />
-                      <span className="font-bold text-gray-800">{getViewTypeArabic(category.viewType)}</span>
                     </div>
                     <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-xl">
                       <Wifi size={16} className={category.hasWifi ? "text-green-500" : "text-gray-400"} />

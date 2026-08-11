@@ -81,6 +81,7 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
     viewType: 'CITY' as 'CITY' | 'PANORAMIC' | 'SEA' | 'GARDEN' | 'MOUNTAIN' | 'POOL' | 'RIVER' | 'LANDMARK',
     numBeds: 1,
     bedType: 'DOUBLE' as 'TWIN' | 'DOUBLE' | 'QUEEN' | 'KING',
+    categoryId: 0,
   });
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
   const [createRoomError, setCreateRoomError] = useState<string | null>(null);
@@ -88,6 +89,7 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
   const [roomImagePreview, setRoomImagePreview] = useState<string | null>(null);
   const [isCompressingImage, setIsCompressingImage] = useState(false);
   const [compressionProgress, setCompressionProgress] = useState<CompressionProgress | null>(null);
+  const [roomCategories, setRoomCategories] = useState<any[]>([]);
 
   // Edit Room Modal State
   const [editRoomModalOpen, setEditRoomModalOpen] = useState(false);
@@ -115,7 +117,17 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
 
   useEffect(() => {
     loadRooms();
+    loadRoomCategories();
   }, [filter, selectedFloor]);
+
+  const loadRoomCategories = async () => {
+    try {
+      const response = await apiService.getRoomCategories(0, 100);
+      setRoomCategories(response.content || []);
+    } catch (error) {
+      console.error('Failed to load room categories:', error);
+    }
+  };
 
   const loadRooms = async () => {
     setIsLoading(true);
@@ -1120,6 +1132,22 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
                       <option value="SINGLE">غرفة فردية</option>
                       <option value="DOUBLE">غرفة مزدوجة</option>
                       <option value="SUITE">جناح</option>
+                    </select>
+                  </div>
+
+                  {/* Room Category */}
+                  <div>
+                    <label className="text-xs font-bold text-gray-400 block mb-2">فئة الغرفة</label>
+                    <select
+                      value={newRoom.categoryId}
+                      onChange={(e) => setNewRoom({ ...newRoom, categoryId: parseInt(e.target.value) })}
+                      className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
+                      disabled={isCreatingRoom}
+                    >
+                      <option value={0}>بدون فئة</option>
+                      {roomCategories.map((cat) => (
+                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                      ))}
                     </select>
                   </div>
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Building, User, LogOut, Sparkles, Menu, X,
-  Calendar, BedDouble, Coffee, BarChart3, ShoppingBag, Bot, Layers, Wifi
+  Calendar, BedDouble, Coffee, BarChart3, ShoppingBag, Bot, Layers
 } from 'lucide-react';
 
 import Login from './components/Login';
@@ -21,7 +21,6 @@ import SpecialOffersSection from './components/SpecialOffersSection';
 import AIAssistantSection from './components/AIAssistantSection';
 import RoomCategoriesSection from './components/RoomCategoriesSection';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { useSSE } from './hooks/useSSE';
 
 import { apiService } from './services/api';
 import { Room, Reservation, Guest, ServiceRequest, HousekeepingTask, MaintenanceTicket, RestaurantOrder, Invoice } from './types';
@@ -168,18 +167,6 @@ function App() {
   ]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const [sseConnected, setSseConnected] = useState(false);
-
-  // SSE Integration
-  const { isConnected: sseIsConnected } = useSSE({
-    enabled: isLoggedIn,
-    onConnect: () => setSseConnected(true),
-    onDisconnect: () => setSseConnected(false),
-    onEvent: (event) => {
-      console.log('SSE Event:', event);
-      // Handle real-time events here
-    }
-  });
 
   // Quick Modal Triggers
   const [quickBookOpen, setQuickBookOpen] = useState(false);
@@ -501,12 +488,6 @@ function App() {
 
           {/* Left Part: Quick Clock */}
           <div className="flex items-center gap-4 relative">
-            {/* SSE Connection Indicator */}
-            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold border ${sseConnected ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-600'}`}>
-              <Wifi size={12} className={sseConnected ? 'text-green-500' : 'text-red-500'} />
-              <span>{sseConnected ? 'متصل' : 'غير متصل'}</span>
-            </div>
-
             {/* Clock */}
             <span className="text-xs font-mono text-gray-500 font-bold hidden md:inline-flex bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-lg select-none">
               {new Date().toLocaleDateString('ar-SA', { weekday: 'long', day: 'numeric', month: 'long', calendar: 'gregory' })}
