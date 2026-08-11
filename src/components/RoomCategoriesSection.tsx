@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Building2, Plus, Search, Loader2, Edit, Trash2, Save, Image as ImageIcon, DollarSign, Users, BedDouble, MapPin, Wifi, AlertCircle, Layers, Star, Tv } from 'lucide-react';
+import { Building2, Plus, Search, Loader2, Edit, Trash2, Save, Image as ImageIcon, DollarSign, Users, BedDouble, MapPin, Wifi, AlertCircle, Layers, Star, Tv, Check, X } from 'lucide-react';
 import { apiService, RoomCategoryResponse } from '../services/api';
 
 const getBedTypeArabic = (bedType?: string): string => {
@@ -13,6 +13,20 @@ export default function RoomCategoriesSection() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [newCategory, setNewCategory] = useState({
+    name: '',
+    description: '',
+    price: 0,
+    numBeds: 1,
+    bedType: 'DOUBLE' as 'TWIN' | 'DOUBLE' | 'QUEEN' | 'KING',
+    maxAdults: 2,
+    maxKids: 0,
+    hasWifi: true,
+    numTvs: 1,
+  });
 
   useEffect(() => { loadCategories(); }, []);
 
@@ -30,6 +44,36 @@ export default function RoomCategoriesSection() {
     }
   };
 
+  const handleCreateCategory = async () => {
+    if (!newCategory.name || !newCategory.price) {
+      setCreateError('يرجى تعبئة الاسم والسعر');
+      return;
+    }
+
+    setIsCreating(true);
+    setCreateError(null);
+    try {
+      await apiService.createRoomCategory(newCategory);
+      setIsCreateModalOpen(false);
+      setNewCategory({
+        name: '',
+        description: '',
+        price: 0,
+        numBeds: 1,
+        bedType: 'DOUBLE',
+        maxAdults: 2,
+        maxKids: 0,
+        hasWifi: true,
+        numTvs: 1,
+      });
+      loadCategories();
+    } catch (e) {
+      setCreateError('فشل إنشاء فئة الغرفة');
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
   const filteredCategories = categories.filter((cat: RoomCategoryResponse) => cat.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
@@ -39,7 +83,7 @@ export default function RoomCategoriesSection() {
           <h1 className="text-3xl font-black text-[#AA7B30]">فئات الغرف</h1>
           <p className="text-gray-500 text-xs mt-1">إدارة فئات الغرف وتحديد الأسعار والمواصفات.</p>
         </div>
-        <button className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#AA7B30] to-[#D4AF37] text-white font-bold text-sm rounded-xl shadow-lg hover:shadow-xl transition">
+        <button onClick={() => setIsCreateModalOpen(true)} className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#AA7B30] to-[#D4AF37] text-white font-bold text-sm rounded-xl shadow-lg hover:shadow-xl transition">
           <Plus size={18} /><span>إضافة فئة</span>
         </button>
       </div>
@@ -168,6 +212,163 @@ export default function RoomCategoriesSection() {
               </div>
             </motion.div>
           ))}
+        </div>
+      )}
+
+      {/* Create Category Modal */}
+      {isCreateModalOpen && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-gray-200 rounded-2xl p-6 max-w-md w-full relative space-y-4 shadow-xl">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-black text-[#AA7B30]">إضافة فئة غرفة جديدة</h3>
+              <button onClick={() => setIsCreateModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                <X size={20} />
+              </button>
+            </div>
+
+            {createError && (
+              <div className="text-red-500 text-xs font-bold bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
+                {createError}
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-bold text-gray-400 block mb-2">اسم الفئة *</label>
+                <input
+                  type="text"
+                  value={newCategory.name}
+                  onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
+                  className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
+                  placeholder="مثال: جناح ملكي"
+                  disabled={isCreating}
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-gray-400 block mb-2">الوصف</label>
+                <textarea
+                  value={newCategory.description}
+                  onChange={(e) => setNewCategory({ ...newCategory, description: e.target.value })}
+                  className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none resize-none"
+                  placeholder="وصف الفئة..."
+                  rows={3}
+                  disabled={isCreating}
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-gray-400 block mb-2">السعر لليلة *</label>
+                <input
+                  type="number"
+                  value={newCategory.price}
+                  onChange={(e) => setNewCategory({ ...newCategory, price: parseFloat(e.target.value) || 0 })}
+                  className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
+                  placeholder="مثال: 500"
+                  min="0"
+                  step="0.01"
+                  disabled={isCreating}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-gray-400 block mb-2">أقصى عدد بالغين</label>
+                  <input
+                    type="number"
+                    value={newCategory.maxAdults}
+                    onChange={(e) => setNewCategory({ ...newCategory, maxAdults: parseInt(e.target.value) || 1 })}
+                    className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
+                    min="1"
+                    disabled={isCreating}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-400 block mb-2">أقصى عدد أطفال</label>
+                  <input
+                    type="number"
+                    value={newCategory.maxKids}
+                    onChange={(e) => setNewCategory({ ...newCategory, maxKids: parseInt(e.target.value) || 0 })}
+                    className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
+                    min="0"
+                    disabled={isCreating}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-gray-400 block mb-2">عدد الأسرة</label>
+                  <input
+                    type="number"
+                    value={newCategory.numBeds}
+                    onChange={(e) => setNewCategory({ ...newCategory, numBeds: parseInt(e.target.value) || 1 })}
+                    className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
+                    min="1"
+                    disabled={isCreating}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-400 block mb-2">نوع السرير</label>
+                  <select
+                    value={newCategory.bedType}
+                    onChange={(e) => setNewCategory({ ...newCategory, bedType: e.target.value as any })}
+                    className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
+                    disabled={isCreating}
+                  >
+                    <option value="TWIN">سريرين منفصلين</option>
+                    <option value="DOUBLE">سرير مزدوج</option>
+                    <option value="QUEEN">سرير كوين</option>
+                    <option value="KING">سرير كينج</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-gray-400 block mb-2">عدد التلفزيونات</label>
+                  <input
+                    type="number"
+                    value={newCategory.numTvs}
+                    onChange={(e) => setNewCategory({ ...newCategory, numTvs: parseInt(e.target.value) || 0 })}
+                    className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
+                    min="0"
+                    disabled={isCreating}
+                  />
+                </div>
+                <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-xl">
+                  <Wifi size={16} className={newCategory.hasWifi ? "text-green-500" : "text-gray-400"} />
+                  <div>
+                    <span className="block text-gray-400 text-xs">واي فاي</span>
+                    <span className="font-bold text-gray-800">{newCategory.hasWifi ? 'متاح' : 'غير متاح'}</span>
+                  </div>
+                  <button
+                    onClick={() => setNewCategory({ ...newCategory, hasWifi: !newCategory.hasWifi })}
+                    className="ml-auto text-[#D4AF37] hover:text-[#AA7B30]"
+                  >
+                    {newCategory.hasWifi ? <Check size={16} /> : <X size={16} />}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => setIsCreateModalOpen(false)}
+                className="w-1/3 py-3 bg-gray-100 border border-gray-200 rounded-xl text-gray-500 font-bold text-sm"
+                disabled={isCreating}
+              >
+                إلغاء
+              </button>
+              <button
+                onClick={handleCreateCategory}
+                className="w-2/3 py-3 bg-gradient-to-r from-[#AA7B30] to-[#D4AF37] text-white font-bold text-sm rounded-xl"
+                disabled={isCreating}
+              >
+                {isCreating ? 'جاري الإنشاء...' : 'إنشاء الفئة'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
