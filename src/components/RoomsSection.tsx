@@ -200,7 +200,7 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
         status: room.status.toLowerCase() as Room['status'],
         floor: room.floor,
         pricePerNight: room.price,
-        type: room.roomType || 'Standard',
+        type: room.categoryName || 'Standard',
         name: `Room ${room.roomNumber}`,
         maxAdults: room.maxAdults,
         maxKids: room.maxKids,
@@ -242,17 +242,10 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
     try {
       const createdRoom = await apiService.createRoom({
         roomNumber: newRoom.roomNumber,
-        maxAdults: newRoom.maxAdults,
-        maxKids: newRoom.maxKids,
-        description: newRoom.description,
+        categoryId: newRoom.categoryId,
         floor: newRoom.floor,
-        price: newRoom.price,
-        roomType: newRoom.roomType,
-        hasWifi: newRoom.hasWifi,
-        numTvs: newRoom.numTvs,
         viewType: newRoom.viewType,
-        numBeds: newRoom.numBeds,
-        bedType: newRoom.bedType,
+        description: newRoom.description,
       });
 
       // Upload image if provided
@@ -290,6 +283,7 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
         viewType: 'CITY',
         numBeds: 1,
         bedType: 'DOUBLE',
+        categoryId: 0,
       });
       setRoomImageFile(null);
       setRoomImagePreview(null);
@@ -334,17 +328,10 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
       const roomId = parseInt(editingRoom.id);
       await apiService.updateRoom(roomId, {
         roomNumber: editRoomData.roomNumber,
-        maxAdults: editRoomData.maxAdults,
-        maxKids: editRoomData.maxKids,
-        description: editRoomData.description,
+        categoryId: editRoomData.categoryId,
         floor: editRoomData.floor,
-        price: editRoomData.price,
-        roomType: editRoomData.roomType,
-        hasWifi: editRoomData.hasWifi,
-        numTvs: editRoomData.numTvs,
         viewType: editRoomData.viewType,
-        numBeds: editRoomData.numBeds,
-        bedType: editRoomData.bedType,
+        description: editRoomData.description,
         status: editRoomData.status,
       });
 
@@ -606,78 +593,80 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
 
       {/* Filters & Actions Bar - Only show in rooms section */}
       {activeSection === 'rooms' && (
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
-            <input
-              type="text"
-              placeholder="بحث عن غرفة..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl pr-9 pl-3 py-2 text-xs text-gray-800 placeholder-gray-500 focus:outline-none w-48"
-            />
-          </div>
+        <>
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
+              <input
+                type="text"
+                placeholder="بحث عن غرفة..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl pr-9 pl-3 py-2 text-xs text-gray-800 placeholder-gray-500 focus:outline-none w-48"
+              />
+            </div>
 
-          {/* Status Filters */}
-          <div className="flex items-center gap-2">
-            <Filter className="text-[#D4AF37] w-4 h-4" />
-            <button
-              onClick={() => setFilter('all')}
-              className={`px-3 py-1.5 rounded-lg text-sm font-bold transition duration-200 border ${
-                filter === 'all' ? 'bg-[#D4AF37] text-white border-[#D4AF37]' : 'bg-white text-gray-600 border-gray-200 hover:text-gray-900 hover:border-gray-300'
-              }`}
-            >
-              الكل
-            </button>
-            {(['available', 'occupied', 'cleaning', 'maintenance'] as Room['status'][]).map(status => (
+            {/* Status Filters */}
+            <div className="flex items-center gap-2">
+              <Filter className="text-[#D4AF37] w-4 h-4" />
               <button
-                key={status}
-                onClick={() => setFilter(status)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-bold transition duration-200 flex items-center gap-1.5 border ${
-                  filter === status ? 'bg-[#D4AF37] text-white border-[#D4AF37]' : 'bg-white text-gray-600 border-gray-200 hover:text-gray-900 hover:border-gray-300'
+                onClick={() => setFilter('all')}
+                className={`px-3 py-1.5 rounded-lg text-sm font-bold transition duration-200 border ${
+                  filter === 'all' ? 'bg-[#D4AF37] text-white border-[#D4AF37]' : 'bg-white text-gray-600 border-gray-200 hover:text-gray-900 hover:border-gray-300'
                 }`}
               >
-                {getStatusIcon(status)}
-                <span>{getStatusLabel(status)}</span>
+                الكل
               </button>
-            ))}
-          </div>
-
-          {/* Sort */}
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
-            className={`rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-[#D4AF37] ${isDark ? 'bg-gray-50 border-gray-200 text-gray-400' : 'bg-white border-gray-300 text-gray-700'}`}
-          >
-            <option value="number">ترتيب: الرقم</option>
-            <option value="price">ترتيب: السعر</option>
-            <option value="floor">ترتيب: الطابق</option>
-            <option value="status">ترتيب: الحالة</option>
-          </select>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {/* Bulk Actions */}
-          {selectedRooms.size > 0 && (
-            <div className="flex items-center gap-2">
-              <span className="text-xs" style={{ color: colors.text.muted }}>{selectedRooms.size} محدد</span>
-              <button
-                onClick={() => handleBulkAction('available')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold border ${isDark ? 'bg-emerald-950/40 text-emerald-400 border-emerald-500/20 hover:bg-emerald-950/60' : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'}`}
-              >
-                تعيين متاح
-              </button>
-              <button
-                onClick={() => handleBulkAction('maintenance')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold border ${isDark ? 'bg-red-950/40 text-red-400 border-red-500/20 hover:bg-red-950/60' : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'}`}
-              >
-                صيانة
-              </button>
+              {(['available', 'occupied', 'cleaning', 'maintenance'] as Room['status'][]).map(status => (
+                <button
+                  key={status}
+                  onClick={() => setFilter(status)}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-bold transition duration-200 flex items-center gap-1.5 border ${
+                    filter === status ? 'bg-[#D4AF37] text-white border-[#D4AF37]' : 'bg-white text-gray-600 border-gray-200 hover:text-gray-900 hover:border-gray-300'
+                  }`}
+                >
+                  {getStatusIcon(status)}
+                  <span>{getStatusLabel(status)}</span>
+                </button>
+              ))}
             </div>
-          )}
-        </div>
-      </div>
+
+            {/* Sort */}
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+              className={`rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-[#D4AF37] ${isDark ? 'bg-gray-50 border-gray-200 text-gray-400' : 'bg-white border-gray-300 text-gray-700'}`}
+            >
+              <option value="number">ترتيب: الرقم</option>
+              <option value="price">ترتيب: السعر</option>
+              <option value="floor">ترتيب: الطابق</option>
+              <option value="status">ترتيب: الحالة</option>
+            </select>
+
+            <div className="flex items-center gap-2">
+              {/* Bulk Actions */}
+              {selectedRooms.size > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs" style={{ color: colors.text.muted }}>{selectedRooms.size} محدد</span>
+                  <button
+                    onClick={() => handleBulkAction('available')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold border ${isDark ? 'bg-emerald-950/40 text-emerald-400 border-emerald-500/20 hover:bg-emerald-950/60' : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'}`}
+                  >
+                    تعيين متاح
+                  </button>
+                  <button
+                    onClick={() => handleBulkAction('maintenance')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold border ${isDark ? 'bg-red-950/40 text-red-400 border-red-500/20 hover:bg-red-950/60' : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'}`}
+                  >
+                    صيانة
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Room Cards - Grid View - Only show in rooms section */}
       {activeSection === 'rooms' && viewMode === 'grid' && (
@@ -1437,10 +1426,12 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
                     <button
                       key={status}
                       onClick={() => {
-                        handleUpdateRoomStatus(selectedRoom.id, status);
+                        if (selectedRoom?.id) {
+                          handleUpdateRoomStatus(selectedRoom.id, status);
+                        }
                       }}
                       className={`px-2 py-3 rounded-lg text-xs font-bold text-center border transition-all duration-200 ${
-                        selectedRoom.status === status
+                        selectedRoom?.status === status
                           ? 'bg-[#D4AF37] border-transparent text-black shadow-lg scale-105'
                           : 'bg-gray-100 border-gray-200 text-gray-400 hover:text-gray-800 hover:bg-gray-200'
                       }`}
@@ -2030,7 +2021,6 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
           </motion.div>
         )}
       </AnimatePresence>
-      </div>
     </div>
   );
 }
