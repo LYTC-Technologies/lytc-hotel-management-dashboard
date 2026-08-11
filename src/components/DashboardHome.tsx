@@ -131,8 +131,8 @@ export default function DashboardHome({
 
   // Compute live real metrics from API data
   const totalBookings = (stays || []).length;
-  const occupiedRoomsCount = (rooms || []).filter(r => r.status === 'OCCUPIED' || r.status === 'occupied').length;
-  const availableRoomsCount = (rooms || []).filter(r => r.status === 'AVAILABLE' || r.status === 'available').length;
+  const occupiedRoomsCount = (rooms || []).filter(r => r.status === 'occupied').length;
+  const availableRoomsCount = (rooms || []).filter(r => r.status === 'available').length;
   const totalRoomsCount = (rooms || []).length;
   
   // Calculate total room revenue from stays (room charge × number of nights)
@@ -180,7 +180,7 @@ export default function DashboardHome({
     ? ((stays || []).filter(s => s.status === 'CANCELLED').length / (stays || []).length) * 100 
     : 0;
 
-  const pendingHousekeeping = (rooms || []).filter(r => r.status === 'CLEANING' || r.status === 'cleaning').length;
+  const pendingHousekeeping = (rooms || []).filter(r => r.status === 'cleaning').length;
 
   const vipGuestsArriving = (vips || []).length;
 
@@ -273,7 +273,7 @@ export default function DashboardHome({
               </h3>
             </div>
             <div className={`p-2 sm:p-3 rounded-xl border ${isDark ? 'bg-blue-950/20 text-blue-400 border-blue-500/10' : 'bg-blue-50 text-blue-600 border-blue-200'}`}>
-              <BedDouble size={18} sm:size={22} />
+              <BedDouble size={window.innerWidth >= 640 ? 22 : 18} />
             </div>
           </div>
           <div className="flex items-center gap-1.5 mt-3 sm:mt-4 text-xs sm:text-xs" style={{ color: colors.text.muted }}>
@@ -298,7 +298,7 @@ export default function DashboardHome({
               </h3>
             </div>
             <div className={`p-2 sm:p-3 rounded-xl border ${isDark ? 'bg-emerald-950/20 text-emerald-400 border-emerald-500/10' : 'bg-emerald-50 text-emerald-600 border-emerald-200'}`}>
-              <UserCheck size={18} sm:size={22} />
+              <UserCheck size={window.innerWidth >= 640 ? 22 : 18} />
             </div>
           </div>
           <div className="flex items-center gap-1.5 mt-3 sm:mt-4 text-xs sm:text-xs" style={{ color: colors.text.muted }}>
@@ -323,7 +323,7 @@ export default function DashboardHome({
               </h3>
             </div>
             <div className={`p-2 sm:p-3 rounded-xl border ${isDark ? 'bg-purple-950/20 text-purple-400 border-purple-500/10' : 'bg-purple-50 text-purple-600 border-purple-200'}`}>
-              <Users size={18} sm:size={22} />
+              <Users size={window.innerWidth >= 640 ? 22 : 18} />
             </div>
           </div>
           <div className="flex items-center gap-1.5 mt-3 sm:mt-4 text-xs sm:text-xs" style={{ color: colors.text.muted }}>

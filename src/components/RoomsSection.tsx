@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   BedDouble, Sparkles, AlertTriangle, Hammer, CheckCircle2, User, Filter, Layers, 
   DollarSign, Grid3X3, List, Search, ArrowUpDown, ChevronLeft, Eye, Edit, 
-  Calendar, MapPin, Users, Clock, MoreVertical, X, Save, Building2, Image as ImageIcon, Star, Loader2, Plus, Trash2, Wifi, Tv
+  Calendar, MapPin, Users, Clock, MoreVertical, X, Save, Building2, Image as ImageIcon, Star, Loader2, Plus, Trash2, Wifi, Tv, Check
 } from 'lucide-react';
 import { Room } from '../types';
 import { apiService, RoomResponse } from '../services/api';
@@ -124,6 +124,7 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
     numBeds: 1,
     bedType: 'DOUBLE' as 'TWIN' | 'DOUBLE' | 'QUEEN' | 'KING',
     status: 'AVAILABLE' as 'AVAILABLE' | 'OCCUPIED' | 'CLEANING' | 'MAINTENANCE',
+    categoryId: 0,
   });
   const [isUpdatingRoom, setIsUpdatingRoom] = useState(false);
   const [updateRoomError, setUpdateRoomError] = useState<string | null>(null);
@@ -372,6 +373,7 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
         numBeds: 1,
         bedType: 'DOUBLE',
         status: 'AVAILABLE',
+        categoryId: 0,
       });
       setEditRoomImageFile(null);
       setEditRoomImagePreview(null);
@@ -834,6 +836,7 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
                           numBeds: room.numBeds || 1,
                           bedType: room.bedType || 'DOUBLE' as 'TWIN' | 'DOUBLE' | 'QUEEN' | 'KING',
                           status: room.status.toUpperCase() as 'AVAILABLE' | 'OCCUPIED' | 'CLEANING' | 'MAINTENANCE',
+                          categoryId: 0,
                         });
                         setEditRoomImagePreview(room.image || null);
                         setEditRoomModalOpen(true);
@@ -936,14 +939,14 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
 
                   {/* Amenities */}
                   <div className="flex flex-wrap gap-2">
-                    {room.amenities.filter(a => a).slice(0, 4).map((amenity, idx) => (
+                    {room.amenities?.filter(a => a).slice(0, 4).map((amenity, idx) => (
                       <span key={`${room.id}-amenity-${idx}`} className={`px-2 py-1 border rounded-md text-xs ${isDark ? 'bg-gray-50 border-gray-200 text-gray-400' : 'bg-gray-100 border-gray-300 text-gray-600'}`}>
                         {amenity}
                       </span>
                     ))}
-                    {room.amenities.length > 4 && (
+                    {(room.amenities?.length || 0) > 4 && (
                       <span className={`px-2 py-1 border rounded-md text-xs ${isDark ? 'bg-gray-50 border-gray-200 text-gray-400' : 'bg-gray-100 border-gray-300 text-gray-600'}`}>
-                        +{room.amenities.length - 4}
+                        +{(room.amenities?.length || 0) - 4}
                       </span>
                     )}
                   </div>

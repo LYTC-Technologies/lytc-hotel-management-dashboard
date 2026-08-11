@@ -401,6 +401,7 @@ interface DashboardStatsResponse {
   averageOrderValue: number;
   averagePreparationTimeMinutes: number;
   completedOrders: number;
+  pendingOrders?: number;
 }
 
 interface PendingOrdersResponse {

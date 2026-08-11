@@ -9,6 +9,14 @@ export interface Room {
   pricePerNight: number;
   maxAdults: number;
   maxKids: number;
+  image?: string;
+  images?: string[];
+  bedType?: 'TWIN' | 'DOUBLE' | 'QUEEN' | 'KING';
+  numBeds?: number;
+  numTvs?: number;
+  viewType?: 'CITY' | 'PANORAMIC' | 'SEA' | 'GARDEN' | 'MOUNTAIN' | 'POOL' | 'RIVER' | 'LANDMARK';
+  hasWifi?: boolean;
+  amenities?: string[];
 }
 
 export interface MaintenanceLog {

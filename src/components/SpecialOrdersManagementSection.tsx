@@ -189,7 +189,7 @@ export default function SpecialOrdersManagementSection() {
                         <Building size={14} />
                         {order.stayId}
                       </td>
-                      <td className="py-3 text-sm" style={{ color: colors.text.primary }}>{order.specialOfferId}</td>
+                      <td className="py-3 text-sm" style={{ color: colors.text.primary }}>{order.specialOffer?.title || '-'}</td>
                       <td className="py-3 text-sm font-bold flex items-center gap-2" style={{ color: colors.primary.goldLight }}>
                         <DollarSign size={14} />
                         {order.agreedPrice?.toLocaleString('ar-SA', { maximumFractionDigits: 0 })} ريال
