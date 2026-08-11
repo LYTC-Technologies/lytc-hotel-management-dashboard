@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Building2, Plus, Search, Loader2, Edit, Trash2, Save, Image as ImageIcon, DollarSign, Users, BedDouble, MapPin, Wifi, AlertCircle, Layers, Star } from 'lucide-react';
+import { Building2, Plus, Search, Loader2, Edit, Trash2, Save, Image as ImageIcon, DollarSign, Users, BedDouble, MapPin, Wifi, AlertCircle, Layers, Star, Tv } from 'lucide-react';
 import { apiService, RoomCategoryResponse } from '../services/api';
 
 const getBedTypeArabic = (bedType?: string): string => {
@@ -61,17 +61,27 @@ export default function RoomCategoriesSection() {
           <Layers size={48} className="text-gray-300 mx-auto mb-4" /><p className="text-gray-400 text-sm font-bold">لا توجد فئات</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-6">
           {filteredCategories.map((category: RoomCategoryResponse) => (
-            <motion.div key={category.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative">
-              <div className="relative bg-white border border-gray-200 rounded-2xl overflow-hidden hover:border-[#D4AF37]/30 hover:shadow-[0_20px_40px_rgba(212,175,55,0.15)] transition-all duration-500 hover:-translate-y-2 group">
-                <div className="relative h-48 overflow-hidden">
+            <motion.div key={category.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="relative">
+              <div className="relative backdrop-blur-xl border rounded-2xl overflow-hidden hover:border-[#D4AF37]/30 hover:shadow-[0_20px_40px_rgba(212,175,55,0.15)] transition-all duration-500 hover:-translate-y-2 group bg-white border-gray-200">
+                {/* Category Image */}
+                <div className="relative h-64 overflow-hidden">
                   {category.imageUrl ? (
-                    <img src={category.imageUrl} alt={category.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                    <img 
+                      src={category.imageUrl} 
+                      alt={category.name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                      onError={(e) => { 
+                        e.currentTarget.src = "https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=600";
+                      }}
+                    />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-[#AA7B30]/20 to-[#D4AF37]/20 flex items-center justify-center">
-                      <Building2 size={64} className="text-[#D4AF37]/40" />
-                    </div>
+                    <img 
+                      src="https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=600" 
+                      alt={category.name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    />
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-gray-900/70 via-gray-900/20 to-transparent" />
                   <div className="absolute top-3 right-3">
@@ -79,27 +89,70 @@ export default function RoomCategoriesSection() {
                       <Star size={12} className="fill-[#D4AF37]" /> فئة
                     </span>
                   </div>
-                  <div className="absolute bottom-3 left-3 right-3">
-                    <h3 className="text-2xl font-black font-mono text-white drop-shadow-lg">{category.name}</h3>
+                  <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
+                    <span className="text-4xl font-black font-mono text-white drop-shadow-lg">{category.name}</span>
                   </div>
                 </div>
 
-                <div className="p-5 space-y-4">
+                {/* Category Info */}
+                <div className="p-6 space-y-4">
+                  {/* Price */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-500 text-sm">السعر لليلة</span>
+                    <span className="text-2xl font-black text-[#AA7B30]">{category.price ? `${category.price.toLocaleString('ar-SA')} ر.س` : 'غير متاح'}</span>
+                  </div>
+
+                  {/* Details Grid */}
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-xl">
                       <Users size={16} className="text-gray-400" />
-                      <span className="font-bold text-gray-800">{category.maxAdults} بالغين</span>
+                      <div>
+                        <span className="block text-gray-400 text-xs">بالغين</span>
+                        <span className="font-bold text-gray-800">{category.maxAdults || 'غير متاح'}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-xl">
+                      <Users size={16} className="text-gray-400" />
+                      <div>
+                        <span className="block text-gray-400 text-xs">أطفال</span>
+                        <span className="font-bold text-gray-800">{category.maxKids || 'غير متاح'}</span>
+                      </div>
                     </div>
                     <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-xl">
                       <BedDouble size={16} className="text-gray-400" />
-                      <span className="font-bold text-gray-800">{getBedTypeArabic(category.bedType)}</span>
+                      <div>
+                        <span className="block text-gray-400 text-xs">نوع السرير</span>
+                        <span className="font-bold text-gray-800">{getBedTypeArabic(category.bedType)}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-xl">
+                      <span className="text-gray-400">عدد الأسرة:</span>
+                      <span className="font-bold text-gray-800">{category.numBeds || 'غير متاح'}</span>
+                    </div>
+                    <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-xl">
+                      <Tv size={16} className="text-gray-400" />
+                      <div>
+                        <span className="block text-gray-400 text-xs">تلفزيونات</span>
+                        <span className="font-bold text-gray-800">{category.numTvs || 'غير متاح'}</span>
+                      </div>
                     </div>
                     <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-xl">
                       <Wifi size={16} className={category.hasWifi ? "text-green-500" : "text-gray-400"} />
-                      <span className="font-bold text-gray-800">{category.hasWifi ? 'واي فاي' : 'بدون'}</span>
+                      <div>
+                        <span className="block text-gray-400 text-xs">واي فاي</span>
+                        <span className="font-bold text-gray-800">{category.hasWifi ? 'متاح' : 'غير متاح'}</span>
+                      </div>
                     </div>
                   </div>
 
+                  {category.description && (
+                    <div className="bg-gray-50 p-3 rounded-xl">
+                      <span className="block text-gray-400 text-xs mb-1">الوصف</span>
+                      <p className="text-sm text-gray-700 line-clamp-2 leading-relaxed">{category.description}</p>
+                    </div>
+                  )}
+
+                  {/* Actions */}
                   <div className="pt-3 border-t border-gray-100 flex gap-2">
                     <button className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 bg-amber-50 border border-amber-200 text-amber-700 rounded-lg text-sm font-bold hover:bg-amber-100 transition">
                       <DollarSign size={14} /> الأسعار
