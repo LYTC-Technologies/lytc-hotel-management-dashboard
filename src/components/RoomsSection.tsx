@@ -65,6 +65,7 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
   const [selectedRooms, setSelectedRooms] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
+  const [activeSection, setActiveSection] = useState<'rooms' | 'categories'>('rooms');
   
   // Create Room Modal State
   const [createRoomModalOpen, setCreateRoomModalOpen] = useState(false);
@@ -90,6 +91,22 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
   const [isCompressingImage, setIsCompressingImage] = useState(false);
   const [compressionProgress, setCompressionProgress] = useState<CompressionProgress | null>(null);
   const [roomCategories, setRoomCategories] = useState<any[]>([]);
+  const [isCategoriesLoading, setIsCategoriesLoading] = useState(false);
+  const [categoriesError, setCategoriesError] = useState<string | null>(null);
+  const [isCreateCategoryModalOpen, setIsCreateCategoryModalOpen] = useState(false);
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
+  const [createCategoryError, setCreateCategoryError] = useState<string | null>(null);
+  const [newCategory, setNewCategory] = useState({
+    name: '',
+    description: '',
+    price: 0,
+    numBeds: 1,
+    bedType: 'DOUBLE' as 'TWIN' | 'DOUBLE' | 'QUEEN' | 'KING',
+    maxAdults: 2,
+    maxKids: 0,
+    hasWifi: true,
+    numTvs: 1,
+  });
 
   // Edit Room Modal State
   const [editRoomModalOpen, setEditRoomModalOpen] = useState(false);
@@ -121,11 +138,46 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
   }, [filter, selectedFloor]);
 
   const loadRoomCategories = async () => {
+    setIsCategoriesLoading(true);
+    setCategoriesError(null);
     try {
       const response = await apiService.getRoomCategories(0, 100);
       setRoomCategories(response.content || []);
     } catch (error) {
+      setCategoriesError('فشل تحميل فئات الغرف');
       console.error('Failed to load room categories:', error);
+    } finally {
+      setIsCategoriesLoading(false);
+    }
+  };
+
+  const handleCreateCategory = async () => {
+    if (!newCategory.name || !newCategory.price) {
+      setCreateCategoryError('يرجى تعبئة الاسم والسعر');
+      return;
+    }
+
+    setIsCreatingCategory(true);
+    setCreateCategoryError(null);
+    try {
+      await apiService.createRoomCategory(newCategory);
+      setIsCreateCategoryModalOpen(false);
+      setNewCategory({
+        name: '',
+        description: '',
+        price: 0,
+        numBeds: 1,
+        bedType: 'DOUBLE',
+        maxAdults: 2,
+        maxKids: 0,
+        hasWifi: true,
+        numTvs: 1,
+      });
+      loadRoomCategories();
+    } catch (e) {
+      setCreateCategoryError('فشل إنشاء فئة الغرفة');
+    } finally {
+      setIsCreatingCategory(false);
     }
   };
 
@@ -473,13 +525,35 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
   return (
     <div className="space-y-6 pb-12">
       {/* Page Header */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-gray-200 pb-5">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-200 pb-5">
         <div>
           <h1 className="text-2xl font-black text-[#AA7B30]">إدارة وتتبع وحدات الفندق</h1>
           <p className="text-gray-500 text-xs mt-1">تتبع حالة كافة الغرف والأجنحة الفاخرة، والتحكم في مهام الصيانة والتنظيف المباشر.</p>
         </div>
         
-        {/* Add Room Button */}
+        {/* Section Toggle */}
+        <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-xl">
+          <button
+            onClick={() => setActiveSection('rooms')}
+            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all duration-300 ${
+              activeSection === 'rooms' ? 'bg-white text-[#AA7B30]' : 'text-gray-500'
+            }`}
+          >
+            الغرف
+          </button>
+          <button
+            onClick={() => setActiveSection('categories')}
+            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all duration-300 ${
+              activeSection === 'categories' ? 'bg-white text-[#AA7B30]' : 'text-gray-500'
+            }`}
+          >
+            فئات الغرف
+          </button>
+        </div>
+      </div>
+
+      {/* Add Room Button - Only show in rooms section */}
+      {activeSection === 'rooms' && (
         <button
           onClick={() => setCreateRoomModalOpen(true)}
           className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#AA7B30] to-[#D4AF37] text-black font-extrabold text-xs rounded-xl hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] transition-all duration-300"
@@ -487,38 +561,51 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
           <Plus size={16} />
           <span>إضافة غرفة</span>
         </button>
-      </div>
+      )}
 
-      {/* Floor Selector */}
-      <div className="flex items-center gap-3 overflow-x-auto pb-2">
-        <span className="text-xs font-bold text-gray-400 whitespace-nowrap">اختر الطابق:</span>
+      {/* Add Category Button - Only show in categories section */}
+      {activeSection === 'categories' && (
         <button
-          onClick={() => setSelectedFloor('all')}
-          className={`px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 whitespace-nowrap border ${
-            selectedFloor === 'all'
-              ? 'bg-[#D4AF37] text-white border-[#D4AF37]'
-              : 'bg-white text-gray-600 border-gray-200 hover:text-gray-900 hover:border-gray-300'
-          }`}
+          onClick={() => setIsCreateCategoryModalOpen(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#AA7B30] to-[#D4AF37] text-black font-extrabold text-xs rounded-xl hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] transition-all duration-300"
         >
-          جميع الطوابق
+          <Plus size={16} />
+          <span>إضافة فئة</span>
         </button>
-        {floors.map(floor => (
+      )}
+
+      {/* Floor Selector - Only show in rooms section */}
+      {activeSection === 'rooms' && (
+        <div className="flex items-center gap-3 overflow-x-auto pb-2">
+          <span className="text-xs font-bold text-gray-400 whitespace-nowrap">اختر الطابق:</span>
           <button
-            key={floor}
-            onClick={() => setSelectedFloor(floor)}
+            onClick={() => setSelectedFloor('all')}
             className={`px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 whitespace-nowrap border ${
-              selectedFloor === floor
+              selectedFloor === 'all'
                 ? 'bg-[#D4AF37] text-white border-[#D4AF37]'
                 : 'bg-white text-gray-600 border-gray-200 hover:text-gray-900 hover:border-gray-300'
             }`}
           >
-            الطابق {floor}
+            جميع الطوابق
           </button>
-        ))}
-      </div>
+          {floors.map(floor => (
+            <button
+              key={floor}
+              onClick={() => setSelectedFloor(floor)}
+              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 whitespace-nowrap border ${
+                selectedFloor === floor
+                  ? 'bg-[#D4AF37] text-white border-[#D4AF37]'
+                  : 'bg-white text-gray-600 border-gray-200 hover:text-gray-900 hover:border-gray-300'
+              }`}
+            >
+              الطابق {floor}
+            </button>
+          ))}
+        </div>
+      )}
 
-      {/* Filters & Actions Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 bg-white border border-gray-200 p-4 rounded-xl backdrop-blur-xl">
+      {/* Filters & Actions Bar - Only show in rooms section */}
+      {activeSection === 'rooms' && (
         <div className="flex flex-wrap items-center gap-3">
           {/* Search */}
           <div className="relative">
@@ -592,8 +679,8 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
         </div>
       </div>
 
-      {/* Room Cards - Grid View */}
-      {viewMode === 'grid' && (
+      {/* Room Cards - Grid View - Only show in rooms section */}
+      {activeSection === 'rooms' && viewMode === 'grid' && (
         <>
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
@@ -777,8 +864,8 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
         </>
       )}
 
-      {/* Room Cards - List View */}
-      {viewMode === 'list' && (
+      {/* Room Cards - List View - Only show in rooms section */}
+      {activeSection === 'rooms' && viewMode === 'list' && (
         <div className="space-y-4">
           {paginatedRooms.map((room) => (
             <motion.div
@@ -936,6 +1023,301 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
         </div>
       )}
 
+      {/* Categories Section */}
+      {activeSection === 'categories' && (
+        <div className="space-y-6">
+          {isCategoriesLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 size={24} className="text-[#D4AF37] animate-spin" />
+            </div>
+          ) : categoriesError ? (
+            <div className="text-center py-16 border rounded-2xl bg-white border-gray-200">
+              <X size={48} className="text-red-500 mx-auto mb-4" />
+              <h3 className="text-sm font-bold mb-2 text-gray-500">فشل تحميل فئات الغرف</h3>
+              <p className="text-xs mb-4 text-gray-400">{categoriesError}</p>
+              <button
+                onClick={loadRoomCategories}
+                className="px-4 py-2 text-black font-extrabold text-xs rounded-xl bg-gradient-to-r from-[#AA7B30] to-[#D4AF37]"
+              >
+                إعادة المحاولة
+              </button>
+            </div>
+          ) : roomCategories.length === 0 ? (
+            <div className="text-center py-16 border rounded-2xl bg-white border-gray-200">
+              <Layers size={48} className="text-gray-400 mx-auto mb-4" />
+              <h3 className="text-sm font-bold mb-2 text-gray-500">لا توجد فئات غرف</h3>
+              <p className="text-xs mb-4 text-gray-400">ابدأ بإضافة فئة غرفة جديدة</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {roomCategories.map((category: any) => (
+                <motion.div
+                  key={category.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="group relative bg-white border border-gray-200 rounded-2xl overflow-hidden hover:border-[#D4AF37]/30 hover:shadow-[0_10px_30px_rgba(212,175,55,0.1)] transition-all duration-300"
+                >
+                  <div className="relative h-64 overflow-hidden">
+                    {category.imageUrl ? (
+                      <img
+                        src={category.imageUrl}
+                        alt={category.name}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                        onError={(e) => {
+                          e.currentTarget.src = "https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=600";
+                        }}
+                      />
+                    ) : (
+                      <img
+                        src="https://images.unsplash.com/photo-1618773928121-c32242e63f39?w=600"
+                        alt={category.name}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                      />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-gray-900/70 via-gray-900/20 to-transparent" />
+                    <div className="absolute top-3 right-3">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border backdrop-blur-md shadow-lg bg-[#D4AF37]/20 text-[#AA7B30] border-[#D4AF37]/30">
+                        <Star size={12} className="fill-[#D4AF37]" /> فئة
+                      </span>
+                    </div>
+                    <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
+                      <span className="text-4xl font-black font-mono text-white drop-shadow-lg">{category.name}</span>
+                    </div>
+                  </div>
+
+                  <div className="p-6 space-y-4">
+                    {/* Price */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-500 text-sm">السعر لليلة</span>
+                      <span className="text-2xl font-black text-[#AA7B30]">{category.price ? `${category.price.toLocaleString('ar-SA')} ر.س` : 'غير متاح'}</span>
+                    </div>
+
+                    {/* Details Grid */}
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-xl">
+                        <Users size={16} className="text-gray-400" />
+                        <div>
+                          <span className="block text-gray-400 text-xs">بالغين</span>
+                          <span className="font-bold text-gray-800">{category.maxAdults || 'غير متاح'}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-xl">
+                        <Users size={16} className="text-gray-400" />
+                        <div>
+                          <span className="block text-gray-400 text-xs">أطفال</span>
+                          <span className="font-bold text-gray-800">{category.maxKids || 'غير متاح'}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-xl">
+                        <BedDouble size={16} className="text-gray-400" />
+                        <div>
+                          <span className="block text-gray-400 text-xs">نوع السرير</span>
+                          <span className="font-bold text-gray-800">{getBedTypeArabic(category.bedType)}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-xl">
+                        <span className="text-gray-400">عدد الأسرة:</span>
+                        <span className="font-bold text-gray-800">{category.numBeds || 'غير متاح'}</span>
+                      </div>
+                      <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-xl">
+                        <Tv size={16} className="text-gray-400" />
+                        <div>
+                          <span className="block text-gray-400 text-xs">تلفزيونات</span>
+                          <span className="font-bold text-gray-800">{category.numTvs || 'غير متاح'}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-xl">
+                        <Wifi size={16} className={category.hasWifi ? "text-green-500" : "text-gray-400"} />
+                        <div>
+                          <span className="block text-gray-400 text-xs">واي فاي</span>
+                          <span className="font-bold text-gray-800">{category.hasWifi ? 'متاح' : 'غير متاح'}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {category.description && (
+                      <div className="bg-gray-50 p-3 rounded-xl">
+                        <span className="block text-gray-400 text-xs mb-1">الوصف</span>
+                        <p className="text-sm text-gray-700 line-clamp-2 leading-relaxed">{category.description}</p>
+                      </div>
+                    )}
+
+                    {/* Actions */}
+                    <div className="pt-3 border-t border-gray-100 flex gap-2">
+                      <button className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 border border-gray-200 rounded-lg text-sm font-bold text-gray-600 hover:text-gray-900 hover:border-[#D4AF37]/30 hover:bg-amber-50 transition-all duration-300">
+                        <Edit size={16} />
+                        <span>تعديل</span>
+                      </button>
+                      <button className="px-3 py-2.5 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm font-bold hover:bg-red-100 transition">
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Create Category Modal */}
+      {isCreateCategoryModalOpen && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-gray-200 rounded-2xl p-6 max-w-md w-full relative space-y-4 shadow-xl">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-black text-[#AA7B30]">إضافة فئة غرفة جديدة</h3>
+              <button onClick={() => setIsCreateCategoryModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                <X size={20} />
+              </button>
+            </div>
+
+            {createCategoryError && (
+              <div className="text-red-500 text-xs font-bold bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
+                {createCategoryError}
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-bold text-gray-400 block mb-2">اسم الفئة *</label>
+                <input
+                  type="text"
+                  value={newCategory.name}
+                  onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
+                  className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
+                  placeholder="مثال: جناح ملكي"
+                  disabled={isCreatingCategory}
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-gray-400 block mb-2">الوصف</label>
+                <textarea
+                  value={newCategory.description}
+                  onChange={(e) => setNewCategory({ ...newCategory, description: e.target.value })}
+                  className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none resize-none"
+                  placeholder="وصف الفئة..."
+                  rows={3}
+                  disabled={isCreatingCategory}
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-gray-400 block mb-2">السعر لليلة *</label>
+                <input
+                  type="number"
+                  value={newCategory.price}
+                  onChange={(e) => setNewCategory({ ...newCategory, price: parseFloat(e.target.value) || 0 })}
+                  className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
+                  placeholder="مثال: 500"
+                  min="0"
+                  step="0.01"
+                  disabled={isCreatingCategory}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-gray-400 block mb-2">أقصى عدد بالغين</label>
+                  <input
+                    type="number"
+                    value={newCategory.maxAdults}
+                    onChange={(e) => setNewCategory({ ...newCategory, maxAdults: parseInt(e.target.value) || 1 })}
+                    className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
+                    min="1"
+                    disabled={isCreatingCategory}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-400 block mb-2">أقصى عدد أطفال</label>
+                  <input
+                    type="number"
+                    value={newCategory.maxKids}
+                    onChange={(e) => setNewCategory({ ...newCategory, maxKids: parseInt(e.target.value) || 0 })}
+                    className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
+                    min="0"
+                    disabled={isCreatingCategory}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-gray-400 block mb-2">عدد الأسرة</label>
+                  <input
+                    type="number"
+                    value={newCategory.numBeds}
+                    onChange={(e) => setNewCategory({ ...newCategory, numBeds: parseInt(e.target.value) || 1 })}
+                    className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
+                    min="1"
+                    disabled={isCreatingCategory}
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-400 block mb-2">نوع السرير</label>
+                  <select
+                    value={newCategory.bedType}
+                    onChange={(e) => setNewCategory({ ...newCategory, bedType: e.target.value as any })}
+                    className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
+                    disabled={isCreatingCategory}
+                  >
+                    <option value="TWIN">سريرين منفصلين</option>
+                    <option value="DOUBLE">سرير مزدوج</option>
+                    <option value="QUEEN">سرير كوين</option>
+                    <option value="KING">سرير كينج</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-gray-400 block mb-2">عدد التلفزيونات</label>
+                  <input
+                    type="number"
+                    value={newCategory.numTvs}
+                    onChange={(e) => setNewCategory({ ...newCategory, numTvs: parseInt(e.target.value) || 0 })}
+                    className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
+                    min="0"
+                    disabled={isCreatingCategory}
+                  />
+                </div>
+                <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-xl">
+                  <Wifi size={16} className={newCategory.hasWifi ? "text-green-500" : "text-gray-400"} />
+                  <div>
+                    <span className="block text-gray-400 text-xs">واي فاي</span>
+                    <span className="font-bold text-gray-800">{newCategory.hasWifi ? 'متاح' : 'غير متاح'}</span>
+                  </div>
+                  <button
+                    onClick={() => setNewCategory({ ...newCategory, hasWifi: !newCategory.hasWifi })}
+                    className="ml-auto text-[#D4AF37] hover:text-[#AA7B30]"
+                  >
+                    {newCategory.hasWifi ? <Check size={16} /> : <X size={16} />}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => setIsCreateCategoryModalOpen(false)}
+                className="w-1/3 py-3 bg-gray-100 border border-gray-200 rounded-xl text-gray-500 font-bold text-sm"
+                disabled={isCreatingCategory}
+              >
+                إلغاء
+              </button>
+              <button
+                onClick={handleCreateCategory}
+                className="w-2/3 py-3 bg-gradient-to-r from-[#AA7B30] to-[#D4AF37] text-white font-bold text-sm rounded-xl"
+                disabled={isCreatingCategory}
+              >
+                {isCreatingCategory ? 'جاري الإنشاء...' : 'إنشاء الفئة'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Room Details Modal */}
       <AnimatePresence>
         {selectedRoom && (
@@ -959,8 +1341,8 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
               
               <div className={`flex justify-between items-start border-b pb-4 ${isDark ? 'border-gray-200' : 'border-gray-200'}`}>
                 <div>
-                  <h3 className="text-2xl font-bold" style={{ color: colors.primary.goldLight }}>{selectedRoom.name || 'غرفة'}</h3>
-                  <p className="text-sm mt-1" style={{ color: colors.text.muted }}>{selectedRoom.type || '-'} • جناح {selectedRoom.number || '-'}</p>
+                  <h3 className="text-2xl font-bold" style={{ color: colors.primary.goldLight }}>{selectedRoom?.name || 'غرفة'}</h3>
+                  <p className="text-sm mt-1" style={{ color: colors.text.muted }}>{selectedRoom?.type || '-'} • جناح {selectedRoom?.number || '-'}</p>
                 </div>
                 <button
                   onClick={() => setSelectedRoom(null)}
@@ -971,7 +1353,7 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
               </div>
 
               {/* Room Image */}
-              {selectedRoom.image && (
+              {selectedRoom?.image && (
                 <div className="relative">
                   <img
                     src={selectedRoom.image}
@@ -985,14 +1367,14 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
               {/* Description */}
               <div className={`p-4 border rounded-xl ${isDark ? 'bg-gray-50 border-gray-200' : 'bg-gray-50 border-gray-200'}`}>
                 <h4 className="text-sm font-bold mb-2" style={{ color: colors.primary.goldLight }}>الوصف</h4>
-                <p className="text-sm" style={{ color: colors.text.secondary }}>{selectedRoom.description || 'غير متاح'}</p>
+                <p className="text-sm" style={{ color: colors.text.secondary }}>{selectedRoom?.description || 'غير متاح'}</p>
               </div>
 
               {/* Room Type & View */}
               <div className="grid grid-cols-2 gap-4">
                 <div className={`p-4 border rounded-xl ${isDark ? 'bg-gray-50 border-gray-200' : 'bg-gray-50 border-gray-200'}`}>
                   <h4 className="text-sm font-bold mb-2" style={{ color: colors.primary.goldLight }}>نوع الغرفة</h4>
-                  <p className="text-sm" style={{ color: colors.text.secondary }}>{selectedRoom.type || 'غير متاح'}</p>
+                  <p className="text-sm" style={{ color: colors.text.secondary }}>{selectedRoom?.type || 'غير متاح'}</p>
                 </div>
                 <div className={`p-4 border rounded-xl ${isDark ? 'bg-gray-50 border-gray-200' : 'bg-gray-50 border-gray-200'}`}>
                   <h4 className="text-sm font-bold mb-2" style={{ color: colors.primary.goldLight }}>الإطلالة</h4>
@@ -1364,290 +1746,291 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
         </AnimatePresence>
 
       {/* Edit Room Modal */}
-        <AnimatePresence>
-          {editRoomModalOpen && (
+      <AnimatePresence>
+        {editRoomModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setEditRoomModalOpen(false)}
+          >
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-              onClick={() => setEditRoomModalOpen(false)}
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white border border-gray-200 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
             >
-              <motion.div
-                initial={{ scale: 0.95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.95, opacity: 0 }}
-                className="bg-white border border-gray-200 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="p-6 space-y-5">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-black text-[#AA7B30]">تعديل الغرفة</h3>
-                    <button
-                      onClick={() => setEditRoomModalOpen(false)}
-                      className="p-2 hover:bg-gray-100 rounded-lg transition"
-                    >
-                      <X size={20} className="text-gray-400" />
-                    </button>
+              <div className="p-6 space-y-5">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-black text-[#AA7B30]">تعديل الغرفة</h3>
+                  <button
+                    onClick={() => setEditRoomModalOpen(false)}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition"
+                  >
+                    <X size={20} className="text-gray-400" />
+                  </button>
+                </div>
+
+                {updateRoomError && (
+                  <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm font-bold">
+                    {updateRoomError}
                   </div>
+                )}
 
-                  {updateRoomError && (
-                    <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm font-bold">
-                      {updateRoomError}
-                    </div>
-                  )}
+                {/* Room Number */}
+                <div>
+                  <label className="text-xs font-bold text-gray-400 block mb-2">رقم الغرفة *</label>
+                  <input
+                    type="text"
+                    value={editRoomData.roomNumber}
+                    onChange={(e) => setEditRoomData({ ...editRoomData, roomNumber: e.target.value })}
+                    className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
+                    placeholder="مثال: 501"
+                    disabled={isUpdatingRoom}
+                  />
+                </div>
 
-                  {/* Room Number */}
-                  <div>
-                    <label className="text-xs font-bold text-gray-400 block mb-2">رقم الغرفة *</label>
-                    <input
-                      type="text"
-                      value={editRoomData.roomNumber}
-                      onChange={(e) => setEditRoomData({ ...editRoomData, roomNumber: e.target.value })}
-                      className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
-                      placeholder="مثال: 501"
-                      disabled={isUpdatingRoom}
-                    />
-                  </div>
+                {/* Floor */}
+                <div>
+                  <label className="text-xs font-bold text-gray-400 block mb-2">الطابق</label>
+                  <input
+                    type="number"
+                    value={editRoomData.floor}
+                    onChange={(e) => setEditRoomData({ ...editRoomData, floor: parseInt(e.target.value) })}
+                    className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
+                    placeholder="مثال: 5"
+                    disabled={isUpdatingRoom}
+                  />
+                </div>
 
-                  {/* Floor */}
-                  <div>
-                    <label className="text-xs font-bold text-gray-400 block mb-2">الطابق</label>
-                    <input
-                      type="number"
-                      value={editRoomData.floor}
-                      onChange={(e) => setEditRoomData({ ...editRoomData, floor: parseInt(e.target.value) })}
-                      className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
-                      placeholder="مثال: 5"
-                      disabled={isUpdatingRoom}
-                    />
-                  </div>
+                {/* Price */}
+                <div>
+                  <label className="text-xs font-bold text-gray-400 block mb-2">السعر لليلة *</label>
+                  <input
+                    type="number"
+                    value={editRoomData.price}
+                    onChange={(e) => setEditRoomData({ ...editRoomData, price: parseFloat(e.target.value) })}
+                    className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
+                    placeholder="مثال: 1500"
+                    disabled={isUpdatingRoom}
+                  />
+                </div>
 
-                  {/* Price */}
-                  <div>
-                    <label className="text-xs font-bold text-gray-400 block mb-2">السعر لليلة *</label>
-                    <input
-                      type="number"
-                      value={editRoomData.price}
-                      onChange={(e) => setEditRoomData({ ...editRoomData, price: parseFloat(e.target.value) })}
-                      className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
-                      placeholder="مثال: 1500"
-                      disabled={isUpdatingRoom}
-                    />
-                  </div>
+                {/* Room Type */}
+                <div>
+                  <label className="text-xs font-bold text-gray-400 block mb-2">نوع الغرفة</label>
+                  <select
+                    value={editRoomData.roomType}
+                    onChange={(e) => setEditRoomData({ ...editRoomData, roomType: e.target.value as 'SINGLE' | 'DOUBLE' | 'SUITE' })}
+                    className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
+                    disabled={isUpdatingRoom}
+                  >
+                    <option value="SINGLE">غرفة مفردة</option>
+                    <option value="DOUBLE">غرفة مزدوجة</option>
+                    <option value="SUITE">جناح</option>
+                  </select>
+                </div>
 
-                  {/* Room Type */}
-                  <div>
-                    <label className="text-xs font-bold text-gray-400 block mb-2">نوع الغرفة</label>
-                    <select
-                      value={editRoomData.roomType}
-                      onChange={(e) => setEditRoomData({ ...editRoomData, roomType: e.target.value as 'SINGLE' | 'DOUBLE' | 'SUITE' })}
-                      className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
-                      disabled={isUpdatingRoom}
-                    >
-                      <option value="SINGLE">غرفة مفردة</option>
-                      <option value="DOUBLE">غرفة مزدوجة</option>
-                      <option value="SUITE">جناح</option>
-                    </select>
-                  </div>
+                {/* Bed Type */}
+                <div>
+                  <label className="text-xs font-bold text-gray-400 block mb-2">نوع السرير</label>
+                  <select
+                    value={editRoomData.bedType}
+                    onChange={(e) => setEditRoomData({ ...editRoomData, bedType: e.target.value as 'TWIN' | 'DOUBLE' | 'QUEEN' | 'KING' })}
+                    className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
+                    disabled={isUpdatingRoom}
+                  >
+                    <option value="TWIN">سريرين منفصلين</option>
+                    <option value="DOUBLE">سرير مزدوج</option>
+                    <option value="QUEEN">سرير كوين</option>
+                    <option value="KING">سرير كينج</option>
+                  </select>
+                </div>
 
-                  {/* Bed Type */}
-                  <div>
-                    <label className="text-xs font-bold text-gray-400 block mb-2">نوع السرير</label>
-                    <select
-                      value={editRoomData.bedType}
-                      onChange={(e) => setEditRoomData({ ...editRoomData, bedType: e.target.value as 'TWIN' | 'DOUBLE' | 'QUEEN' | 'KING' })}
-                      className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
-                      disabled={isUpdatingRoom}
-                    >
-                      <option value="TWIN">سريرين منفصلين</option>
-                      <option value="DOUBLE">سرير مزدوج</option>
-                      <option value="QUEEN">سرير كوين</option>
-                      <option value="KING">سرير كينج</option>
-                    </select>
-                  </div>
+                {/* Number of Beds */}
+                <div>
+                  <label className="text-xs font-bold text-gray-400 block mb-2">عدد الأسرة</label>
+                  <input
+                    type="number"
+                    value={editRoomData.numBeds}
+                    onChange={(e) => setEditRoomData({ ...editRoomData, numBeds: parseInt(e.target.value) })}
+                    className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
+                    placeholder="مثال: 2"
+                    disabled={isUpdatingRoom}
+                  />
+                </div>
 
-                  {/* Number of Beds */}
-                  <div>
-                    <label className="text-xs font-bold text-gray-400 block mb-2">عدد الأسرة</label>
-                    <input
-                      type="number"
-                      value={editRoomData.numBeds}
-                      onChange={(e) => setEditRoomData({ ...editRoomData, numBeds: parseInt(e.target.value) })}
-                      className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
-                      placeholder="مثال: 2"
-                      disabled={isUpdatingRoom}
-                    />
-                  </div>
+                {/* Max Adults */}
+                <div>
+                  <label className="text-xs font-bold text-gray-400 block mb-2">أقصى عدد بالغين</label>
+                  <input
+                    type="number"
+                    value={editRoomData.maxAdults}
+                    onChange={(e) => setEditRoomData({ ...editRoomData, maxAdults: parseInt(e.target.value) })}
+                    className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
+                    placeholder="مثال: 2"
+                    disabled={isUpdatingRoom}
+                  />
+                </div>
 
-                  {/* Max Adults */}
-                  <div>
-                    <label className="text-xs font-bold text-gray-400 block mb-2">أقصى عدد بالغين</label>
-                    <input
-                      type="number"
-                      value={editRoomData.maxAdults}
-                      onChange={(e) => setEditRoomData({ ...editRoomData, maxAdults: parseInt(e.target.value) })}
-                      className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
-                      placeholder="مثال: 2"
-                      disabled={isUpdatingRoom}
-                    />
-                  </div>
+                {/* Max Kids */}
+                <div>
+                  <label className="text-xs font-bold text-gray-400 block mb-2">أقصى عدد أطفال</label>
+                  <input
+                    type="number"
+                    value={editRoomData.maxKids}
+                    onChange={(e) => setEditRoomData({ ...editRoomData, maxKids: parseInt(e.target.value) })}
+                    className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
+                    placeholder="مثال: 1"
+                    disabled={isUpdatingRoom}
+                  />
+                </div>
 
-                  {/* Max Kids */}
-                  <div>
-                    <label className="text-xs font-bold text-gray-400 block mb-2">أقصى عدد أطفال</label>
-                    <input
-                      type="number"
-                      value={editRoomData.maxKids}
-                      onChange={(e) => setEditRoomData({ ...editRoomData, maxKids: parseInt(e.target.value) })}
-                      className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
-                      placeholder="مثال: 1"
-                      disabled={isUpdatingRoom}
-                    />
-                  </div>
+                {/* Number of TVs */}
+                <div>
+                  <label className="text-xs font-bold text-gray-400 block mb-2">عدد التلفزيونات</label>
+                  <input
+                    type="number"
+                    value={editRoomData.numTvs}
+                    onChange={(e) => setEditRoomData({ ...editRoomData, numTvs: parseInt(e.target.value) })}
+                    className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
+                    placeholder="مثال: 1"
+                    disabled={isUpdatingRoom}
+                  />
+                </div>
 
-                  {/* Number of TVs */}
-                  <div>
-                    <label className="text-xs font-bold text-gray-400 block mb-2">عدد التلفزيونات</label>
-                    <input
-                      type="number"
-                      value={editRoomData.numTvs}
-                      onChange={(e) => setEditRoomData({ ...editRoomData, numTvs: parseInt(e.target.value) })}
-                      className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
-                      placeholder="مثال: 1"
-                      disabled={isUpdatingRoom}
-                    />
-                  </div>
+                {/* View Type */}
+                <div>
+                  <label className="text-xs font-bold text-gray-400 block mb-2">الإطلالة</label>
+                  <select
+                    value={editRoomData.viewType}
+                    onChange={(e) => setEditRoomData({ ...editRoomData, viewType: e.target.value as 'CITY' | 'PANORAMIC' | 'SEA' | 'GARDEN' | 'MOUNTAIN' | 'POOL' | 'RIVER' | 'LANDMARK' })}
+                    className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
+                    disabled={isUpdatingRoom}
+                  >
+                    <option value="CITY">المدينة</option>
+                    <option value="PANORAMIC">بانورامية</option>
+                    <option value="SEA">البحر</option>
+                    <option value="GARDEN">الحديقة</option>
+                    <option value="MOUNTAIN">الجبل</option>
+                    <option value="POOL">المسبح</option>
+                    <option value="RIVER">النهر</option>
+                    <option value="LANDMARK">معلم سياحي</option>
+                  </select>
+                </div>
 
-                  {/* View Type */}
-                  <div>
-                    <label className="text-xs font-bold text-gray-400 block mb-2">الإطلالة</label>
-                    <select
-                      value={editRoomData.viewType}
-                      onChange={(e) => setEditRoomData({ ...editRoomData, viewType: e.target.value as 'CITY' | 'PANORAMIC' | 'SEA' | 'GARDEN' | 'MOUNTAIN' | 'POOL' | 'RIVER' | 'LANDMARK' })}
-                      className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
-                      disabled={isUpdatingRoom}
-                    >
-                      <option value="CITY">المدينة</option>
-                      <option value="PANORAMIC">بانورامية</option>
-                      <option value="SEA">البحر</option>
-                      <option value="GARDEN">الحديقة</option>
-                      <option value="MOUNTAIN">الجبل</option>
-                      <option value="POOL">المسبح</option>
-                      <option value="RIVER">النهر</option>
-                      <option value="LANDMARK">معلم سياحي</option>
-                    </select>
-                  </div>
+                {/* Wi-Fi */}
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="editHasWifi"
+                    checked={editRoomData.hasWifi}
+                    onChange={(e) => setEditRoomData({ ...editRoomData, hasWifi: e.target.checked })}
+                    className="w-5 h-5 rounded border-gray-300 text-[#D4AF37] focus:ring-[#D4AF37]"
+                    disabled={isUpdatingRoom}
+                  />
+                  <label htmlFor="editHasWifi" className="text-xs font-bold text-gray-400">متاح Wi-Fi</label>
+                </div>
 
-                  {/* Wi-Fi */}
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="checkbox"
-                      id="editHasWifi"
-                      checked={editRoomData.hasWifi}
-                      onChange={(e) => setEditRoomData({ ...editRoomData, hasWifi: e.target.checked })}
-                      className="w-5 h-5 rounded border-gray-300 text-[#D4AF37] focus:ring-[#D4AF37]"
-                      disabled={isUpdatingRoom}
-                    />
-                    <label htmlFor="editHasWifi" className="text-xs font-bold text-gray-400">متاح Wi-Fi</label>
-                  </div>
+                {/* Status */}
+                <div>
+                  <label className="text-xs font-bold text-gray-400 block mb-2">الحالة</label>
+                  <select
+                    value={editRoomData.status}
+                    onChange={(e) => setEditRoomData({ ...editRoomData, status: e.target.value as 'AVAILABLE' | 'OCCUPIED' | 'CLEANING' | 'MAINTENANCE' })}
+                    className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
+                    disabled={isUpdatingRoom}
+                  >
+                    <option value="AVAILABLE">متاح</option>
+                    <option value="OCCUPIED">مشغول</option>
+                    <option value="CLEANING">تنظيف</option>
+                    <option value="MAINTENANCE">صيانة</option>
+                  </select>
+                </div>
 
-                  {/* Status */}
-                  <div>
-                    <label className="text-xs font-bold text-gray-400 block mb-2">الحالة</label>
-                    <select
-                      value={editRoomData.status}
-                      onChange={(e) => setEditRoomData({ ...editRoomData, status: e.target.value as 'AVAILABLE' | 'OCCUPIED' | 'CLEANING' | 'MAINTENANCE' })}
-                      className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none"
-                      disabled={isUpdatingRoom}
-                    >
-                      <option value="AVAILABLE">متاح</option>
-                      <option value="OCCUPIED">مشغول</option>
-                      <option value="CLEANING">تنظيف</option>
-                      <option value="MAINTENANCE">صيانة</option>
-                    </select>
-                  </div>
-
-                  {/* Room Image Upload */}
-                  <div>
-                    <label className="text-xs font-bold text-gray-400 block mb-2">صورة الغرفة</label>
-                    <div className="space-y-3">
-                      {editRoomImagePreview ? (
-                        <div className="relative">
-                          <img
-                            src={editRoomImagePreview}
-                            alt="Room preview"
-                            className="w-full h-48 object-cover rounded-xl border border-gray-200"
-                          />
-                          <button
-                            onClick={handleEditRemoveImage}
-                            className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
-                            disabled={isUpdatingRoom || isCompressingImage}
-                          >
-                            <X size={16} />
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-[#D4AF37] transition cursor-pointer">
-                          <input
-                            type="file"
-                            accept="image/jpeg,image/jpg,image/png,image/webp"
-                            onChange={handleEditImageSelect}
-                            className="hidden"
-                            id="editRoomImageInput"
-                            disabled={isUpdatingRoom || isCompressingImage}
-                          />
-                          <label htmlFor="editRoomImageInput" className="cursor-pointer">
-                            <ImageIcon size={32} className="mx-auto text-gray-400 mb-2" />
-                            <p className="text-xs text-gray-500">انقر لاختيار صورة</p>
-                            <p className="text-xs text-gray-400 mt-1">JPG, PNG, WebP (سيتم ضغط الصورة تلقائياً)</p>
-                          </label>
-                        </div>
-                      )}
-                      {compressionProgress && (
-                        <div className="text-xs text-gray-500">
-                          {compressionProgress.isCompressing && <span>جاري ضغط الصورة... {compressionProgress.progress}%</span>}
-                          {compressionProgress.isUploading && <span>جاري رفع الصورة...</span>}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Description */}
-                  <div>
-                    <label className="text-xs font-bold text-gray-400 block mb-2">الوصف</label>
-                    <textarea
-                      value={editRoomData.description}
-                      onChange={(e) => setEditRoomData({ ...editRoomData, description: e.target.value })}
-                      className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none resize-none"
-                      rows={3}
-                      placeholder="وصف الغرفة..."
-                      disabled={isUpdatingRoom}
-                    />
-                  </div>
-
-                  <div className="flex gap-3 pt-4 border-t border-gray-200">
-                    <button
-                      onClick={handleUpdateRoom}
-                      disabled={isUpdatingRoom}
-                      className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-[#AA7B30] via-[#D4AF37] to-[#E6C587] text-black font-bold rounded-xl hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isUpdatingRoom ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                      <span>{isUpdatingRoom ? 'جاري التحديث...' : 'تحديث الغرفة'}</span>
-                    </button>
-                    <button
-                      onClick={() => setEditRoomModalOpen(false)}
-                      disabled={isUpdatingRoom}
-                      className="flex-1 px-6 py-3 bg-gray-50 border border-gray-200 text-gray-400 font-bold rounded-xl hover:text-gray-800 hover:border-gray-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      إلغاء
-                    </button>
+                {/* Room Image Upload */}
+                <div>
+                  <label className="text-xs font-bold text-gray-400 block mb-2">صورة الغرفة</label>
+                  <div className="space-y-3">
+                    {editRoomImagePreview ? (
+                      <div className="relative">
+                        <img
+                          src={editRoomImagePreview}
+                          alt="Room preview"
+                          className="w-full h-48 object-cover rounded-xl border border-gray-200"
+                        />
+                        <button
+                          onClick={handleEditRemoveImage}
+                          className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+                          disabled={isUpdatingRoom || isCompressingImage}
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-[#D4AF37] transition cursor-pointer">
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/jpg,image/png,image/webp"
+                          onChange={handleEditImageSelect}
+                          className="hidden"
+                          id="editRoomImageInput"
+                          disabled={isUpdatingRoom || isCompressingImage}
+                        />
+                        <label htmlFor="editRoomImageInput" className="cursor-pointer">
+                          <ImageIcon size={32} className="mx-auto text-gray-400 mb-2" />
+                          <p className="text-xs text-gray-500">انقر لاختيار صورة</p>
+                          <p className="text-xs text-gray-400 mt-1">JPG, PNG, WebP (سيتم ضغط الصورة تلقائياً)</p>
+                        </label>
+                      </div>
+                    )}
+                    {compressionProgress && (
+                      <div className="text-xs text-gray-500">
+                        {compressionProgress.isCompressing && <span>جاري ضغط الصورة... {compressionProgress.progress}%</span>}
+                        {compressionProgress.isUploading && <span>جاري رفع الصورة...</span>}
+                      </div>
+                    )}
                   </div>
                 </div>
-              </motion.div>
+
+                {/* Description */}
+                <div>
+                  <label className="text-xs font-bold text-gray-400 block mb-2">الوصف</label>
+                  <textarea
+                    value={editRoomData.description}
+                    onChange={(e) => setEditRoomData({ ...editRoomData, description: e.target.value })}
+                    className="w-full bg-gray-50 border border-gray-200 focus:border-[#D4AF37] rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none resize-none"
+                    rows={3}
+                    placeholder="وصف الغرفة..."
+                    disabled={isUpdatingRoom}
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-4 border-t border-gray-200">
+                  <button
+                    onClick={handleUpdateRoom}
+                    disabled={isUpdatingRoom}
+                    className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-[#AA7B30] via-[#D4AF37] to-[#E6C587] text-black font-bold rounded-xl hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isUpdatingRoom ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                    <span>{isUpdatingRoom ? 'جاري التحديث...' : 'تحديث الغرفة'}</span>
+                  </button>
+                  <button
+                    onClick={() => setEditRoomModalOpen(false)}
+                    disabled={isUpdatingRoom}
+                    className="flex-1 px-6 py-3 bg-gray-50 border border-gray-200 text-gray-400 font-bold rounded-xl hover:text-gray-800 hover:border-gray-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    إلغاء
+                  </button>
+                </div>
+              </div>
             </motion.div>
-          )}
-        </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      </div>
     </div>
   );
 }

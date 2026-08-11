@@ -57,6 +57,13 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
   const [availableRoomsForApproval, setAvailableRoomsForApproval] = useState<RoomResponse[]>([]);
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+  const [showPendingRequests, setShowPendingRequests] = useState(false);
+  const [guestName, setGuestName] = useState('');
+  const [selectedRoomNumber, setSelectedRoomNumber] = useState('');
+  const [checkIn, setCheckIn] = useState('');
+  const [checkOut, setCheckOut] = useState('');
+  const [adults, setAdults] = useState(2);
+  const [children, setChildren] = useState(0);
 
   useEffect(() => { loadStays(); loadReservationRequests(); }, []);
 
@@ -129,7 +136,7 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
         console.error('Failed to update room status:', updateError);
       }
       
-      setIsCreateOpen(false);
+      setIsCreateModalOpen(false);
       setGuestName(''); setSelectedRoomNumber(''); setCheckIn(''); setCheckOut(''); setAdults(2); setChildren(0);
       loadStays();
     } catch (e: any) {
@@ -323,7 +330,7 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
               <span>طلبات معلقة ({filteredRequests.length})</span>
             </button>
           )}
-          <button onClick={() => { loadAvailableRooms(); setIsCreateOpen(true); }} className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#AA7B30] to-[#D4AF37] text-white font-bold text-sm rounded-xl shadow-lg hover:shadow-xl transition">
+          <button onClick={() => { loadAvailableRooms(); setIsCreateModalOpen(true); }} className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#AA7B30] to-[#D4AF37] text-white font-bold text-sm rounded-xl shadow-lg hover:shadow-xl transition">
             <Plus size={18} /><span>حجز جديد</span>
           </button>
         </div>
@@ -811,12 +818,12 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
 
       {/* Create Reservation Modal */}
       <AnimatePresence>
-        {isCreateOpen && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setIsCreateOpen(false)}>
+        {isCreateModalOpen && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setIsCreateModalOpen(false)}>
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} onClick={e => e.stopPropagation()} className="bg-white border border-gray-200 rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-bold text-[#AA7B30]">حجز جناح جديد</h3>
-                <button onClick={() => setIsCreateOpen(false)} className="p-2 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 transition">
+                <button onClick={() => setIsCreateModalOpen(false)} className="p-2 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 transition">
                   <X size={18} />
                 </button>
               </div>
@@ -891,7 +898,7 @@ export default function ReservationsSection({ onCheckout }: { onCheckout?: () =>
                 <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
                   <button
                     type="button"
-                    onClick={() => setIsCreateOpen(false)}
+                    onClick={() => setIsCreateModalOpen(false)}
                     className="px-4 py-2 border border-gray-300 rounded-xl text-sm font-bold transition bg-gray-100 text-gray-600 hover:text-gray-900"
                   >
                     إلغاء

@@ -19,7 +19,6 @@ import RestaurantStatsSection from './components/RestaurantStatsSection';
 import CafeStatsSection from './components/CafeStatsSection';
 import SpecialOffersSection from './components/SpecialOffersSection';
 import AIAssistantSection from './components/AIAssistantSection';
-import RoomCategoriesSection from './components/RoomCategoriesSection';
 import { ThemeProvider } from './contexts/ThemeContext';
 
 import { apiService } from './services/api';
@@ -64,7 +63,7 @@ function App() {
   }, []);
 
   // Active view tab state with # routing
-  const [activeTab, setActiveTab] = useState<'لوحة التحكم' | 'الحجوزات' | 'الغرف' | 'فئات الغرف' | 'النزلاء' | 'الطلبات' | 'إدارة المستخدمين' | 'الطلبات الخاصة' | 'إحصائيات المطعم' | 'إحصائيات المقهى' | 'العروض والمزايا' | 'المساعد الذكي'>(() => {
+  const [activeTab, setActiveTab] = useState<'لوحة التحكم' | 'الحجوزات' | 'الغرف' | 'النزلاء' | 'الطلبات' | 'إدارة المستخدمين' | 'الطلبات الخاصة' | 'إحصائيات المطعم' | 'إحصائيات المقهى' | 'العروض والمزايا' | 'المساعد الذكي'>(() => {
     const hash = window.location.hash.replace('#', '');
     if (hash) {
       try {
@@ -82,7 +81,6 @@ function App() {
       { label: 'لوحة التحكم', icon: <Building size={16} />, roles: ['MANAGER', 'STAFF', 'CHEF', 'BARISTA', 'ROOM_SERVICE'] },
       { label: 'الحجوزات', icon: <Calendar size={16} />, roles: ['MANAGER', 'STAFF'] },
       { label: 'الغرف', icon: <BedDouble size={16} />, roles: ['MANAGER', 'STAFF', 'ROOM_SERVICE'] },
-      { label: 'فئات الغرف', icon: <Layers size={16} />, roles: ['MANAGER', 'STAFF'] },
       { label: 'الطلبات', icon: <Coffee size={16} />, roles: ['MANAGER', 'STAFF', 'CHEF'] },
       { label: 'المساعد الذكي', icon: <Bot size={16} />, roles: ['MANAGER', 'STAFF', 'CHEF', 'BARISTA', 'ROOM_SERVICE'] },
       { label: 'العروض والمزايا', icon: <Sparkles size={16} />, roles: ['MANAGER', 'STAFF'] },
@@ -355,8 +353,6 @@ function App() {
         );
       case 'الغرف':
         return <RoomsSection />;
-      case 'فئات الغرف':
-        return <RoomCategoriesSection />;
       case 'الحجوزات':
         return <ReservationsSection />;
       case 'النزلاء':
