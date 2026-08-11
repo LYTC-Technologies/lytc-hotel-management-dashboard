@@ -929,7 +929,7 @@ export default function RoomsSection({ rooms: initialRooms = [], onUpdateRoomSta
                         <span>Wi-Fi</span>
                       </div>
                     )}
-                    {room.numTvs > 0 && (
+                    {(room.numTvs || 0) > 0 && (
                       <div className="flex items-center gap-2" style={{ color: colors.text.secondary }}>
                         <Tv size={14} style={{ color: colors.primary.gold }} />
                         <span>TV ({room.numTvs})</span>
