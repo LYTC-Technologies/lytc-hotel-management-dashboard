@@ -108,8 +108,8 @@ function App() {
     }
   }, [currentUser?.role, accessibleTabs, activeTab]);
 
-  const handleTabChange = (tab: any) => {
-    setActiveTab(tab);
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab as any);
     window.location.hash = encodeURIComponent(tab);
   };
 
@@ -161,7 +161,7 @@ function App() {
   });
 
   // UI Notifications dropdown & Global search
-  const [notifications, setNotifications] = useState([
+  const [notifications, setNotifications] = useState<{ id: string; title: string; time: string; read: boolean }[]>([
     { id: 'n1', title: 'وصول نزيل جديد للجناح البنتهاوس 501', time: 'منذ 15 دقيقة', read: false },
     { id: 'n2', title: 'تم اكتمال تعقيم وتجهيز الغرفة 301', time: 'منذ 34 دقيقة', read: false },
     { id: 'n3', title: 'بلاغ صيانة عاجل جديد لجناح 202', time: 'منذ ساعتين', read: true }
@@ -175,7 +175,7 @@ function App() {
     enabled: isLoggedIn,
     onConnect: () => setSseConnected(true),
     onDisconnect: () => setSseConnected(false),
-    onEvent: (event: any) => {
+    onEvent: (event) => {
       console.log('SSE Event:', event);
       // Handle real-time events here
     }
@@ -292,17 +292,17 @@ function App() {
 
   // State Manipulator Functions
   const handleAddReservation = (newRes: Reservation) => {
-    setReservations((prev: any) => [newRes, ...prev]);
+    setReservations((prev: Reservation[]) => [newRes, ...prev]);
 
-    setNotifications((prev: any) => [
+    setNotifications((prev: { id: string; title: string; time: string; read: boolean }[]) => [
       { id: Date.now().toString(), title: `حجز مؤكد وجديد باسم ${newRes.guestName} للجناح ${newRes.roomNumber}`, time: 'الآن', read: false },
       ...prev
     ]);
   };
 
   const handleUpdateReservationStatus = (resId: string, status: Reservation['status']) => {
-    setReservations((prev: any[]) => prev.map((res: { id: string; }) => res.id === resId ? { ...res, status } : res));
-    const targetRes = reservations.find((r: { id: string; }) => r.id === resId);
+    setReservations((prev: Reservation[]) => prev.map((res: Reservation) => res.id === resId ? { ...res, status } : res));
+    const targetRes = reservations.find((r: Reservation) => r.id === resId);
     if (!targetRes) return;
 
     if (status === 'checked_out') {
@@ -315,10 +315,10 @@ function App() {
         priority: 'high',
         lastCleaned: 'الآن'
       };
-      setHousekeeping((prev: any) => [newTask, ...prev]);
+      setHousekeeping((prev: HousekeepingTask[]) => [newTask, ...prev]);
     }
 
-    setNotifications((prev: any) => [
+    setNotifications((prev: { id: string; title: string; time: string; read: boolean }[]) => [
       {
         id: Date.now().toString(),
         title: `تعديل حالة الإقامة للنزيل ${targetRes.guestName} إلى: ${
@@ -332,27 +332,27 @@ function App() {
   };
 
   const handleUpdateRequestStatus = (reqId: string, status: ServiceRequest['status']) => {
-    setRequests((prev: any[]) => prev.map((r: { id: string; }) => r.id === reqId ? { ...r, status } : r));
+    setRequests((prev: ServiceRequest[]) => prev.map((r: ServiceRequest) => r.id === reqId ? { ...r, status } : r));
   };
 
   const handleAssignRequest = (reqId: string, assignee: string) => {
-    setRequests((prev: any[]) => prev.map((r: { id: string; }) => r.id === reqId ? { ...r, assignee, status: 'assigned' } : r));
+    setRequests((prev: ServiceRequest[]) => prev.map((r: ServiceRequest) => r.id === reqId ? { ...r, assignee, status: 'assigned' } : r));
   };
 
   const handleUpdateTaskStatus = (taskId: string, status: HousekeepingTask['status']) => {
-    setHousekeeping((prev: any[]) => prev.map((t: { id: string; }) => t.id === taskId ? { ...t, status } : t));
+    setHousekeeping((prev: HousekeepingTask[]) => prev.map((t: HousekeepingTask) => t.id === taskId ? { ...t, status } : t));
   };
 
   const handleUpdateTicketStatus = (ticketId: string, status: MaintenanceTicket['status']) => {
-    setMaintenance((prev: any[]) => prev.map((t: { id: string; }) => t.id === ticketId ? { ...t, status } : t));
+    setMaintenance((prev: MaintenanceTicket[]) => prev.map((t: MaintenanceTicket) => t.id === ticketId ? { ...t, status } : t));
   };
 
   const handleUpdateOrderStatus = (orderId: string, status: RestaurantOrder['status']) => {
-    setOrders((prev: any[]) => prev.map((o: { id: string; }) => o.id === orderId ? { ...o, status } : o));
+    setOrders((prev: RestaurantOrder[]) => prev.map((o: RestaurantOrder) => o.id === orderId ? { ...o, status } : o));
   };
 
   const handleUpdateInvoiceStatus = (invId: string, status: Invoice['status']) => {
-    setInvoices((prev: any[]) => prev.map((inv: { id: string; }) => inv.id === invId ? { ...inv, status } : inv));
+    setInvoices((prev: Invoice[]) => prev.map((inv: Invoice) => inv.id === invId ? { ...inv, status } : inv));
   };
 
   // Render modular views
@@ -597,7 +597,7 @@ function App() {
               <input
                 type="text"
                 value={quickBookName}
-                onChange={(e: { target: { value: any; }; }) => setQuickBookName(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQuickBookName(e.target.value)}
                 className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#D4AF37] transition"
                 placeholder="مثال: الشيخ سليمان آل سعود"
               />
@@ -605,7 +605,7 @@ function App() {
               <input
                 type="text"
                 value={quickBookRoom}
-                onChange={(e: { target: { value: any; }; }) => setQuickBookRoom(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQuickBookRoom(e.target.value)}
                 className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#D4AF37] transition"
                 placeholder="مثال: 101"
               />
@@ -657,14 +657,14 @@ function App() {
               <input
                 type="text"
                 value={quickReqRoom}
-                onChange={(e: { target: { value: any; }; }) => setQuickReqRoom(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQuickReqRoom(e.target.value)}
                 className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#D4AF37] transition"
                 placeholder="مثال: 501"
               />
               <label className="text-sm font-bold text-gray-600 block">تصنيف الخدمة:</label>
               <select
                 value={quickReqType}
-                onChange={(e: { target: { value: any; }; }) => setQuickReqType(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setQuickReqType(e.target.value)}
                 className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-800 focus:outline-none focus:border-[#D4AF37] transition"
               >
                 <option value="room_service">خدمة غرف وطعام</option>
@@ -676,7 +676,7 @@ function App() {
               <label className="text-sm font-bold text-gray-600 block">تفاصيل الطلب:</label>
               <textarea
                 value={quickReqDetails}
-                onChange={(e: { target: { value: any; }; }) => setQuickReqDetails(e.target.value)}
+                onChange={(e) => setQuickReqDetails(e.target.value)}
                 className="w-full h-20 bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm text-gray-800 focus:outline-none focus:border-[#D4AF37] transition resize-none"
                 placeholder="توصيل قهوة عربية بالزعفران..."
               />
@@ -699,7 +699,7 @@ function App() {
                       priority: 'medium',
                       timestamp: new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })
                     };
-                    setRequests((prev: any) => [newReq, ...prev]);
+                    setRequests((prev: ServiceRequest[]) => [newReq, ...prev]);
                     setQuickRequestOpen(false);
                     setQuickReqRoom('');
                     setQuickReqDetails('');
